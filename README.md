@@ -1,21 +1,37 @@
 # Ralph for Claude Code - Windows PowerShell Version
 
-Native Windows PowerShell port of Ralph, the autonomous AI development loop system.
+Native Windows PowerShell autonomous AI development loop system. Supports multiple AI CLIs (Claude, Droid, Aider) with task-driven development, automatic branching, and intelligent resume.
+
+## Features
+
+- Multi-AI CLI support (claude, droid, aider)
+- Task-plan integration with automatic branching and commits
+- PRD to task-plan conversion
+- Incremental updates (preserves completed work)
+- Autonomous execution mode
+- Automatic resume from interruptions
+- ASCII status tables with filtering
+- Circuit breaker for stagnation detection
 
 ## Requirements
 
 - **PowerShell 7+** (not Windows PowerShell 5.1)
-- **Node.js** (for Claude Code CLI)
 - **Git**
+- **One of:** Claude CLI, Droid CLI, or Aider
 
 ### Install Dependencies
 
 ```powershell
 # Using winget (Windows 10/11)
-winget install Microsoft.PowerShell OpenJS.NodeJS.LTS Git.Git
+winget install Microsoft.PowerShell Git.Git
 
 # Or using Chocolatey
-choco install powershell-core nodejs-lts git
+choco install powershell-core git
+
+# Install an AI CLI (at least one required)
+npm install -g @anthropic-ai/claude-code  # Claude
+# or install droid CLI
+# or pip install aider-chat
 ```
 
 ## Installation
@@ -65,6 +81,21 @@ ralph -Monitor
 | `ralph-prd <file>` | Parse PRD to task-plan format |
 | `ralph-add <feature>` | Add single feature to task plan |
 | `ralph-monitor` | Standalone monitor |
+
+## Supported AI Providers
+
+| Provider | Command  | Auto-Detection Priority |
+|----------|----------|-------------------------|
+| Claude   | `claude` | 1 (highest)             |
+| Droid    | `droid`  | 2                       |
+| Aider    | `aider`  | 3                       |
+
+Ralph automatically detects available AI CLIs. Use `-AI` flag to specify:
+
+```powershell
+ralph-prd docs/PRD.md -AI droid
+ralph-add "feature" -AI aider
+```
 
 ### Ralph Loop Options
 
@@ -501,18 +532,31 @@ $script:Config = @{
 ## Testing
 
 ```powershell
-# Install Pester
+# Install Pester (if not installed)
 Install-Module -Name Pester -Force -SkipPublisherCheck
 
-# Run all tests
-.\tests\Run-Tests.ps1
+# Run all unit tests
+Import-Module Pester -Force
+Invoke-Pester -Path tests/unit/
 
-# Run with coverage
-.\tests\Run-Tests.ps1 -Coverage
+# Run single test file
+Invoke-Pester -Path tests/unit/AIProvider.Tests.ps1
 
-# Run only unit tests
-.\tests\Run-Tests.ps1 -Unit
+# Run with detailed output
+Invoke-Pester -Path tests/unit/ -PassThru
 ```
+
+### Test Coverage
+
+| Test File                      | Tests | Coverage                           |
+|--------------------------------|-------|-------------------------------------|
+| `AIProvider.Tests.ps1`         | 6     | AI CLI abstraction                 |
+| `FeatureAnalyzer.Tests.ps1`    | 19    | Feature analysis, ID tracking      |
+| `AutonomousMode.Tests.ps1`     | 7     | Progress bar, feature completion   |
+| `TableFormatter.Tests.ps1`     | 18    | ASCII table, filtering             |
+| `IncrementalPrd.Tests.ps1`     | 8     | Incremental PRD updates            |
+| `ResumeMode.Tests.ps1`         | 7     | Resume mechanism                   |
+| **Total**                      | **65**|                                    |
 
 ## Files Reference
 
@@ -607,4 +651,4 @@ $env:PATH = "$env:LOCALAPPDATA\Ralph\bin;$env:PATH"
 
 ## License
 
-MIT License - See [LICENSE](../LICENSE)
+MIT License - See [LICENSE](LICENSE)
