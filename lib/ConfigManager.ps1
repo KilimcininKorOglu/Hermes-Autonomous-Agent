@@ -245,8 +245,26 @@ function Initialize-ProjectConfig {
         return $false
     }
     
-    # Use full default config for project
-    $projectConfig = Get-DefaultConfig
+    # Project config contains only project-specific overrides
+    # Other settings are inherited from global config or defaults
+    $projectConfig = @{
+        # Project-specific AI settings (optional)
+        # ai = @{
+        #     provider = "claude"  # Override global provider
+        # }
+        
+        # Project-specific task mode settings
+        taskMode = @{
+            autoBranch = $false
+            autoCommit = $false
+        }
+        
+        # Project-specific paths (relative to project root)
+        paths = @{
+            tasksDir = "tasks"
+            logsDir = "logs"
+        }
+    }
     
     $json = $projectConfig | ConvertTo-Json -Depth 10
     $json | Set-Content $configPath -Encoding UTF8
