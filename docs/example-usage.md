@@ -19,6 +19,7 @@ cd ecommerce-platform
 ```
 
 **Created Structure:**
+
 ```
 ecommerce-platform/
 ├── PROMPT.md
@@ -51,6 +52,7 @@ ralph-prd docs/PRD.md -DryRun
 ```
 
 **Expected Output:**
+
 ```
 Ralph PRD Parser
 ================
@@ -85,6 +87,7 @@ ralph-prd docs/PRD.md
 ```
 
 **Created Files:**
+
 ```
 tasks/
 ├── 001-user-authentication.md    # F001, T001-T004
@@ -104,6 +107,7 @@ ralph -TaskStatus
 ```
 
 **Expected Output:**
+
 ```
 ============================================================
   TASK STATUS
@@ -158,6 +162,7 @@ ralph -TaskMode
 ```
 
 This command:
+
 1. Finds the next task (T001)
 2. Injects task details into PROMPT.md
 3. Runs AI
@@ -171,6 +176,7 @@ ralph -TaskMode -AutoBranch -AutoCommit
 ```
 
 This command additionally:
+
 - Creates `feature/F001-user-authentication` branch
 - Auto-commits after each task
 - Merges to main when feature is complete
@@ -182,6 +188,7 @@ ralph -TaskMode -AutoBranch -AutoCommit -Autonomous
 ```
 
 This command:
+
 - Completes all tasks without user intervention
 - Automatically switches between features
 - Continues on errors when possible
@@ -246,6 +253,7 @@ ralph -TaskMode -AutoBranch -AutoCommit
 ```
 
 **Output:**
+
 ```
 ============================================================
   Previous run detected - Resuming

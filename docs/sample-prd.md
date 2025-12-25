@@ -15,12 +15,14 @@ A modern e-commerce platform will be developed. The platform includes user manag
 ## 2. Goals and Objectives
 
 ### Primary Goals
+
 - Users can securely register and log in
 - Products can be listed and searched by category
 - Cart management and order creation
 - Secure payment processing
 
 ### Success Metrics
+
 - Registration completion rate > 80%
 - Cart abandonment rate < 40%
 - Page load time < 2 seconds
@@ -34,6 +36,7 @@ A modern e-commerce platform will be developed. The platform includes user manag
 A system where users can register and log in with email and password.
 
 **Requirements:**
+
 - Email/password registration
 - Email verification
 - Password reset
@@ -41,6 +44,7 @@ A system where users can register and log in with email and password.
 - Secure password policy (min 8 chars, upper/lowercase, numbers)
 
 **User Stories:**
+
 - As a user, I want to register with my email and password
 - As a user, I want to verify my account via the link sent to my email
 - As a user, I want to reset my password when I forget it
@@ -50,6 +54,7 @@ A system where users can register and log in with email and password.
 Catalog system where products are listed and searchable.
 
 **Requirements:**
+
 - Product list (with pagination)
 - Category filtering
 - Price range filtering
@@ -58,6 +63,7 @@ Catalog system where products are listed and searchable.
 - Product image gallery
 
 **User Stories:**
+
 - As a user, I want to filter products by category
 - As a user, I want to search for products
 - As a user, I want to view product details
@@ -67,6 +73,7 @@ Catalog system where products are listed and searchable.
 Cart management and adding/removing products.
 
 **Requirements:**
+
 - Add product to cart
 - Remove product from cart
 - Change product quantity
@@ -75,6 +82,7 @@ Cart management and adding/removing products.
 - Guest cart (without login)
 
 **User Stories:**
+
 - As a user, I want to add a product to my cart
 - As a user, I want to change the quantity of items in my cart
 - As a user, I want to see my cart total
@@ -84,6 +92,7 @@ Cart management and adding/removing products.
 Order creation and payment processing.
 
 **Requirements:**
+
 - Shipping address input
 - Payment method selection
 - Order summary
@@ -92,6 +101,7 @@ Order creation and payment processing.
 - Order status tracking
 
 **User Stories:**
+
 - As a user, I want to enter my shipping address
 - As a user, I want to place an order
 - As a user, I want to view my past orders
@@ -101,6 +111,7 @@ Order creation and payment processing.
 Admin panel for product and order management.
 
 **Requirements:**
+
 - Add/edit/delete products
 - Category management
 - Order management
@@ -108,6 +119,7 @@ Admin panel for product and order management.
 - Sales reports
 
 **User Stories:**
+
 - As an admin, I want to add new products
 - As an admin, I want to manage orders
 - As an admin, I want to view sales reports
@@ -144,6 +156,7 @@ RESTful API design:
 ### 4.3 Database Schema
 
 **Users Table:**
+
 - id (UUID, PK)
 - email (VARCHAR, UNIQUE)
 - password_hash (VARCHAR)
@@ -152,6 +165,7 @@ RESTful API design:
 - created_at (TIMESTAMP)
 
 **Products Table:**
+
 - id (UUID, PK)
 - name (VARCHAR)
 - description (TEXT)
@@ -162,6 +176,7 @@ RESTful API design:
 - created_at (TIMESTAMP)
 
 **Orders Table:**
+
 - id (UUID, PK)
 - user_id (FK)
 - status (ENUM)
@@ -174,11 +189,13 @@ RESTful API design:
 ## 5. Non-Functional Requirements
 
 ### 5.1 Performance
+
 - API response time < 200ms
 - Page load time < 2 seconds
 - Support 1000 concurrent users
 
 ### 5.2 Security
+
 - HTTPS everywhere
 - Password hashing (bcrypt)
 - SQL injection prevention
@@ -187,6 +204,7 @@ RESTful API design:
 - Rate limiting
 
 ### 5.3 Scalability
+
 - Horizontal scaling support
 - Database connection pooling
 - CDN for static assets
