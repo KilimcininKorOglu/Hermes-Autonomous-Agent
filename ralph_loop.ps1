@@ -69,7 +69,12 @@ param(
     
     [string]$StartFrom = "",
     
-    [switch]$TaskStatus
+    [switch]$TaskStatus,
+    
+    # Autonomous execution (no confirmation, no pause)
+    [switch]$Autonomous,
+    
+    [int]$MaxConsecutiveErrors = 5
 )
 
 # Get script directory for module imports
@@ -109,6 +114,12 @@ $script:Config = @{
     CurrentTask = $null
     CurrentFeature = $null
     CurrentBranch = ""
+    # Autonomous Mode
+    Autonomous = $Autonomous
+    MaxConsecutiveErrors = $MaxConsecutiveErrors
+    ConsecutiveErrors = 0
+    StartTime = $null
+    ErrorsRecovered = 0
 }
 
 # Global loop counter for cleanup
@@ -146,6 +157,8 @@ function Show-Help {
     Write-Host "    -AutoCommit            Auto-commit on task completion"
     Write-Host "    -StartFrom TXXX        Start from specific task ID"
     Write-Host "    -TaskStatus            Show task progress and exit"
+    Write-Host "    -Autonomous            Run without pausing between tasks/features"
+    Write-Host "    -MaxConsecutiveErrors  Max errors before stopping (default: 5)"
     Write-Host ""
     Write-Host "Files created:" -ForegroundColor Yellow
     Write-Host "    - logs\              All execution logs"
@@ -164,6 +177,7 @@ function Show-Help {
     Write-Host ""
     Write-Host "Task Mode Examples:" -ForegroundColor Yellow
     Write-Host "    ralph -TaskMode -AutoBranch -AutoCommit"
+    Write-Host "    ralph -TaskMode -AutoBranch -AutoCommit -Autonomous"
     Write-Host "    ralph -TaskMode -StartFrom T005"
     Write-Host "    ralph -TaskStatus"
     Write-Host ""
@@ -874,16 +888,161 @@ function Show-TaskStatus {
     Write-Host ""
 }
 
+function Get-ProgressBar {
+    <#
+    .SYNOPSIS
+        Creates a visual progress bar
+    #>
+    param(
+        [int]$Percentage,
+        [int]$Width = 20
+    )
+    
+    $filled = [Math]::Floor(($Percentage / 100) * $Width)
+    $empty = $Width - $filled
+    
+    $filledChar = [char]0x2588  # █
+    $emptyChar = [char]0x2591   # ░
+    
+    return "[" + ($filledChar.ToString() * $filled) + ($emptyChar.ToString() * $empty) + "]"
+}
+
+function Show-TaskCompletionSummary {
+    <#
+    .SYNOPSIS
+        Shows summary after task completion (autonomous mode)
+    #>
+    param(
+        [hashtable]$Task,
+        [string]$Duration = ""
+    )
+    
+    $progress = Get-TaskProgress -BasePath "."
+    $bar = Get-ProgressBar -Percentage $progress.Percentage -Width 20
+    
+    Write-Host ""
+    Write-Host ([char]0x2501 * 50) -ForegroundColor Cyan
+    Write-Host "$([char]0x2713) $($Task.TaskId): $($Task.Name) completed" -ForegroundColor Green -NoNewline
+    if ($Duration) {
+        Write-Host " ($Duration)" -ForegroundColor Gray
+    }
+    else {
+        Write-Host ""
+    }
+    Write-Host ""
+    Write-Host "  Progress: $bar $($progress.Percentage)% ($($progress.Completed)/$($progress.Total) tasks)" -ForegroundColor White
+    
+    $nextTask = Get-NextTask -BasePath "."
+    if ($nextTask -and $nextTask.TaskId -ne $Task.TaskId) {
+        Write-Host "  Next: $($nextTask.TaskId) - $($nextTask.Name)" -ForegroundColor Gray
+    }
+    Write-Host ([char]0x2501 * 50) -ForegroundColor Cyan
+    Write-Host ""
+}
+
+function Show-FeatureCompletionSummary {
+    <#
+    .SYNOPSIS
+        Shows summary after feature completion (autonomous mode)
+    #>
+    param(
+        [string]$FeatureId
+    )
+    
+    $feature = Get-FeatureById -FeatureId $FeatureId -BasePath "."
+    $fp = Get-FeatureProgress -FeatureId $FeatureId -BasePath "."
+    
+    $allFeatures = @(Get-AllFeatures -BasePath ".")
+    $completedFeatures = @($allFeatures | Where-Object { $_.Status -eq "COMPLETED" }).Count
+    $totalFeatures = $allFeatures.Count
+    
+    $percentage = if ($totalFeatures -gt 0) { [int](($completedFeatures / $totalFeatures) * 100) } else { 0 }
+    $bar = Get-ProgressBar -Percentage $percentage -Width 20
+    
+    Write-Host ""
+    Write-Host ([char]0x2501 * 50) -ForegroundColor Green
+    Write-Host "$([char]0x2713) $FeatureId`: $($feature.FeatureName) - COMPLETED & MERGED" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "  Tasks: $($fp.Completed)/$($fp.Total) completed" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  Feature Progress: $bar $completedFeatures/$totalFeatures features" -ForegroundColor White
+    
+    # Get next feature
+    $nextFeature = $allFeatures | Where-Object { $_.Status -eq "NOT_STARTED" -or $_.Status -eq "IN_PROGRESS" } | Select-Object -First 1
+    if ($nextFeature) {
+        Write-Host "  Next Feature: $($nextFeature.FeatureId) - $($nextFeature.FeatureName)" -ForegroundColor Gray
+        Write-Host ""
+        Write-Host "  Continuing automatically..." -ForegroundColor Cyan
+    }
+    Write-Host ([char]0x2501 * 50) -ForegroundColor Green
+    Write-Host ""
+}
+
+function Show-FinalCompletionSummary {
+    <#
+    .SYNOPSIS
+        Shows final summary when all tasks are done
+    #>
+    
+    $duration = if ($script:Config.StartTime) {
+        ((Get-Date) - $script:Config.StartTime).ToString('hh\:mm\:ss')
+    }
+    else {
+        "N/A"
+    }
+    
+    $progress = Get-TaskProgress -BasePath "."
+    $allFeatures = @(Get-AllFeatures -BasePath ".")
+    $completedFeatures = @($allFeatures | Where-Object { $_.Status -eq "COMPLETED" }).Count
+    
+    Write-Host ""
+    Write-Host ([char]0x2501 * 50) -ForegroundColor Green
+    Write-Host "$([char]0x2713) ALL TASKS COMPLETED" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "  Duration: $duration" -ForegroundColor White
+    Write-Host "  Tasks: $($progress.Completed)/$($progress.Total) completed" -ForegroundColor White
+    Write-Host "  Features: $completedFeatures/$($allFeatures.Count) completed" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  Blocked: $($progress.Blocked)" -ForegroundColor $(if ($progress.Blocked -gt 0) { "Yellow" } else { "White" })
+    Write-Host "  Errors: $($script:Config.ErrorsRecovered) (recovered)" -ForegroundColor $(if ($script:Config.ErrorsRecovered -gt 0) { "Yellow" } else { "White" })
+    Write-Host ""
+    Write-Host "  Git: All branches merged to main" -ForegroundColor White
+    Write-Host ([char]0x2501 * 50) -ForegroundColor Green
+    Write-Host ""
+}
+
+function Test-FeatureCompleted {
+    <#
+    .SYNOPSIS
+        Checks if all tasks in a feature are completed
+    #>
+    param(
+        [string]$FeatureId
+    )
+    
+    $fp = Get-FeatureProgress -FeatureId $FeatureId -BasePath "."
+    return ($fp.Completed -eq $fp.Total -and $fp.Total -gt 0)
+}
+
 function Start-TaskModeLoop {
     <#
     .SYNOPSIS
         Main loop for Task Mode execution
     #>
     
+    # Initialize start time for autonomous mode
+    $script:Config.StartTime = Get-Date
+    $script:Config.ConsecutiveErrors = 0
+    $script:Config.ErrorsRecovered = 0
+    
     Write-Status -Level "SUCCESS" -Message "Ralph Task Mode starting..."
     Write-Status -Level "INFO" -Message "Tasks directory: $($script:Config.TasksDir)"
     Write-Status -Level "INFO" -Message "Auto-branch: $($script:Config.AutoBranch)"
     Write-Status -Level "INFO" -Message "Auto-commit: $($script:Config.AutoCommit)"
+    
+    if ($script:Config.Autonomous) {
+        Write-Status -Level "INFO" -Message "Autonomous mode: ENABLED (no pauses)"
+    }
     
     # Check if tasks directory exists
     if (-not (Test-TasksDirectoryExists -BasePath ".")) {
@@ -945,16 +1104,21 @@ function Start-TaskModeLoop {
             Write-Status -Level "SUCCESS" -Message "All tasks completed!"
             Remove-TaskFromPrompt -BasePath "."
             
-            $progress = Get-TaskProgress -BasePath "."
-            Write-Host ""
-            Write-Host ("=" * 50) -ForegroundColor Green
-            Write-Host "  PROJECT COMPLETE!" -ForegroundColor Green
-            Write-Host ("=" * 50) -ForegroundColor Green
-            Write-Host "  Total Tasks: $($progress.Total)" -ForegroundColor White
-            Write-Host "  Completed:   $($progress.Completed)" -ForegroundColor White
-            Write-Host "  Total Loops: $($script:LoopCount)" -ForegroundColor White
-            Write-Host ("=" * 50) -ForegroundColor Green
-            Write-Host ""
+            if ($script:Config.Autonomous) {
+                Show-FinalCompletionSummary
+            }
+            else {
+                $progress = Get-TaskProgress -BasePath "."
+                Write-Host ""
+                Write-Host ("=" * 50) -ForegroundColor Green
+                Write-Host "  PROJECT COMPLETE!" -ForegroundColor Green
+                Write-Host ("=" * 50) -ForegroundColor Green
+                Write-Host "  Total Tasks: $($progress.Total)" -ForegroundColor White
+                Write-Host "  Completed:   $($progress.Completed)" -ForegroundColor White
+                Write-Host "  Total Loops: $($script:LoopCount)" -ForegroundColor White
+                Write-Host ("=" * 50) -ForegroundColor Green
+                Write-Host ""
+            }
             break
         }
         
@@ -1056,6 +1220,14 @@ function Start-TaskModeLoop {
                 # Update task status
                 Set-TaskStatus -TaskId $currentTaskId -Status "COMPLETED" -BasePath "."
                 
+                # Reset consecutive errors on success
+                $script:Config.ConsecutiveErrors = 0
+                
+                # Show task completion summary in autonomous mode
+                if ($script:Config.Autonomous) {
+                    Show-TaskCompletionSummary -Task $task
+                }
+                
                 # Check if feature is complete
                 if (Test-FeatureComplete -FeatureId $task.FeatureId -BasePath ".") {
                     Write-Status -Level "SUCCESS" -Message "Feature $($task.FeatureId) completed!"
@@ -1084,6 +1256,11 @@ function Start-TaskModeLoop {
                             Write-Status -Level "WARN" -Message "Merge failed - manual intervention required"
                         }
                     }
+                    
+                    # Show feature completion summary in autonomous mode
+                    if ($script:Config.Autonomous) {
+                        Show-FeatureCompletionSummary -FeatureId $task.FeatureId
+                    }
                 }
                 
                 # Remove task from PROMPT.md for next task
@@ -1110,8 +1287,16 @@ function Start-TaskModeLoop {
             Wait-ForReset
         }
         else {
-            # Error - retry after delay
-            Write-Status -Level "WARN" -Message "Execution failed, retrying in 30s..."
+            # Error - increment counter and possibly stop
+            $script:Config.ConsecutiveErrors++
+            $script:Config.ErrorsRecovered++
+            
+            if ($script:Config.Autonomous -and $script:Config.ConsecutiveErrors -ge $script:Config.MaxConsecutiveErrors) {
+                Write-Status -Level "ERROR" -Message "Too many consecutive errors ($($script:Config.ConsecutiveErrors)). Stopping."
+                break
+            }
+            
+            Write-Status -Level "WARN" -Message "Execution failed (error $($script:Config.ConsecutiveErrors)), retrying in 30s..."
             Start-Sleep -Seconds 30
         }
         

@@ -281,12 +281,34 @@ PRD.md → task-plan → tasks/*.md → Ralph TaskMode → Automated Implementat
 # Start Ralph in task mode with full automation
 ralph -TaskMode -AutoBranch -AutoCommit -Monitor
 
+# Autonomous mode - runs all tasks without pausing
+ralph -TaskMode -AutoBranch -AutoCommit -Autonomous
+
 # Show task progress
 ralph -TaskStatus
 
 # Start from specific task
 ralph -TaskMode -StartFrom T005
 ```
+
+### Autonomous Mode
+
+Run all tasks and features continuously without user intervention:
+
+```powershell
+ralph -TaskMode -AutoBranch -AutoCommit -Autonomous
+
+# With custom error threshold
+ralph -TaskMode -Autonomous -MaxConsecutiveErrors 10
+```
+
+Autonomous mode features:
+- Automatic continuation between tasks
+- Automatic continuation between features
+- Progress bar display after each task
+- Feature completion summaries
+- Error recovery with configurable threshold
+- Final summary showing total duration and statistics
 
 ### Task File Format
 
