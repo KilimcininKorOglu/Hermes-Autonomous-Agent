@@ -280,6 +280,7 @@ Kullanicilar tablosunu olustur.
 | Task ID | T + 3 basamak | T001, T002, T003 |
 
 **Onemli:** Task ID'ler TUM feature'lar uzerinden devam eder:
+
 - F001: T001, T002, T003
 - F002: T004, T005, T006
 
@@ -670,6 +671,7 @@ File cannot be loaded because running scripts is disabled
 ```
 
 **Cozum:**
+
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
@@ -681,6 +683,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 **Cozum:**
+
 ```powershell
 # Claude
 npm install -g @anthropic-ai/claude-code
@@ -704,17 +707,21 @@ CIRCUIT BREAKER OPENED - Execution halted
 ```
 
 **Cozum:**
+
 1. Son loglari inceleyin:
+
    ```powershell
    Get-Content logs\ralph.log -Tail 20
    ```
 
 2. AI ciktisini kontrol edin:
+
    ```powershell
    Get-ChildItem logs\*_output_*.log | Sort-Object LastWriteTime -Descending | Select-Object -First 1
    ```
 
 3. Sorunu giderin ve sifirlayin:
+
    ```powershell
    ralph -ResetCircuit
    ```
@@ -726,6 +733,7 @@ Task not found: T005
 ```
 
 **Cozum:**
+
 - Task ID'nin dogru yazildigindan emin olun
 - `tasks/` klasorunun mevcut oldugunu kontrol edin
 - `ralph -TaskStatus` ile mevcut task'lari listeleyin

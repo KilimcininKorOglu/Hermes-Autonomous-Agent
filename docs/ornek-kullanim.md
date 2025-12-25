@@ -19,6 +19,7 @@ cd ecommerce-platform
 ```
 
 **Olusturulan Yapi:**
+
 ```
 ecommerce-platform/
 ├── PROMPT.md
@@ -51,6 +52,7 @@ ralph-prd docs/PRD.md -DryRun
 ```
 
 **Beklenen Cikti:**
+
 ```
 Ralph PRD Parser
 ================
@@ -85,6 +87,7 @@ ralph-prd docs/PRD.md
 ```
 
 **Olusturulan Dosyalar:**
+
 ```
 tasks/
 ├── 001-user-authentication.md    # F001, T001-T004
@@ -104,6 +107,7 @@ ralph -TaskStatus
 ```
 
 **Beklenen Cikti:**
+
 ```
 ============================================================
   TASK STATUS
@@ -158,6 +162,7 @@ ralph -TaskMode
 ```
 
 Bu komut:
+
 1. Siradaki task'i bulur (T001)
 2. PROMPT.md'ye task detaylarini enjekte eder
 3. AI'i calistirir
@@ -171,6 +176,7 @@ ralph -TaskMode -AutoBranch -AutoCommit
 ```
 
 Bu komut ek olarak:
+
 - `feature/F001-user-authentication` branch'i olusturur
 - Her task sonrasi otomatik commit atar
 - Feature tamamlaninca main'e merge eder
@@ -182,6 +188,7 @@ ralph -TaskMode -AutoBranch -AutoCommit -Autonomous
 ```
 
 Bu komut:
+
 - Kullanici mudahalesi olmadan tum task'lari yapar
 - Feature'lar arasi otomatik gecer
 - Hata durumunda devam etmeye calisir
@@ -246,6 +253,7 @@ ralph -TaskMode -AutoBranch -AutoCommit
 ```
 
 **Cikti:**
+
 ```
 ============================================================
   Previous run detected - Resuming

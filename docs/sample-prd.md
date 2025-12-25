@@ -15,12 +15,14 @@ Modern bir e-ticaret platformu gelistirilecektir. Platform, kullanici yonetimi, 
 ## 2. Goals and Objectives
 
 ### Primary Goals
+
 - Kullanicilarin guvenli bir sekilde kayit olup giris yapabilmesi
 - Urunlerin kategorilere gore listelenmesi ve aranabilmesi
 - Sepet yonetimi ve siparis olusturma
 - Odeme islemlerinin guvenligi
 
 ### Success Metrics
+
 - Kayit tamamlama orani > %80
 - Sepet terk orani < %40
 - Sayfa yukleme suresi < 2 saniye
@@ -34,6 +36,7 @@ Modern bir e-ticaret platformu gelistirilecektir. Platform, kullanici yonetimi, 
 Kullanicilarin email ve sifre ile kayit olup giris yapabilecegi sistem.
 
 **Requirements:**
+
 - Email/sifre ile kayit
 - Email dogrulama
 - Sifre sifirlama
@@ -41,6 +44,7 @@ Kullanicilarin email ve sifre ile kayit olup giris yapabilecegi sistem.
 - Guvenli sifre politikasi (min 8 karakter, buyuk/kucuk harf, rakam)
 
 **User Stories:**
+
 - Kullanici olarak, email ve sifremle kayit olmak istiyorum
 - Kullanici olarak, emailime gelen link ile hesabimi dogrulamak istiyorum
 - Kullanici olarak, sifremi unuttugumda sifirlamak istiyorum
@@ -50,6 +54,7 @@ Kullanicilarin email ve sifre ile kayit olup giris yapabilecegi sistem.
 Urunlerin listelendigi ve aranabilecegi katalog sistemi.
 
 **Requirements:**
+
 - Urun listesi (sayfalama ile)
 - Kategori filtreleme
 - Fiyat araligina gore filtreleme
@@ -58,6 +63,7 @@ Urunlerin listelendigi ve aranabilecegi katalog sistemi.
 - Urun resimleri galeri
 
 **User Stories:**
+
 - Kullanici olarak, urunleri kategoriye gore filtrelemek istiyorum
 - Kullanici olarak, urun aramak istiyorum
 - Kullanici olarak, urun detaylarini gormek istiyorum
@@ -67,6 +73,7 @@ Urunlerin listelendigi ve aranabilecegi katalog sistemi.
 Sepet yonetimi ve urun ekleme/cikarma.
 
 **Requirements:**
+
 - Sepete urun ekleme
 - Sepetten urun cikarma
 - Urun adedi degistirme
@@ -75,6 +82,7 @@ Sepet yonetimi ve urun ekleme/cikarma.
 - Misafir sepeti (giris yapmadan)
 
 **User Stories:**
+
 - Kullanici olarak, urunu sepete eklemek istiyorum
 - Kullanici olarak, sepetteki urun adedini degistirmek istiyorum
 - Kullanici olarak, sepet toplamini gormek istiyorum
@@ -84,6 +92,7 @@ Sepet yonetimi ve urun ekleme/cikarma.
 Siparis olusturma ve odeme islemi.
 
 **Requirements:**
+
 - Teslimat adresi girisi
 - Odeme yontemi secimi
 - Siparis ozeti
@@ -92,6 +101,7 @@ Siparis olusturma ve odeme islemi.
 - Siparis durumu takibi
 
 **User Stories:**
+
 - Kullanici olarak, teslimat adresimi girmek istiyorum
 - Kullanici olarak, siparis vermek istiyorum
 - Kullanici olarak, gecmis siparislerimi gormek istiyorum
@@ -101,6 +111,7 @@ Siparis olusturma ve odeme islemi.
 Yonetici paneli ile urun ve siparis yonetimi.
 
 **Requirements:**
+
 - Urun ekleme/duzenleme/silme
 - Kategori yonetimi
 - Siparis yonetimi
@@ -108,6 +119,7 @@ Yonetici paneli ile urun ve siparis yonetimi.
 - Satis raporlari
 
 **User Stories:**
+
 - Admin olarak, yeni urun eklemek istiyorum
 - Admin olarak, siparisleri yonetmek istiyorum
 - Admin olarak, satis raporlarini gormek istiyorum
@@ -144,6 +156,7 @@ RESTful API tasarimi:
 ### 4.3 Database Schema
 
 **Users Table:**
+
 - id (UUID, PK)
 - email (VARCHAR, UNIQUE)
 - password_hash (VARCHAR)
@@ -152,6 +165,7 @@ RESTful API tasarimi:
 - created_at (TIMESTAMP)
 
 **Products Table:**
+
 - id (UUID, PK)
 - name (VARCHAR)
 - description (TEXT)
@@ -162,6 +176,7 @@ RESTful API tasarimi:
 - created_at (TIMESTAMP)
 
 **Orders Table:**
+
 - id (UUID, PK)
 - user_id (FK)
 - status (ENUM)
@@ -174,11 +189,13 @@ RESTful API tasarimi:
 ## 5. Non-Functional Requirements
 
 ### 5.1 Performance
+
 - API response time < 200ms
 - Page load time < 2 seconds
 - Support 1000 concurrent users
 
 ### 5.2 Security
+
 - HTTPS everywhere
 - Password hashing (bcrypt)
 - SQL injection prevention
@@ -187,6 +204,7 @@ RESTful API tasarimi:
 - Rate limiting
 
 ### 5.3 Scalability
+
 - Horizontal scaling support
 - Database connection pooling
 - CDN for static assets
