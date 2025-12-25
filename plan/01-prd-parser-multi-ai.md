@@ -561,6 +561,151 @@ Unit tests for authentication flow.
 {PRD_CONTENT}
 ````
 
+## Timeout ve Retry Mekanizmasi
+
+### Konfigürasyon
+
+```powershell
+$script:Config = @{
+    TimeoutSeconds = 1200      # 20 dakika
+    MaxRetries = 10
+    RetryDelaySeconds = 10
+    ExponentialBackoff = $true # Her retry'da delay 2x artar
+}
+```
+
+### Timeout Fonksiyonu
+
+```powershell
+function Invoke-AIWithTimeout {
+    param(
+        [string]$Provider,
+        [string]$PromptText,
+        [string]$InputFile,
+        [int]$TimeoutSeconds = 1200
+    )
+    
+    $content = Get-Content $InputFile -Raw
+    
+    # Job olarak baslat
+    $job = Start-Job -ScriptBlock {
+        param($provider, $content, $prompt)
+        
+        switch ($provider) {
+            "claude" { $content | claude -p $prompt }
+            "droid"  { $content | droid exec --auto low $prompt }
+            "aider"  { aider --yes --no-auto-commits --message $prompt $using:InputFile }
+        }
+    } -ArgumentList $Provider, $content, $PromptText
+    
+    # Timeout ile bekle
+    $completed = Wait-Job $job -Timeout $TimeoutSeconds
+    
+    if (-not $completed) {
+        Stop-Job $job -ErrorAction SilentlyContinue
+        Remove-Job $job -Force -ErrorAction SilentlyContinue
+        throw "AI timeout after $TimeoutSeconds seconds"
+    }
+    
+    $result = Receive-Job $job
+    Remove-Job $job -Force
+    
+    return $result
+}
+```
+
+### Retry Fonksiyonu
+
+```powershell
+function Invoke-AIWithRetry {
+    param(
+        [string]$Provider,
+        [string]$PromptText,
+        [string]$InputFile
+    )
+    
+    $maxRetries = $script:Config.MaxRetries
+    $retryDelay = $script:Config.RetryDelaySeconds
+    $timeout = $script:Config.TimeoutSeconds
+    
+    for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
+        try {
+            Write-Host "[INFO] Attempt $attempt/$maxRetries..." -ForegroundColor Cyan
+            
+            $result = Invoke-AIWithTimeout -Provider $Provider `
+                -PromptText $PromptText -InputFile $InputFile `
+                -TimeoutSeconds $timeout
+            
+            # Ciktiyi validate et
+            $files = Split-AIOutput -Output $result
+            
+            if ($files.Count -eq 0) {
+                throw "No files parsed from AI output"
+            }
+            
+            $isValid = Test-ParsedOutput -Files $files
+            
+            if (-not $isValid) {
+                throw "Invalid output format"
+            }
+            
+            # Basarili
+            Write-Host "[OK] AI completed successfully" -ForegroundColor Green
+            return @{
+                Success = $true
+                Files = $files
+                Attempts = $attempt
+            }
+        }
+        catch {
+            Write-Warning "Attempt $attempt failed: $_"
+            
+            if ($attempt -lt $maxRetries) {
+                Write-Host "[INFO] Retrying in $retryDelay seconds..." -ForegroundColor Yellow
+                Start-Sleep -Seconds $retryDelay
+                
+                # Exponential backoff
+                if ($script:Config.ExponentialBackoff) {
+                    $retryDelay = [Math]::Min($retryDelay * 2, 300)  # Max 5 dakika
+                }
+            }
+            else {
+                Write-Error "All $maxRetries attempts failed"
+                return @{
+                    Success = $false
+                    Error = $_.Exception.Message
+                    Attempts = $attempt
+                }
+            }
+        }
+    }
+}
+```
+
+### Hata Turleri ve Handling
+
+| Hata Turu | Davranis |
+|-----------|----------|
+| Timeout | Retry with same timeout |
+| Network error | Retry with exponential backoff |
+| API rate limit | Retry after longer delay (60s) |
+| Invalid format | Retry with same prompt |
+| Parse error | Retry up to max attempts |
+
+### Ornek Cikti
+
+```
+[INFO] Reading PRD: docs/PRD.md
+[INFO] Using AI: claude
+[INFO] Attempt 1/10...
+[WARN] Attempt 1 failed: AI timeout after 1200 seconds
+[INFO] Retrying in 10 seconds...
+[INFO] Attempt 2/10...
+[OK] AI completed successfully
+
+Created 3 files in 2 attempts.
+```
+
 ## ralph-prd.ps1 Parametreleri
 
 ```powershell
@@ -570,7 +715,9 @@ param(
     [string]$AI = "auto",       # auto = ilk bulunani kullan
     [switch]$List,              # Mevcut AI'lari listele
     [switch]$DryRun,            # Sadece goster, dosya olusturma
-    [string]$OutputDir = "tasks"
+    [string]$OutputDir = "tasks",
+    [int]$Timeout = 1200,       # 20 dakika
+    [int]$MaxRetries = 10
 )
 ```
 
