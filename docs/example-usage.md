@@ -1,25 +1,24 @@
-# Ralph Ornek Kullanim Rehberi
+# Ralph Example Usage Guide
 
-Bu dokuman, `sample-prd.md` dosyasini kullanarak Ralph ile nasil calisilacagini adim adim gostermektedir.
-
----
-
-## Senaryo
-
-E-ticaret platformu PRD'sini (`sample-prd.md`) kullanarak otonom gelistirme yapacagiz.
+This document shows step-by-step how to work with Ralph using the `sample-prd.md` file.
 
 ---
 
-## Adim 1: Proje Olusturma
+## Scenario
+
+We will perform autonomous development using the e-commerce platform PRD (`sample-prd.md`).
+
+---
+
+## Step 1: Create Project
 
 ```powershell
-# Yeni proje olustur
+# Create new project
 ralph-setup ecommerce-platform
 cd ecommerce-platform
 ```
 
-**Olusturulan Yapi:**
-
+**Created Structure:**
 ```
 ecommerce-platform/
 ├── PROMPT.md
@@ -33,26 +32,25 @@ ecommerce-platform/
 
 ---
 
-## Adim 2: PRD Dosyasini Kopyalama
+## Step 2: Copy PRD File
 
 ```powershell
-# PRD dosyasini proje icerisine kopyala
+# Copy PRD file into project
 mkdir docs
 copy "C:\path\to\ralph-claude-code\docs\sample-prd.md" "docs\PRD.md"
 ```
 
 ---
 
-## Adim 3: PRD'yi Task'lara Donusturme
+## Step 3: Convert PRD to Tasks
 
-### Onizleme (DryRun)
+### Preview (DryRun)
 
 ```powershell
 ralph-prd docs/PRD.md -DryRun
 ```
 
-**Beklenen Cikti:**
-
+**Expected Output:**
 ```
 Ralph PRD Parser
 ================
@@ -80,14 +78,13 @@ Summary (DryRun):
 Run without -DryRun to create files.
 ```
 
-### Gercek Olusturma
+### Actual Creation
 
 ```powershell
 ralph-prd docs/PRD.md
 ```
 
-**Olusturulan Dosyalar:**
-
+**Created Files:**
 ```
 tasks/
 ├── 001-user-authentication.md    # F001, T001-T004
@@ -95,19 +92,18 @@ tasks/
 ├── 003-shopping-cart.md          # F003, T009-T011
 ├── 004-checkout-orders.md        # F004, T012-T015
 ├── 005-admin-panel.md            # F005, T016-T018
-└── tasks-status.md               # Durum takibi
+└── tasks-status.md               # Status tracking
 ```
 
 ---
 
-## Adim 4: Task Durumunu Kontrol Etme
+## Step 4: Check Task Status
 
 ```powershell
 ralph -TaskStatus
 ```
 
-**Beklenen Cikti:**
-
+**Expected Output:**
 ```
 ============================================================
   TASK STATUS
@@ -138,88 +134,85 @@ Next Task: T001 - Database Schema
 ============================================================
 ```
 
-### Filtreleme Ornekleri
+### Filtering Examples
 
 ```powershell
-# Sadece P1 oncelikli task'lar
+# Only P1 priority tasks
 ralph -TaskStatus -PriorityFilter P1
 
-# Belirli feature'in task'lari
+# Tasks for specific feature
 ralph -TaskStatus -FeatureFilter F001
 
-# Tamamlanan task'lar
+# Completed tasks
 ralph -TaskStatus -StatusFilter COMPLETED
 ```
 
 ---
 
-## Adim 5: Task Mode'u Baslatma
+## Step 5: Start Task Mode
 
-### Temel Kullanim
+### Basic Usage
 
 ```powershell
 ralph -TaskMode
 ```
 
-Bu komut:
+This command:
+1. Finds the next task (T001)
+2. Injects task details into PROMPT.md
+3. Runs AI
+4. Updates status on completion
+5. Waits for user confirmation
 
-1. Siradaki task'i bulur (T001)
-2. PROMPT.md'ye task detaylarini enjekte eder
-3. AI'i calistirir
-4. Tamamlaninca durumu gunceller
-5. Kullanicidan onay bekler
-
-### Tam Otomasyon
+### Full Automation
 
 ```powershell
 ralph -TaskMode -AutoBranch -AutoCommit
 ```
 
-Bu komut ek olarak:
+This command additionally:
+- Creates `feature/F001-user-authentication` branch
+- Auto-commits after each task
+- Merges to main when feature is complete
 
-- `feature/F001-user-authentication` branch'i olusturur
-- Her task sonrasi otomatik commit atar
-- Feature tamamlaninca main'e merge eder
-
-### Otonom Mod
+### Autonomous Mode
 
 ```powershell
 ralph -TaskMode -AutoBranch -AutoCommit -Autonomous
 ```
 
-Bu komut:
-
-- Kullanici mudahalesi olmadan tum task'lari yapar
-- Feature'lar arasi otomatik gecer
-- Hata durumunda devam etmeye calisir
+This command:
+- Completes all tasks without user intervention
+- Automatically switches between features
+- Continues on errors when possible
 
 ---
 
-## Adim 6: Ilerlemeyi Izleme
+## Step 6: Monitor Progress
 
-### Ayri Terminal Penceresinde
+### In Separate Terminal Window
 
 ```powershell
-# Terminal 1: Ralph calistir
+# Terminal 1: Run Ralph
 ralph -TaskMode -AutoBranch -AutoCommit -Monitor
 
-# Terminal 2: Izleme paneli otomatik acilir
+# Terminal 2: Monitoring panel opens automatically
 ```
 
-### Manuel Izleme
+### Manual Monitoring
 
 ```powershell
-# Baska bir terminalde
+# In another terminal
 ralph-monitor
 ```
 
-### Log Dosyalarini Inceleme
+### Examine Log Files
 
 ```powershell
-# Son log
+# Latest log
 Get-Content logs/ralph.log -Tail 50
 
-# Son AI ciktisi
+# Latest AI output
 Get-ChildItem logs/*_output_*.log | 
     Sort-Object LastWriteTime -Descending | 
     Select-Object -First 1 | 
@@ -228,32 +221,31 @@ Get-ChildItem logs/*_output_*.log |
 
 ---
 
-## Adim 7: Belirli Task'tan Baslama
+## Step 7: Start from Specific Task
 
-Eger belirli bir task'tan baslamak isterseniz:
+If you want to start from a specific task:
 
 ```powershell
-# T005'ten basla
+# Start from T005
 ralph -TaskMode -StartFrom T005 -AutoBranch -AutoCommit
 ```
 
 ---
 
-## Adim 8: Kesinti Sonrasi Devam Etme
+## Step 8: Resume After Interruption
 
-Ralph otomatik olarak kaldigi yerden devam eder:
+Ralph automatically resumes from where it left off:
 
 ```powershell
-# Ilk calisma - T003'te kesiliyor
+# First run - interrupted at T003
 ralph -TaskMode -AutoBranch -AutoCommit
-# Ctrl+C veya context limit
+# Ctrl+C or context limit
 
-# Ikinci calisma - otomatik T004'ten devam
+# Second run - automatically continues from T004
 ralph -TaskMode -AutoBranch -AutoCommit
 ```
 
-**Cikti:**
-
+**Output:**
 ```
 ============================================================
   Previous run detected - Resuming
@@ -265,66 +257,66 @@ ralph -TaskMode -AutoBranch -AutoCommit
 
 ---
 
-## Adim 9: Yeni Feature Ekleme
+## Step 9: Add New Feature
 
-PRD'ye yeni ozellik eklendiyse:
+If new features are added to PRD:
 
-### Yontem 1: PRD'yi Tekrar Calistirma (Incremental)
+### Method 1: Re-run PRD (Incremental)
 
 ```powershell
-# PRD'yi guncelle
+# Update PRD
 notepad docs/PRD.md
 
-# Tekrar calistir - sadece yeni feature'lar eklenir
+# Re-run - only new features are added
 ralph-prd docs/PRD.md
 ```
 
-### Yontem 2: Tekil Feature Ekleme
+### Method 2: Add Single Feature
 
 ```powershell
-# Satir ici aciklama
-ralph-add "Kullanici profil sayfasi ve avatar yukleme"
+# Inline description
+ralph-add "User profile page and avatar upload"
 
-# Dosyadan
+# From file
 ralph-add @docs/new-feature-spec.md
 ```
 
 ---
 
-## Adim 10: Farkli AI Provider Kullanma
+## Step 10: Use Different AI Provider
 
 ```powershell
-# Droid ile PRD parse
+# Parse PRD with Droid
 ralph-prd docs/PRD.md -AI droid
 
-# Aider ile Task Mode
+# Task Mode with Aider
 ralph -TaskMode -AI aider -AutoBranch -AutoCommit
 
-# Mevcut provider'lari listele
+# List available providers
 ralph-prd -List
 ```
 
 ---
 
-## Ornek Is Akisi Ozeti
+## Workflow Summary
 
 ```
 1. ralph-setup ecommerce-platform
 2. cd ecommerce-platform
-3. # PRD dosyasini docs/PRD.md olarak kopyala
-4. ralph-prd docs/PRD.md -DryRun          # Onizle
-5. ralph-prd docs/PRD.md                   # Task olustur
-6. ralph -TaskStatus                       # Durumu gor
-7. ralph -TaskMode -AutoBranch -AutoCommit -Autonomous  # Baslat
-8. # ... Ralph calisiyor ...
-9. ralph -TaskStatus                       # Ilerlemeyi kontrol et
+3. # Copy PRD file to docs/PRD.md
+4. ralph-prd docs/PRD.md -DryRun          # Preview
+5. ralph-prd docs/PRD.md                   # Create tasks
+6. ralph -TaskStatus                       # View status
+7. ralph -TaskMode -AutoBranch -AutoCommit -Autonomous  # Start
+8. # ... Ralph is working ...
+9. ralph -TaskStatus                       # Check progress
 ```
 
 ---
 
-## Beklenen Git Gecmisi
+## Expected Git History
 
-Task Mode tamamlandiktan sonra:
+After Task Mode completes:
 
 ```
 * abc1234 (HEAD -> main) Merge feature F005 - Admin Panel
@@ -345,51 +337,51 @@ Task Mode tamamlandiktan sonra:
 
 ---
 
-## Sorun Giderme
+## Troubleshooting
 
-### PRD Parse Basarisiz
+### PRD Parse Failed
 
 ```powershell
-# Timeout artir
+# Increase timeout
 ralph-prd docs/PRD.md -Timeout 1800
 
-# Farkli AI dene
+# Try different AI
 ralph-prd docs/PRD.md -AI droid
 ```
 
 ### Task Blocked
 
 ```powershell
-# Blocked task'lari gor
+# View blocked tasks
 ralph -TaskStatus -StatusFilter BLOCKED
 
-# Manuel olarak sonraki task'a gec
+# Manually skip to next task
 ralph -TaskMode -StartFrom T006
 ```
 
-### Circuit Breaker Acildi
+### Circuit Breaker Opened
 
 ```powershell
-# Durumu kontrol et
+# Check status
 ralph -CircuitStatus
 
-# Sifirla
+# Reset
 ralph -ResetCircuit
 
-# Tekrar baslat
+# Restart
 ralph -TaskMode -AutoBranch -AutoCommit
 ```
 
 ---
 
-## Ipuclari
+## Tips
 
-1. **Buyuk PRD'ler icin:** PRD'yi feature bazli ayri dosyalara bolun
-2. **Hata takibi:** `logs/` klasorunu duzenli kontrol edin
-3. **Branch temizligi:** Merge edilen branch'ler otomatik silinir
-4. **Incremental:** PRD'yi guncelleyip tekrar calistirdiginizda sadece yeni feature'lar eklenir
-5. **DryRun:** Her zaman once `-DryRun` ile kontrol edin
+1. **For large PRDs:** Split PRD into separate files by feature
+2. **Error tracking:** Regularly check the `logs/` directory
+3. **Branch cleanup:** Merged branches are automatically deleted
+4. **Incremental:** When you update and re-run PRD, only new features are added
+5. **DryRun:** Always check with `-DryRun` first
 
 ---
 
-**Hazir!** Artik Ralph ile otonom gelistirme yapabilirsiniz.
+**Ready!** You can now perform autonomous development with Ralph.
