@@ -7,6 +7,7 @@
 ## Mevcut Durum
 
 `Show-TaskStatus` fonksiyonu mevcut:
+
 - Basit progress bar
 - Feature listesi
 - Sonraki task

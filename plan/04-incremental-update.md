@@ -7,6 +7,7 @@
 ## Mevcut Durum
 
 `ralph-prd` her seferinde:
+
 - Tum task dosyalarini sifirdan olusturur
 - Mevcut ilerleme (COMPLETED, IN_PROGRESS) kaybolur
 - Mevcut ID'ler conflict olabilir

@@ -711,6 +711,7 @@ Created 3 files in 2 attempts.
 ### Strateji: Warn Only
 
 Buyuk PRD'ler icin kullaniciyi uyar, devam et. Chunking yapmiyoruz cunku:
+
 - Feature bagimliliklari kopabilir
 - ID sirasi bozulabilir
 - Karmasiklik artar
@@ -825,16 +826,20 @@ Next: Run 'ralph -TaskMode -AutoBranch -AutoCommit' to start
 Onay sonrasi uygulama:
 
 ### Faz 1: Core
+
 - [ ] lib/AIProvider.ps1
 - [ ] lib/prompts/prd-parser.md
 
 ### Faz 2: Ana Script
+
 - [ ] ralph-prd.ps1
 
 ### Faz 3: Entegrasyon
+
 - [ ] install.ps1 guncelleme
 - [ ] README.md guncelleme
 
 ### Faz 4: Test
+
 - [ ] Unit testler
 - [ ] Integration testler
