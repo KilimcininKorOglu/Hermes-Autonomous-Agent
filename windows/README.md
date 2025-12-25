@@ -69,6 +69,8 @@ ralph -Monitor
 ```powershell
 ralph [-Monitor] [-Calls <int>] [-Timeout <int>] [-VerboseProgress]
       [-Status] [-ResetCircuit] [-CircuitStatus] [-Help]
+      [-TaskMode] [-AutoBranch] [-AutoCommit] [-StartFrom <TaskId>]
+      [-TaskStatus]
 
 -Monitor          Start with separate monitoring window
 -Calls <int>      Max API calls per hour (default: 100)
@@ -77,6 +79,13 @@ ralph [-Monitor] [-Calls <int>] [-Timeout <int>] [-VerboseProgress]
 -Status           Show current loop status
 -ResetCircuit     Reset circuit breaker to CLOSED
 -CircuitStatus    Show circuit breaker status
+
+# Task Mode Options
+-TaskMode         Enable task-plan integration mode
+-AutoBranch       Auto-create/switch feature branches
+-AutoCommit       Auto-commit on task completion
+-StartFrom <id>   Start from specific task (e.g., T005)
+-TaskStatus       Show task progress and exit
 ```
 
 ## Project Structure
@@ -121,6 +130,104 @@ Prevents runaway execution by detecting stagnation:
 | OPEN | Halted (3+ no-progress loops) |
 
 Reset with: `ralph -ResetCircuit`
+
+## Task Mode
+
+Ralph supports integration with task-plan systems for structured development:
+
+### Task Mode Workflow
+
+```
+PRD.md → task-plan → tasks/*.md → Ralph TaskMode → Automated Implementation
+```
+
+### Usage
+
+```powershell
+# Create tasks directory with feature files
+# tasks/001-authentication.md, tasks/002-dashboard.md, etc.
+
+# Start Ralph in task mode with full automation
+ralph -TaskMode -AutoBranch -AutoCommit -Monitor
+
+# Show task progress
+ralph -TaskStatus
+
+# Start from specific task
+ralph -TaskMode -StartFrom T005
+```
+
+### Task File Format
+
+```markdown
+# Feature 1: User Authentication
+
+**Feature ID:** F001
+**Status:** NOT_STARTED
+
+### T001: Login Form
+
+**Status:** NOT_STARTED
+**Priority:** P1
+
+#### Description
+Create login form component.
+
+#### Files to Touch
+- `src/Login.tsx` (new)
+
+#### Dependencies
+- None
+
+#### Success Criteria
+- [ ] Form renders
+- [ ] Validation works
+```
+
+### How Task Mode Works
+
+1. **Find Next Task** - Reads `tasks/*.md`, finds first NOT_STARTED with met dependencies
+2. **Create Branch** - With `-AutoBranch`: creates `feature/F001-authentication`
+3. **Inject Task** - Adds task details to PROMPT.md
+4. **Execute Claude** - Runs Claude Code focused on current task
+5. **Commit** - With `-AutoCommit`: creates `feat(T001): Login Form completed`
+6. **Update Status** - Marks task COMPLETED
+7. **Check Feature** - If all tasks done, merges to main
+8. **Next Task** - Continues to next task
+
+### Branch Strategy
+
+```
+main
+  └── feature/F001-authentication
+        ├── feat(T001): Login Form completed
+        ├── feat(T002): Auth API completed
+        └── feat(T003): Session Management completed
+  └── feature/F002-dashboard
+        └── ...
+```
+
+### Commit Format
+
+```
+feat(T001): Login Form completed
+
+Completed:
+- [x] Form renders
+- [x] Validation works
+
+Files:
+- src/Login.tsx
+```
+
+### Task Modules
+
+| Module | Purpose |
+|--------|---------|
+| `lib/TaskReader.ps1` | Parse tasks/*.md files |
+| `lib/TaskStatusUpdater.ps1` | Update task statuses |
+| `lib/GitBranchManager.ps1` | Branch/commit management |
+| `lib/PromptInjector.ps1` | Inject task into PROMPT.md |
 
 ## Configuration
 
@@ -196,6 +303,10 @@ Install-Module -Name Pester -Force -SkipPublisherCheck
 | `ralph_import.ps1` | PRD conversion |
 | `lib\CircuitBreaker.ps1` | Stagnation detection |
 | `lib\ResponseAnalyzer.ps1` | Response analysis |
+| `lib\TaskReader.ps1` | Task file parsing |
+| `lib\TaskStatusUpdater.ps1` | Task status updates |
+| `lib\GitBranchManager.ps1` | Git branch/commit |
+| `lib\PromptInjector.ps1` | PROMPT.md injection |
 
 ## Uninstall
 
