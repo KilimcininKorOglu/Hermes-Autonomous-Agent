@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    Task Reader Module for Ralph
+    Task Reader Module for Hermes
 .DESCRIPTION
     Reads and parses task files from tasks/ directory.
     Supports task-plan.md format with Features (FXXX) and Tasks (TXXX).

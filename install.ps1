@@ -2,12 +2,12 @@
 
 <#
 .SYNOPSIS
-    Ralph for Claude Code - Windows Installation Script
+    Hermes for Claude Code - Windows Installation Script
 .DESCRIPTION
-    Installs Ralph globally on Windows systems.
-    Creates commands: ralph, ralph-monitor, ralph-setup, ralph-import
+    Installs Hermes globally on Windows systems.
+    Creates commands: Hermes, Hermes-monitor, Hermes-setup, Hermes-import
 .PARAMETER Uninstall
-    Remove Ralph installation
+    Remove Hermes installation
 .PARAMETER Help
     Show help message
 .EXAMPLE
@@ -25,25 +25,25 @@ param(
 )
 
 # Configuration
-$script:RalphHome = Join-Path $env:LOCALAPPDATA "Ralph"
-$script:BinDir = Join-Path $script:RalphHome "bin"
-$script:TemplatesDir = Join-Path $script:RalphHome "templates"
-$script:LibDir = Join-Path $script:RalphHome "lib"
+$script:HermesHome = Join-Path $env:LOCALAPPDATA "Hermes"
+$script:BinDir = Join-Path $script:HermesHome "bin"
+$script:TemplatesDir = Join-Path $script:HermesHome "templates"
+$script:LibDir = Join-Path $script:HermesHome "lib"
 $script:ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 function Show-Help {
     Write-Host ""
-    Write-Host "Ralph for Claude Code - Windows Installation" -ForegroundColor Cyan
+    Write-Host "Hermes for Claude Code - Windows Installation" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage: .\install.ps1 [OPTIONS]" -ForegroundColor White
     Write-Host ""
     Write-Host "Options:" -ForegroundColor Yellow
-    Write-Host "    -Uninstall    Remove Ralph installation"
+    Write-Host "    -Uninstall    Remove Hermes installation"
     Write-Host "    -Help         Show this help message"
     Write-Host ""
     Write-Host "Installation paths:" -ForegroundColor Yellow
     Write-Host "    Commands:     $script:BinDir"
-    Write-Host "    Scripts:      $script:RalphHome"
+    Write-Host "    Scripts:      $script:HermesHome"
     Write-Host "    Templates:    $script:TemplatesDir"
     Write-Host ""
 }
@@ -128,7 +128,7 @@ function New-InstallDirs {
     
     Write-Log -Level "INFO" -Message "Creating installation directories..."
     
-    $dirs = @($script:RalphHome, $script:BinDir, $script:TemplatesDir, $script:LibDir)
+    $dirs = @($script:HermesHome, $script:BinDir, $script:TemplatesDir, $script:LibDir)
     
     foreach ($dir in $dirs) {
         if (-not (Test-Path $dir)) {
@@ -136,31 +136,31 @@ function New-InstallDirs {
         }
     }
     
-    Write-Log -Level "SUCCESS" -Message "Directories created: $script:RalphHome"
+    Write-Log -Level "SUCCESS" -Message "Directories created: $script:HermesHome"
 }
 
 function Install-Scripts {
     <#
     .SYNOPSIS
-        Installs Ralph scripts to Ralph home directory
+        Installs Hermes scripts to Hermes home directory
     #>
     
-    Write-Log -Level "INFO" -Message "Installing Ralph scripts..."
+    Write-Log -Level "INFO" -Message "Installing Hermes scripts..."
     
     # Copy main scripts
     $mainScripts = @(
-        "ralph_loop.ps1",
-        "ralph_monitor.ps1",
+        "hermes_loop.ps1",
+        "hermes_monitor.ps1",
         "setup.ps1",
-        "ralph_import.ps1",
-        "ralph-prd.ps1",
-        "ralph-add.ps1"
+        "hermes_import.ps1",
+        "hermes-prd.ps1",
+        "hermes-add.ps1"
     )
     
     foreach ($scriptName in $mainScripts) {
         $sourcePath = Join-Path $script:ScriptDir $scriptName
         if (Test-Path $sourcePath) {
-            Copy-Item -Path $sourcePath -Destination $script:RalphHome -Force
+            Copy-Item -Path $sourcePath -Destination $script:HermesHome -Force
             Write-Host "    Installed: $scriptName" -ForegroundColor Gray
         }
         else {
@@ -182,7 +182,7 @@ function Install-Scripts {
         Write-Host "    Installed: templates\*" -ForegroundColor Gray
     }
     
-    Write-Log -Level "SUCCESS" -Message "Ralph scripts installed to $script:RalphHome"
+    Write-Log -Level "SUCCESS" -Message "Hermes scripts installed to $script:HermesHome"
 }
 
 function Install-Commands {
@@ -193,103 +193,103 @@ function Install-Commands {
     
     Write-Log -Level "INFO" -Message "Creating command wrappers..."
     
-    # ralph.cmd - Main command (for CMD)
-    $ralphCmd = @"
+    # hermes.cmd - Main command (for CMD)
+    $hermesCmd = @"
 @echo off
-pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Ralph\ralph_loop.ps1" %*
+pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Hermes\hermes_loop.ps1" %*
 "@
-    $ralphCmd | Set-Content (Join-Path $script:BinDir "ralph.cmd") -Encoding ASCII
+    $hermesCmd | Set-Content (Join-Path $script:BinDir "hermes.cmd") -Encoding ASCII
     
-    # ralph-monitor.cmd
+    # hermes-monitor.cmd
     $monitorCmd = @"
 @echo off
-pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Ralph\ralph_monitor.ps1" %*
+pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Hermes\hermes_monitor.ps1" %*
 "@
-    $monitorCmd | Set-Content (Join-Path $script:BinDir "ralph-monitor.cmd") -Encoding ASCII
+    $monitorCmd | Set-Content (Join-Path $script:BinDir "hermes-monitor.cmd") -Encoding ASCII
     
-    # ralph-setup.cmd
+    # hermes-setup.cmd
     $setupCmd = @"
 @echo off
-pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Ralph\setup.ps1" %*
+pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Hermes\setup.ps1" %*
 "@
-    $setupCmd | Set-Content (Join-Path $script:BinDir "ralph-setup.cmd") -Encoding ASCII
+    $setupCmd | Set-Content (Join-Path $script:BinDir "hermes-setup.cmd") -Encoding ASCII
     
-    # ralph-import.cmd
+    # hermes-import.cmd
     $importCmd = @"
 @echo off
-pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Ralph\ralph_import.ps1" %*
+pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Hermes\hermes_import.ps1" %*
 "@
-    $importCmd | Set-Content (Join-Path $script:BinDir "ralph-import.cmd") -Encoding ASCII
+    $importCmd | Set-Content (Join-Path $script:BinDir "hermes-import.cmd") -Encoding ASCII
     
     # PowerShell wrappers (.ps1) for PowerShell users
     
-    # ralph.ps1
-    $ralphPs1 = @"
+    # hermes.ps1
+    $hermesPs1 = @"
 #Requires -Version 7.0
-# Ralph for Claude Code - PowerShell Wrapper
-`$RalphHome = Join-Path `$env:LOCALAPPDATA "Ralph"
-& (Join-Path `$RalphHome "ralph_loop.ps1") @args
+# Hermes for Claude Code - PowerShell Wrapper
+`$HermesHome = Join-Path `$env:LOCALAPPDATA "Hermes"
+& (Join-Path `$HermesHome "hermes_loop.ps1") @args
 "@
-    $ralphPs1 | Set-Content (Join-Path $script:BinDir "ralph.ps1") -Encoding UTF8
+    $hermesPs1 | Set-Content (Join-Path $script:BinDir "hermes.ps1") -Encoding UTF8
     
-    # ralph-monitor.ps1
+    # hermes-monitor.ps1
     $monitorPs1 = @"
 #Requires -Version 7.0
-# Ralph Monitor - PowerShell Wrapper
-`$RalphHome = Join-Path `$env:LOCALAPPDATA "Ralph"
-& (Join-Path `$RalphHome "ralph_monitor.ps1") @args
+# Hermes Monitor - PowerShell Wrapper
+`$HermesHome = Join-Path `$env:LOCALAPPDATA "Hermes"
+& (Join-Path `$HermesHome "hermes_monitor.ps1") @args
 "@
-    $monitorPs1 | Set-Content (Join-Path $script:BinDir "ralph-monitor.ps1") -Encoding UTF8
+    $monitorPs1 | Set-Content (Join-Path $script:BinDir "hermes-monitor.ps1") -Encoding UTF8
     
-    # ralph-setup.ps1
+    # hermes-setup.ps1
     $setupPs1 = @"
 #Requires -Version 7.0
-# Ralph Setup - PowerShell Wrapper
-`$RalphHome = Join-Path `$env:LOCALAPPDATA "Ralph"
-& (Join-Path `$RalphHome "setup.ps1") @args
+# Hermes Setup - PowerShell Wrapper
+`$HermesHome = Join-Path `$env:LOCALAPPDATA "Hermes"
+& (Join-Path `$HermesHome "setup.ps1") @args
 "@
-    $setupPs1 | Set-Content (Join-Path $script:BinDir "ralph-setup.ps1") -Encoding UTF8
+    $setupPs1 | Set-Content (Join-Path $script:BinDir "hermes-setup.ps1") -Encoding UTF8
     
-    # ralph-import.ps1
+    # hermes-import.ps1
     $importPs1 = @"
 #Requires -Version 7.0
-# Ralph Import - PowerShell Wrapper
-`$RalphHome = Join-Path `$env:LOCALAPPDATA "Ralph"
-& (Join-Path `$RalphHome "ralph_import.ps1") @args
+# Hermes Import - PowerShell Wrapper
+`$HermesHome = Join-Path `$env:LOCALAPPDATA "Hermes"
+& (Join-Path `$HermesHome "hermes_import.ps1") @args
 "@
-    $importPs1 | Set-Content (Join-Path $script:BinDir "ralph-import.ps1") -Encoding UTF8
+    $importPs1 | Set-Content (Join-Path $script:BinDir "hermes-import.ps1") -Encoding UTF8
     
-    # ralph-prd.cmd
+    # hermes-prd.cmd
     $prdCmd = @"
 @echo off
-pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Ralph\ralph-prd.ps1" %*
+pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Hermes\hermes-prd.ps1" %*
 "@
-    $prdCmd | Set-Content (Join-Path $script:BinDir "ralph-prd.cmd") -Encoding ASCII
+    $prdCmd | Set-Content (Join-Path $script:BinDir "hermes-prd.cmd") -Encoding ASCII
     
-    # ralph-prd.ps1
+    # hermes-prd.ps1
     $prdPs1 = @"
 #Requires -Version 7.0
-# Ralph PRD Parser - PowerShell Wrapper
-`$RalphHome = Join-Path `$env:LOCALAPPDATA "Ralph"
-& (Join-Path `$RalphHome "ralph-prd.ps1") @args
+# Hermes PRD Parser - PowerShell Wrapper
+`$HermesHome = Join-Path `$env:LOCALAPPDATA "Hermes"
+& (Join-Path `$HermesHome "hermes-prd.ps1") @args
 "@
-    $prdPs1 | Set-Content (Join-Path $script:BinDir "ralph-prd.ps1") -Encoding UTF8
+    $prdPs1 | Set-Content (Join-Path $script:BinDir "hermes-prd.ps1") -Encoding UTF8
     
-    # ralph-add.cmd
+    # hermes-add.cmd
     $addCmd = @"
 @echo off
-pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Ralph\ralph-add.ps1" %*
+pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Hermes\hermes-add.ps1" %*
 "@
-    $addCmd | Set-Content (Join-Path $script:BinDir "ralph-add.cmd") -Encoding ASCII
+    $addCmd | Set-Content (Join-Path $script:BinDir "hermes-add.cmd") -Encoding ASCII
     
-    # ralph-add.ps1
+    # hermes-add.ps1
     $addPs1 = @"
 #Requires -Version 7.0
-# Ralph Add - PowerShell Wrapper
-`$RalphHome = Join-Path `$env:LOCALAPPDATA "Ralph"
-& (Join-Path `$RalphHome "ralph-add.ps1") @args
+# Hermes Add - PowerShell Wrapper
+`$HermesHome = Join-Path `$env:LOCALAPPDATA "Hermes"
+& (Join-Path `$HermesHome "hermes-add.ps1") @args
 "@
-    $addPs1 | Set-Content (Join-Path $script:BinDir "ralph-add.ps1") -Encoding UTF8
+    $addPs1 | Set-Content (Join-Path $script:BinDir "hermes-add.ps1") -Encoding UTF8
     
     Write-Log -Level "SUCCESS" -Message "Command wrappers created in $script:BinDir"
 }
@@ -297,7 +297,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\Ralph\ralph-add.ps
 function Add-ToPath {
     <#
     .SYNOPSIS
-        Adds Ralph bin directory to user PATH
+        Adds Hermes bin directory to user PATH
     #>
     
     Write-Log -Level "INFO" -Message "Checking PATH configuration..."
@@ -326,7 +326,7 @@ function Add-ToPath {
 function Remove-FromPath {
     <#
     .SYNOPSIS
-        Removes Ralph bin directory from user PATH
+        Removes Hermes bin directory from user PATH
     #>
     
     Write-Log -Level "INFO" -Message "Removing from PATH..."
@@ -340,43 +340,43 @@ function Remove-FromPath {
         Write-Log -Level "SUCCESS" -Message "Removed from PATH"
     }
     else {
-        Write-Log -Level "INFO" -Message "Ralph bin directory was not in PATH"
+        Write-Log -Level "INFO" -Message "Hermes bin directory was not in PATH"
     }
 }
 
-function Uninstall-Ralph {
+function Uninstall-Hermes {
     <#
     .SYNOPSIS
-        Removes Ralph installation
+        Removes Hermes installation
     #>
     
-    Write-Log -Level "INFO" -Message "Uninstalling Ralph for Claude Code..."
+    Write-Log -Level "INFO" -Message "Uninstalling Hermes for Claude Code..."
     
     # Remove from PATH
     Remove-FromPath
     
     # Remove installation directory
-    if (Test-Path $script:RalphHome) {
-        Remove-Item -Path $script:RalphHome -Recurse -Force
-        Write-Log -Level "SUCCESS" -Message "Removed $($script:RalphHome)"
+    if (Test-Path $script:HermesHome) {
+        Remove-Item -Path $script:HermesHome -Recurse -Force
+        Write-Log -Level "SUCCESS" -Message "Removed $($script:HermesHome)"
     }
     else {
         Write-Log -Level "INFO" -Message "Installation directory not found"
     }
     
     Write-Host ""
-    Write-Log -Level "SUCCESS" -Message "Ralph for Claude Code uninstalled successfully"
+    Write-Log -Level "SUCCESS" -Message "Hermes for Claude Code uninstalled successfully"
     Write-Host ""
 }
 
-function Install-Ralph {
+function Install-Hermes {
     <#
     .SYNOPSIS
         Main installation function
     #>
     
     Write-Host ""
-    Write-Host "Installing Ralph for Claude Code globally..." -ForegroundColor Cyan
+    Write-Host "Installing Hermes for Claude Code globally..." -ForegroundColor Cyan
     Write-Host ""
     
     # Check dependencies
@@ -398,26 +398,25 @@ function Install-Ralph {
     
     # Success message
     Write-Host ""
-    Write-Log -Level "SUCCESS" -Message "Ralph for Claude Code installed successfully!"
+    Write-Log -Level "SUCCESS" -Message "Hermes for Claude Code installed successfully!"
     Write-Host ""
     Write-Host "Global commands available:" -ForegroundColor Cyan
-    Write-Host "  ralph -Monitor           Start Ralph with monitoring"
-    Write-Host "  ralph -Help              Show Ralph options"
-    Write-Host "  ralph-setup my-project   Create new Ralph project"
-    Write-Host "  ralph-import prd.md      Convert PRD to Ralph project"
-    Write-Host "  ralph-prd prd.md         Parse PRD to task-plan format"
-    Write-Host "  ralph-add `"feature`"     Add single feature to task plan"
-    Write-Host "  ralph-monitor            Manual monitoring dashboard"
+    Write-Host "  hermes -TaskMode          Start Hermes Task Mode"
+    Write-Host "  hermes -Help              Show Hermes options"
+    Write-Host "  hermes-setup my-project   Create new Hermes project"
+    Write-Host "  hermes-prd prd.md         Parse PRD to task files"
+    Write-Host "  hermes-add `"feature`"      Add single feature to task plan"
+    Write-Host "  hermes-monitor            Live monitoring dashboard"
     Write-Host ""
     Write-Host "Quick start:" -ForegroundColor Cyan
-    Write-Host "  1. ralph-setup my-awesome-project"
-    Write-Host "  2. cd my-awesome-project"
-    Write-Host "  3. # Edit PROMPT.md with your requirements"
-    Write-Host "  4. ralph -Monitor"
+    Write-Host "  1. hermes-setup my-project"
+    Write-Host "  2. cd my-project"
+    Write-Host "  3. hermes-prd docs/PRD.md"
+    Write-Host "  4. hermes -TaskMode -AutoBranch -AutoCommit"
     Write-Host ""
     Write-Host "Installation paths:" -ForegroundColor Gray
     Write-Host "  Commands:  $($script:BinDir)"
-    Write-Host "  Scripts:   $($script:RalphHome)"
+    Write-Host "  Scripts:   $($script:HermesHome)"
     Write-Host "  Templates: $($script:TemplatesDir)"
     Write-Host ""
 }
@@ -429,8 +428,8 @@ if ($Help) {
 }
 
 if ($Uninstall) {
-    Uninstall-Ralph
+    Uninstall-Hermes
     exit 0
 }
 
-Install-Ralph
+Install-Hermes

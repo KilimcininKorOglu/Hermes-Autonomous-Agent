@@ -1,6 +1,6 @@
-# Ralph Example Usage Guide
+# Hermes Example Usage Guide
 
-This document shows step-by-step how to work with Ralph using the `sample-prd.md` file.
+This document shows step-by-step how to work with Hermes using the `sample-prd.md` file.
 
 ---
 
@@ -14,7 +14,7 @@ We will perform autonomous development using the e-commerce platform PRD (`sampl
 
 ```powershell
 # Create new project
-ralph-setup ecommerce-platform
+Hermes-setup ecommerce-platform
 cd ecommerce-platform
 ```
 
@@ -38,7 +38,7 @@ ecommerce-platform/
 ```powershell
 # Copy PRD file into project
 mkdir docs
-copy "C:\path\to\ralph-claude-code\docs\sample-prd.md" "docs\PRD.md"
+copy "C:\path\to\Hermes-claude-code\docs\sample-prd.md" "docs\PRD.md"
 ```
 
 ---
@@ -48,13 +48,13 @@ copy "C:\path\to\ralph-claude-code\docs\sample-prd.md" "docs\PRD.md"
 ### Preview (DryRun)
 
 ```powershell
-ralph-prd docs/PRD.md -DryRun
+Hermes-prd docs/PRD.md -DryRun
 ```
 
 **Expected Output:**
 
 ```
-Ralph PRD Parser
+Hermes PRD Parser
 ================
 
 [INFO] Reading PRD: docs/PRD.md
@@ -83,7 +83,7 @@ Run without -DryRun to create files.
 ### Actual Creation
 
 ```powershell
-ralph-prd docs/PRD.md
+Hermes-prd docs/PRD.md
 ```
 
 **Created Files:**
@@ -103,7 +103,7 @@ tasks/
 ## Step 4: Check Task Status
 
 ```powershell
-ralph -TaskStatus
+Hermes -TaskStatus
 ```
 
 **Expected Output:**
@@ -142,13 +142,13 @@ Next Task: T001 - Database Schema
 
 ```powershell
 # Only P1 priority tasks
-ralph -TaskStatus -PriorityFilter P1
+Hermes -TaskStatus -PriorityFilter P1
 
 # Tasks for specific feature
-ralph -TaskStatus -FeatureFilter F001
+Hermes -TaskStatus -FeatureFilter F001
 
 # Completed tasks
-ralph -TaskStatus -StatusFilter COMPLETED
+Hermes -TaskStatus -StatusFilter COMPLETED
 ```
 
 ---
@@ -158,7 +158,7 @@ ralph -TaskStatus -StatusFilter COMPLETED
 ### Basic Usage
 
 ```powershell
-ralph -TaskMode
+Hermes -TaskMode
 ```
 
 This command:
@@ -172,7 +172,7 @@ This command:
 ### Full Automation
 
 ```powershell
-ralph -TaskMode -AutoBranch -AutoCommit
+Hermes -TaskMode -AutoBranch -AutoCommit
 ```
 
 This command additionally:
@@ -184,7 +184,7 @@ This command additionally:
 ### Autonomous Mode
 
 ```powershell
-ralph -TaskMode -AutoBranch -AutoCommit -Autonomous
+Hermes -TaskMode -AutoBranch -AutoCommit -Autonomous
 ```
 
 This command:
@@ -200,8 +200,8 @@ This command:
 ### In Separate Terminal Window
 
 ```powershell
-# Terminal 1: Run Ralph
-ralph -TaskMode -AutoBranch -AutoCommit -Monitor
+# Terminal 1: Run Hermes
+Hermes -TaskMode -AutoBranch -AutoCommit -Monitor
 
 # Terminal 2: Monitoring panel opens automatically
 ```
@@ -210,14 +210,14 @@ ralph -TaskMode -AutoBranch -AutoCommit -Monitor
 
 ```powershell
 # In another terminal
-ralph-monitor
+Hermes-monitor
 ```
 
 ### Examine Log Files
 
 ```powershell
 # Latest log
-Get-Content logs/ralph.log -Tail 50
+Get-Content logs/Hermes.log -Tail 50
 
 # Latest AI output
 Get-ChildItem logs/*_output_*.log | 
@@ -234,22 +234,22 @@ If you want to start from a specific task:
 
 ```powershell
 # Start from T005
-ralph -TaskMode -StartFrom T005 -AutoBranch -AutoCommit
+Hermes -TaskMode -StartFrom T005 -AutoBranch -AutoCommit
 ```
 
 ---
 
 ## Step 8: Resume After Interruption
 
-Ralph automatically resumes from where it left off:
+Hermes automatically resumes from where it left off:
 
 ```powershell
 # First run - interrupted at T003
-ralph -TaskMode -AutoBranch -AutoCommit
+Hermes -TaskMode -AutoBranch -AutoCommit
 # Ctrl+C or context limit
 
 # Second run - automatically continues from T004
-ralph -TaskMode -AutoBranch -AutoCommit
+Hermes -TaskMode -AutoBranch -AutoCommit
 ```
 
 **Output:**
@@ -276,17 +276,17 @@ If new features are added to PRD:
 notepad docs/PRD.md
 
 # Re-run - only new features are added
-ralph-prd docs/PRD.md
+Hermes-prd docs/PRD.md
 ```
 
 ### Method 2: Add Single Feature
 
 ```powershell
 # Inline description
-ralph-add "User profile page and avatar upload"
+Hermes-add "User profile page and avatar upload"
 
 # From file
-ralph-add @docs/new-feature-spec.md
+Hermes-add @docs/new-feature-spec.md
 ```
 
 ---
@@ -295,13 +295,13 @@ ralph-add @docs/new-feature-spec.md
 
 ```powershell
 # Parse PRD with Droid
-ralph-prd docs/PRD.md -AI droid
+Hermes-prd docs/PRD.md -AI droid
 
 # Task Mode with Aider
-ralph -TaskMode -AI aider -AutoBranch -AutoCommit
+Hermes -TaskMode -AI aider -AutoBranch -AutoCommit
 
 # List available providers
-ralph-prd -List
+Hermes-prd -List
 ```
 
 ---
@@ -309,15 +309,15 @@ ralph-prd -List
 ## Workflow Summary
 
 ```
-1. ralph-setup ecommerce-platform
+1. Hermes-setup ecommerce-platform
 2. cd ecommerce-platform
 3. # Copy PRD file to docs/PRD.md
-4. ralph-prd docs/PRD.md -DryRun          # Preview
-5. ralph-prd docs/PRD.md                   # Create tasks
-6. ralph -TaskStatus                       # View status
-7. ralph -TaskMode -AutoBranch -AutoCommit -Autonomous  # Start
-8. # ... Ralph is working ...
-9. ralph -TaskStatus                       # Check progress
+4. Hermes-prd docs/PRD.md -DryRun          # Preview
+5. Hermes-prd docs/PRD.md                   # Create tasks
+6. Hermes -TaskStatus                       # View status
+7. Hermes -TaskMode -AutoBranch -AutoCommit -Autonomous  # Start
+8. # ... Hermes is working ...
+9. Hermes -TaskStatus                       # Check progress
 ```
 
 ---
@@ -351,33 +351,33 @@ After Task Mode completes:
 
 ```powershell
 # Increase timeout
-ralph-prd docs/PRD.md -Timeout 1800
+Hermes-prd docs/PRD.md -Timeout 1800
 
 # Try different AI
-ralph-prd docs/PRD.md -AI droid
+Hermes-prd docs/PRD.md -AI droid
 ```
 
 ### Task Blocked
 
 ```powershell
 # View blocked tasks
-ralph -TaskStatus -StatusFilter BLOCKED
+Hermes -TaskStatus -StatusFilter BLOCKED
 
 # Manually skip to next task
-ralph -TaskMode -StartFrom T006
+Hermes -TaskMode -StartFrom T006
 ```
 
 ### Circuit Breaker Opened
 
 ```powershell
 # Check status
-ralph -CircuitStatus
+Hermes -CircuitStatus
 
 # Reset
-ralph -ResetCircuit
+Hermes -ResetCircuit
 
 # Restart
-ralph -TaskMode -AutoBranch -AutoCommit
+Hermes -TaskMode -AutoBranch -AutoCommit
 ```
 
 ---
@@ -392,4 +392,4 @@ ralph -TaskMode -AutoBranch -AutoCommit
 
 ---
 
-**Ready!** You can now perform autonomous development with Ralph.
+**Ready!** You can now perform autonomous development with Hermes.

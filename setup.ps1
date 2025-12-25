@@ -2,9 +2,9 @@
 
 <#
 .SYNOPSIS
-    Ralph Project Setup - Windows PowerShell Version
+    Hermes Project Setup - Windows PowerShell Version
 .DESCRIPTION
-    Creates a new Ralph project with standard structure and templates.
+    Creates a new Hermes project with standard structure and templates.
 .PARAMETER ProjectName
     Name of the project to create (default: my-project)
 .PARAMETER Help
@@ -12,7 +12,7 @@
 .EXAMPLE
     .\setup.ps1 my-awesome-project
 .EXAMPLE
-    ralph-setup my-awesome-project
+    Hermes-setup my-awesome-project
 #>
 
 [CmdletBinding()]
@@ -24,34 +24,34 @@ param(
     [switch]$Help
 )
 
-# Get Ralph home directory
-$script:RalphHome = if ($env:RALPH_HOME) { 
-    $env:RALPH_HOME 
+# Get Hermes home directory
+$script:HermesHome = if ($env:Hermes_HOME) { 
+    $env:Hermes_HOME 
 } 
 else { 
-    Join-Path $env:LOCALAPPDATA "Ralph" 
+    Join-Path $env:LOCALAPPDATA "Hermes" 
 }
 
-$script:TemplatesDir = Join-Path $script:RalphHome "templates"
+$script:TemplatesDir = Join-Path $script:HermesHome "templates"
 $script:ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 function Show-Help {
     Write-Host ""
-    Write-Host "Ralph Project Setup" -ForegroundColor Cyan
+    Write-Host "Hermes Project Setup" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "Usage: ralph-setup [PROJECT_NAME]" -ForegroundColor White
+    Write-Host "Usage: Hermes-setup [PROJECT_NAME]" -ForegroundColor White
     Write-Host ""
     Write-Host "Arguments:" -ForegroundColor Yellow
     Write-Host "    PROJECT_NAME    Name of the project (default: my-project)"
     Write-Host ""
     Write-Host "Example:" -ForegroundColor Yellow
-    Write-Host "    ralph-setup my-awesome-project"
+    Write-Host "    Hermes-setup my-awesome-project"
     Write-Host "    cd my-awesome-project"
-    Write-Host "    ralph -Monitor"
+    Write-Host "    Hermes -Monitor"
     Write-Host ""
     Write-Host "This creates a new directory with:" -ForegroundColor Gray
-    Write-Host "    PROMPT.md        Main development instructions for Ralph"
-    Write-Host "    tasks/           Task files (created by ralph-prd)"
+    Write-Host "    PROMPT.md        Main development instructions for Hermes"
+    Write-Host "    tasks/           Task files (created by Hermes-prd)"
     Write-Host "    specs/           Project specifications"
     Write-Host "    src/             Source code"
     Write-Host "    logs/            Execution logs"
@@ -64,7 +64,7 @@ function Get-TemplatesPath {
         Finds the templates directory
     #>
     
-    # First check Ralph home
+    # First check Hermes home
     if (Test-Path $script:TemplatesDir) {
         return $script:TemplatesDir
     }
@@ -84,15 +84,15 @@ function Get-TemplatesPath {
     return $null
 }
 
-function New-RalphProject {
+function New-HermesProject {
     <#
     .SYNOPSIS
-        Creates a new Ralph project
+        Creates a new Hermes project
     #>
     param([string]$Name)
     
     Write-Host ""
-    Write-Host "Setting up Ralph project: $Name" -ForegroundColor Cyan
+    Write-Host "Setting up Hermes project: $Name" -ForegroundColor Cyan
     Write-Host ""
     
     # Find templates
@@ -105,7 +105,7 @@ function New-RalphProject {
         Write-Host "  - $script:TemplatesDir"
         Write-Host "  - $(Join-Path $script:ScriptDir 'templates')"
         Write-Host ""
-        Write-Host "Please run install.ps1 first to install Ralph globally."
+        Write-Host "Please run install.ps1 first to install Hermes globally."
         Write-Host ""
         exit 1
     }
@@ -191,7 +191,7 @@ function New-RalphProject {
         try {
             $gitOutput = git init 2>&1
             git add . 2>&1 | Out-Null
-            git commit -m "Initial Ralph project setup" 2>&1 | Out-Null
+            git commit -m "Initial Hermes project setup" 2>&1 | Out-Null
             Write-Host "[OK] Initialized git repository" -ForegroundColor Green
         }
         catch {
@@ -205,8 +205,8 @@ function New-RalphProject {
         Write-Host "Next steps:" -ForegroundColor Cyan
         Write-Host "  1. cd $Name"
         Write-Host "  2. Create a PRD document (e.g., docs/PRD.md)"
-        Write-Host "  3. Run: ralph-prd docs/PRD.md"
-        Write-Host "  4. Run: ralph -TaskMode -AutoBranch -AutoCommit"
+        Write-Host "  3. Run: Hermes-prd docs/PRD.md"
+        Write-Host "  4. Run: Hermes -TaskMode -AutoBranch -AutoCommit"
         Write-Host ""
     }
     finally {
@@ -218,10 +218,10 @@ function Get-DefaultPromptTemplate {
     param([string]$ProjectName)
     
     return @"
-# Ralph Development Instructions
+# Hermes Development Instructions
 
 ## Context
-You are Ralph, an autonomous AI development agent working on the $ProjectName project.
+You are Hermes, an autonomous AI development agent working on the $ProjectName project.
 
 ## Current Objectives
 1. Complete the current task from tasks/*.md
@@ -246,11 +246,11 @@ You are Ralph, an autonomous AI development agent working on the $ProjectName pr
 At the end of your response, include this status block:
 
 ``````
----RALPH_STATUS---
+---Hermes_STATUS---
 STATUS: IN_PROGRESS | COMPLETE | BLOCKED
 EXIT_SIGNAL: false | true
 RECOMMENDATION: <one line summary of what to do next>
----END_RALPH_STATUS---
+---END_Hermes_STATUS---
 ``````
 
 ## File Structure
@@ -259,7 +259,7 @@ RECOMMENDATION: <one line summary of what to do next>
 - docs/: Project documentation
 
 ## Current Task
-The current task will be injected below by Ralph Task Mode.
+The current task will be injected below by Hermes Task Mode.
 "@
 }
 
@@ -269,40 +269,40 @@ function Get-ProjectReadme {
     return @"
 # $ProjectName
 
-A Ralph-managed project for autonomous AI development.
+A Hermes-managed project for autonomous AI development.
 
 ## Getting Started
 
 1. Create a PRD document in ``docs/PRD.md``
-2. Run: ``ralph-prd docs/PRD.md``
-3. Run: ``ralph -TaskMode -AutoBranch -AutoCommit``
+2. Run: ``Hermes-prd docs/PRD.md``
+3. Run: ``Hermes -TaskMode -AutoBranch -AutoCommit``
 
 ## Project Structure
 
-- ``PROMPT.md`` - Main development instructions for Ralph
-- ``tasks/`` - Task files (created by ralph-prd)
+- ``PROMPT.md`` - Main development instructions for Hermes
+- ``tasks/`` - Task files (created by Hermes-prd)
 - ``src/`` - Source code
 - ``docs/`` - Project documentation
-- ``logs/`` - Ralph execution logs
+- ``logs/`` - Hermes execution logs
 
 ## Commands
 
 ``````powershell
-ralph-prd docs/PRD.md                          # Parse PRD to tasks
-ralph -TaskMode -AutoBranch -AutoCommit        # Run Task Mode
-ralph -TaskStatus                              # Show task progress
-ralph -TaskMode -Autonomous                    # Run without pausing
+Hermes-prd docs/PRD.md                          # Parse PRD to tasks
+Hermes -TaskMode -AutoBranch -AutoCommit        # Run Task Mode
+Hermes -TaskStatus                              # Show task progress
+Hermes -TaskMode -Autonomous                    # Run without pausing
 ``````
 
-## Created with Ralph for Claude Code
+## Created with Hermes for Claude Code
 
-[Ralph](https://github.com/frankbria/ralph-claude-code) - Autonomous AI development loop
+[Hermes](https://github.com/frankbria/Hermes-claude-code) - Autonomous AI development loop
 "@
 }
 
 function Get-GitIgnoreContent {
     return @"
-# Ralph state files
+# Hermes state files
 .call_count
 .last_reset
 .exit_signals
@@ -357,4 +357,4 @@ if ($ProjectName -match '[<>:"/\\|?*]') {
     exit 1
 }
 
-New-RalphProject -Name $ProjectName
+New-HermesProject -Name $ProjectName

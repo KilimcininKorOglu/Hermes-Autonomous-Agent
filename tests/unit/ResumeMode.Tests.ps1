@@ -9,7 +9,7 @@ $scriptRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Describe "Resume Mode Functions" {
     Context "Test-ShouldResume" {
         BeforeEach {
-            $testDir = Join-Path $env:TEMP "ralph-resume-test-$(Get-Random)"
+            $testDir = Join-Path $env:TEMP "Hermes-resume-test-$(Get-Random)"
             New-Item -ItemType Directory -Path "$testDir\tasks" -Force | Out-Null
             Push-Location $testDir
         }
@@ -57,7 +57,7 @@ Describe "Resume Mode Functions" {
     
     Context "Get-ResumeInfo" {
         BeforeEach {
-            $testDir = Join-Path $env:TEMP "ralph-resume-test-$(Get-Random)"
+            $testDir = Join-Path $env:TEMP "Hermes-resume-test-$(Get-Random)"
             New-Item -ItemType Directory -Path "$testDir\tasks" -Force | Out-Null
             Push-Location $testDir
         }
@@ -96,7 +96,7 @@ Describe "Resume Mode Functions" {
     
     Context "Get-ExecutionQueue" {
         BeforeEach {
-            $testDir = Join-Path $env:TEMP "ralph-queue-test-$(Get-Random)"
+            $testDir = Join-Path $env:TEMP "Hermes-queue-test-$(Get-Random)"
             New-Item -ItemType Directory -Path "$testDir\tasks" -Force | Out-Null
             Push-Location $testDir
             

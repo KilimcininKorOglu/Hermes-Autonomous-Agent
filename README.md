@@ -1,4 +1,4 @@
-# Ralph for Claude Code
+# Hermes for Claude Code
 
 Autonomous AI development loop system for Windows PowerShell. Supports multiple AI CLIs (Claude, Droid, Aider) with task-driven development, automatic branching, and intelligent resume.
 
@@ -21,8 +21,8 @@ Autonomous AI development loop system for Windows PowerShell. Supports multiple 
 
 ### Task Management
 
-- **PRD Parser (`ralph-prd`)** - Converts PRD documents to structured task files
-- **Feature Add (`ralph-add`)** - Add single features inline or from file
+- **PRD Parser (`Hermes-prd`)** - Converts PRD documents to structured task files
+- **Feature Add (`Hermes-add`)** - Add single features inline or from file
 - **Incremental Updates** - Re-run PRD parser without losing progress
 - **ID Continuity** - Feature and Task IDs auto-increment across all files
 
@@ -35,8 +35,8 @@ Autonomous AI development loop system for Windows PowerShell. Supports multiple 
 
 ### Status and Filtering
 
-- **ASCII Status Tables** - Beautiful table display with `ralph -TaskStatus`
-- **Live Monitor** - Real-time dashboard with `ralph-monitor`
+- **ASCII Status Tables** - Beautiful table display with `Hermes -TaskStatus`
+- **Live Monitor** - Real-time dashboard with `Hermes-monitor`
 - **Status Filtering** - Filter by COMPLETED, IN_PROGRESS, NOT_STARTED, BLOCKED
 - **Feature/Priority Filtering** - Filter by Feature ID or Priority level
 
@@ -61,33 +61,33 @@ Autonomous AI development loop system for Windows PowerShell. Supports multiple 
 ## Quick Start
 
 ```powershell
-# Install Ralph
-git clone https://github.com/frankbria/ralph-claude-code.git
-cd ralph-claude-code
+# Install Hermes
+git clone https://github.com/frankbria/Hermes-claude-code.git
+cd Hermes-claude-code
 .\install.ps1
 
 # Create a new project
-ralph-setup my-project
+Hermes-setup my-project
 cd my-project
 
 # Create PRD and parse to tasks
-ralph-prd docs/PRD.md
+Hermes-prd docs/PRD.md
 
 # Start Task Mode
-ralph -TaskMode -AutoBranch -AutoCommit
+Hermes -TaskMode -AutoBranch -AutoCommit
 ```
 
 ## Commands
 
 | Command                                   | Description                |
 |-------------------------------------------|----------------------------|
-| `ralph-setup <name>`                      | Create new project         |
-| `ralph-prd <file>`                        | Parse PRD to task files    |
-| `ralph-add "feature"`                     | Add single feature         |
-| `ralph -TaskMode -AutoBranch -AutoCommit` | Run with full automation   |
-| `ralph -TaskMode -Autonomous`             | Run without pausing        |
-| `ralph -TaskStatus`                       | Show task progress table   |
-| `ralph-monitor`                           | Live monitoring dashboard  |
+| `Hermes-setup <name>`                      | Create new project         |
+| `Hermes-prd <file>`                        | Parse PRD to task files    |
+| `Hermes-add "feature"`                     | Add single feature         |
+| `Hermes -TaskMode -AutoBranch -AutoCommit` | Run with full automation   |
+| `Hermes -TaskMode -Autonomous`             | Run without pausing        |
+| `Hermes -TaskStatus`                       | Show task progress table   |
+| `Hermes-monitor`                           | Live monitoring dashboard  |
 
 ## Supported AI Providers
 
@@ -99,9 +99,9 @@ ralph -TaskMode -AutoBranch -AutoCommit
 
 ```powershell
 # Specify provider
-ralph -TaskMode -AI droid -AutoBranch -AutoCommit
-ralph-prd docs/PRD.md -AI claude
-ralph-add "feature" -AI aider
+Hermes -TaskMode -AI droid -AutoBranch -AutoCommit
+Hermes-prd docs/PRD.md -AI claude
+Hermes-add "feature" -AI aider
 ```
 
 ## Project Structure
@@ -122,7 +122,7 @@ my-project/
 ## Task Mode Workflow
 
 ```
-PRD.md -> ralph-prd -> tasks/*.md -> ralph -TaskMode -> Implementation
+PRD.md -> Hermes-prd -> tasks/*.md -> Hermes -TaskMode -> Implementation
 ```
 
 ### Task File Format
@@ -166,7 +166,7 @@ Prevents runaway execution:
 | HALF_OPEN | Monitoring (2 no-progress loops) |
 | OPEN      | Halted (3+ no-progress loops)    |
 
-Reset with: `ralph -ResetCircuit`
+Reset with: `Hermes -ResetCircuit`
 
 ## Testing
 

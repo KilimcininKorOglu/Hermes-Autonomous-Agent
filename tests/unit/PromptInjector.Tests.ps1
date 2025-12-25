@@ -73,15 +73,15 @@ Follow best practices.
             $section | Should -Match "Form renders"
         }
         
-        It "Includes RALPH_STATUS example" {
+        It "Includes Hermes_STATUS example" {
             $section = Get-TaskPromptSection -Task $script:TestTask
-            $section | Should -Match "---RALPH_STATUS---"
+            $section | Should -Match "---Hermes_STATUS---"
         }
         
         It "Has start and end markers" {
             $section = Get-TaskPromptSection -Task $script:TestTask
-            $section | Should -Match "RALPH_TASK_START"
-            $section | Should -Match "RALPH_TASK_END"
+            $section | Should -Match "Hermes_TASK_START"
+            $section | Should -Match "Hermes_TASK_END"
         }
     }
     
@@ -90,7 +90,7 @@ Follow best practices.
             Add-TaskToPrompt -Task $script:TestTask -BasePath $script:TestDir | Should -Be $true
             
             $content = Get-Content (Join-Path $script:TestDir "PROMPT.md") -Raw
-            $content | Should -Match "RALPH_TASK_START"
+            $content | Should -Match "Hermes_TASK_START"
             $content | Should -Match "T001"
         }
         
@@ -104,7 +104,7 @@ Follow best practices.
             $content = Get-Content (Join-Path $script:TestDir "PROMPT.md") -Raw
             $content | Should -Match "T002"
             # Should only have one task section
-            ([regex]::Matches($content, "RALPH_TASK_START")).Count | Should -Be 1
+            ([regex]::Matches($content, "Hermes_TASK_START")).Count | Should -Be 1
         }
     }
     
@@ -130,7 +130,7 @@ Follow best practices.
             Remove-TaskFromPrompt -BasePath $script:TestDir | Should -Be $true
             
             $content = Get-Content (Join-Path $script:TestDir "PROMPT.md") -Raw
-            $content | Should -Not -Match "RALPH_TASK_START"
+            $content | Should -Not -Match "Hermes_TASK_START"
         }
         
         It "Preserves original content" {

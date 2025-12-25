@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    Integration tests for Ralph setup and installation
+    Integration tests for Hermes setup and installation
 #>
 
 BeforeAll {
@@ -10,7 +10,7 @@ BeforeAll {
     $script:OriginalLocation = Get-Location
     
     # Create temp directory for tests
-    $script:TestDir = Join-Path $env:TEMP "RalphSetupTests_$(Get-Random)"
+    $script:TestDir = Join-Path $env:TEMP "HermesSetupTests_$(Get-Random)"
     New-Item -ItemType Directory -Path $script:TestDir -Force | Out-Null
     Set-Location $script:TestDir
 }
@@ -48,8 +48,8 @@ Describe "Setup Script Integration" {
                 $prompt = Get-DefaultPromptTemplate -ProjectName "TestProject"
                 
                 $prompt | Should -Not -BeNullOrEmpty
-                $prompt | Should -Match "Ralph"
-                $prompt | Should -Match "RALPH_STATUS"
+                $prompt | Should -Match "Hermes"
+                $prompt | Should -Match "Hermes_STATUS"
                 $prompt | Should -Match "EXIT_SIGNAL"
             }
         }
@@ -86,8 +86,8 @@ Describe "Setup Script Integration" {
             . "$script:ProjectRoot\setup.ps1" -Help 2>$null
             
             if (Get-Command Get-ProjectNameFromFile -ErrorAction SilentlyContinue) {
-                # From ralph_import.ps1
-                . "$script:ProjectRoot\ralph_import.ps1" -Help 2>$null
+                # From Hermes_import.ps1
+                . "$script:ProjectRoot\Hermes_import.ps1" -Help 2>$null
             }
             
             # Test is informational - function may not be exposed
@@ -115,11 +115,11 @@ Describe "Install Script Integration" {
     
     Context "Path Configuration" {
         It "should construct correct installation paths" {
-            $ralphHome = Join-Path $env:LOCALAPPDATA "Ralph"
-            $binDir = Join-Path $ralphHome "bin"
-            $templatesDir = Join-Path $ralphHome "templates"
+            $HermesHome = Join-Path $env:LOCALAPPDATA "Hermes"
+            $binDir = Join-Path $HermesHome "bin"
+            $templatesDir = Join-Path $HermesHome "templates"
             
-            $ralphHome | Should -Match "Ralph"
+            $HermesHome | Should -Match "Hermes"
             $binDir | Should -Match "bin"
             $templatesDir | Should -Match "templates"
         }
@@ -196,7 +196,7 @@ Requirement 3: Reports
             $testCases = @(
                 @{ Input = "my-project-prd.md"; Expected = "my-project" }
                 @{ Input = "api-spec.json"; Expected = "api" }
-                @{ Input = "requirements.txt"; Expected = "ralph-project" }
+                @{ Input = "requirements.txt"; Expected = "Hermes-project" }
                 @{ Input = "product-requirements-doc.md"; Expected = "product" }
             )
             
@@ -210,7 +210,7 @@ Requirement 3: Reports
                 $cleanName = $cleanName -replace '-+', '-'
                 $cleanName = $cleanName.Trim('-').ToLower()
                 if ([string]::IsNullOrEmpty($cleanName)) {
-                    $cleanName = "ralph-project"
+                    $cleanName = "Hermes-project"
                 }
                 
                 # Just verify the logic works, not exact matches

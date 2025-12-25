@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Ralph PRD Parser - Convert PRD to task-plan format
+    Hermes PRD Parser - Convert PRD to task-plan format
 .DESCRIPTION
     Reads a PRD file and uses AI to generate task files in task-plan format
 .EXAMPLE
-    ralph-prd docs/PRD.md
-    ralph-prd docs/PRD.md -AI claude
-    ralph-prd docs/PRD.md -AI droid -DryRun
-    ralph-prd -List
+    Hermes-prd docs/PRD.md
+    Hermes-prd docs/PRD.md -AI claude
+    Hermes-prd docs/PRD.md -AI droid -DryRun
+    Hermes-prd -List
 #>
 
 param(
@@ -226,12 +226,12 @@ function Write-IncrementalSummary {
 
 function Show-Usage {
     Write-Host ""
-    Write-Host "Ralph PRD Parser" -ForegroundColor Cyan
+    Write-Host "Hermes PRD Parser" -ForegroundColor Cyan
     Write-Host "================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage:" -ForegroundColor Yellow
-    Write-Host "  ralph-prd <prd-file> [-AI <provider>] [-DryRun] [-OutputDir <dir>]"
-    Write-Host "  ralph-prd -List"
+    Write-Host "  Hermes-prd <prd-file> [-AI <provider>] [-DryRun] [-OutputDir <dir>]"
+    Write-Host "  Hermes-prd -List"
     Write-Host ""
     Write-Host "Parameters:" -ForegroundColor Yellow
     Write-Host "  <prd-file>     Path to PRD markdown file"
@@ -245,13 +245,13 @@ function Show-Usage {
     Write-Host "  -List          List available AI providers"
     Write-Host ""
     Write-Host "Incremental Update:" -ForegroundColor Yellow
-    Write-Host "  By default, ralph-prd preserves existing features and only adds new ones."
+    Write-Host "  By default, Hermes-prd preserves existing features and only adds new ones."
     Write-Host "  Completed and in-progress features are never overwritten."
     Write-Host ""
     Write-Host "Examples:" -ForegroundColor Yellow
-    Write-Host "  ralph-prd docs/PRD.md"
-    Write-Host "  ralph-prd docs/PRD.md -AI claude"
-    Write-Host "  ralph-prd docs/PRD.md -DryRun"
+    Write-Host "  Hermes-prd docs/PRD.md"
+    Write-Host "  Hermes-prd docs/PRD.md -AI claude"
+    Write-Host "  Hermes-prd docs/PRD.md -DryRun"
     Write-Host ""
 }
 
@@ -382,7 +382,7 @@ if (-not (Test-Path $promptTemplatePath)) {
 }
 
 Write-Host ""
-Write-Host "Ralph PRD Parser" -ForegroundColor Cyan
+Write-Host "Hermes PRD Parser" -ForegroundColor Cyan
 Write-Host "================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -554,5 +554,5 @@ if ($isIncremental) {
 }
 
 Write-Host ""
-Write-Host "Next: Run 'ralph -TaskMode -AutoBranch -AutoCommit' to start" -ForegroundColor Cyan
+Write-Host "Next: Run 'Hermes -TaskMode -AutoBranch -AutoCommit' to start" -ForegroundColor Cyan
 Write-Host ""

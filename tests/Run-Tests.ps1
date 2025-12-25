@@ -2,9 +2,9 @@
 
 <#
 .SYNOPSIS
-    Ralph Test Runner
+    Hermes Test Runner
 .DESCRIPTION
-    Runs all Pester tests for the Ralph Windows PowerShell version
+    Runs all Pester tests for the Hermes Windows PowerShell version
 .PARAMETER Unit
     Run only unit tests
 .PARAMETER Integration
@@ -46,7 +46,7 @@ $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptRoot
 
 Write-Host ""
-Write-Host "Ralph for Windows - Test Runner" -ForegroundColor Cyan
+Write-Host "Hermes for Windows - Test Runner" -ForegroundColor Cyan
 Write-Host "================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -78,10 +78,10 @@ if ($Coverage) {
     $config.CodeCoverage.Enabled = $true
     $config.CodeCoverage.Path = @(
         (Join-Path $projectRoot "lib\*.ps1"),
-        (Join-Path $projectRoot "ralph_loop.ps1"),
-        (Join-Path $projectRoot "ralph_monitor.ps1"),
+        (Join-Path $projectRoot "Hermes_loop.ps1"),
+        (Join-Path $projectRoot "Hermes_monitor.ps1"),
         (Join-Path $projectRoot "setup.ps1"),
-        (Join-Path $projectRoot "ralph_import.ps1")
+        (Join-Path $projectRoot "Hermes_import.ps1")
     )
     $config.CodeCoverage.OutputPath = Join-Path $scriptRoot "coverage.xml"
     $config.CodeCoverage.OutputFormat = "JaCoCo"

@@ -2,7 +2,7 @@
 
 $scriptRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
-# Load the ralph-prd script to get functions (without executing main)
+# Load the Hermes-prd script to get functions (without executing main)
 # We'll define the functions locally for testing
 
 function Get-ExistingTaskState {
@@ -96,7 +96,7 @@ function Test-FeatureHasProgress {
 Describe "Incremental PRD Update" {
     Context "Get-ExistingTaskState" {
         BeforeEach {
-            $testDir = Join-Path $env:TEMP "ralph-incr-test-$(Get-Random)"
+            $testDir = Join-Path $env:TEMP "Hermes-incr-test-$(Get-Random)"
             New-Item -ItemType Directory -Path "$testDir\tasks" -Force | Out-Null
             Push-Location $testDir
         }

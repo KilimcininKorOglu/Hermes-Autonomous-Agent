@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    Circuit Breaker Module for Ralph
+    Circuit Breaker Module for Hermes
 .DESCRIPTION
     Prevents runaway token consumption by detecting stagnation.
     Based on Michael Nygard's "Release It!" pattern.
@@ -393,7 +393,7 @@ function Test-ShouldHalt {
         Write-Host "  EXECUTION HALTED: Circuit Breaker Opened" -ForegroundColor Red
         Write-Host ("=" * 60) -ForegroundColor Red
         Write-Host ""
-        Write-Host "Ralph has detected that no progress is being made." -ForegroundColor Yellow
+        Write-Host "Hermes has detected that no progress is being made." -ForegroundColor Yellow
         Write-Host ""
         Write-Host "Possible reasons:" -ForegroundColor Yellow
         Write-Host "  - Project may be complete (check @fix_plan.md)" -ForegroundColor White
@@ -403,12 +403,12 @@ function Test-ShouldHalt {
         Write-Host ""
         Write-Host "To continue:" -ForegroundColor Yellow
         Write-Host "  1. Review recent logs:" -ForegroundColor White
-        Write-Host "     Get-Content logs\ralph.log -Tail 20" -ForegroundColor Cyan
+        Write-Host "     Get-Content logs\Hermes.log -Tail 20" -ForegroundColor Cyan
         Write-Host "  2. Check Claude output:" -ForegroundColor White
         Write-Host "     Get-ChildItem logs\claude_output_*.log | Sort-Object LastWriteTime -Descending | Select-Object -First 1" -ForegroundColor Cyan
         Write-Host "  3. Update @fix_plan.md if needed" -ForegroundColor White
         Write-Host "  4. Reset circuit breaker:" -ForegroundColor White
-        Write-Host "     ralph -ResetCircuit" -ForegroundColor Cyan
+        Write-Host "     Hermes -ResetCircuit" -ForegroundColor Cyan
         Write-Host ""
         
         return $true

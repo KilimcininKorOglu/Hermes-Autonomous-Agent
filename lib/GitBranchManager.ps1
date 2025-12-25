@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    Git Branch Manager Module for Ralph
+    Git Branch Manager Module for Hermes
 .DESCRIPTION
     Handles feature branch creation, task commits, and merging.
     Implements feature/FXXX-name branch naming convention.
@@ -555,7 +555,7 @@ function Stash-Changes {
         Boolean indicating success
     #>
     param(
-        [string]$Message = "Ralph auto-stash"
+        [string]$Message = "Hermes auto-stash"
     )
     
     try {

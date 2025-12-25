@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    Response Analyzer Module for Ralph
+    Response Analyzer Module for Hermes
 .DESCRIPTION
     Analyzes Claude Code output to detect completion signals, 
     test-only loops, stuck conditions, and progress indicators.
@@ -125,8 +125,8 @@ function Invoke-ResponseAnalysis {
     }
     $analysis.output_length = $outputContent.Length
     
-    # 1. Check for structured Ralph status output
-    if ($outputContent -match "---RALPH_STATUS---") {
+    # 1. Check for structured Hermes status output
+    if ($outputContent -match "---Hermes_STATUS---") {
         # Extract STATUS
         if ($outputContent -match "STATUS:\s*(COMPLETE|DONE)") {
             $analysis.has_completion_signal = $true

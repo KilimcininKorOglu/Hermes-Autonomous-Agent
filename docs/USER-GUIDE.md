@@ -1,4 +1,4 @@
-# Ralph for Claude Code - User Guide
+# Hermes for Claude Code - User Guide
 
 Autonomous AI development loop system for Windows PowerShell. Supports Claude, Droid, and Aider CLIs.
 
@@ -22,9 +22,9 @@ Autonomous AI development loop system for Windows PowerShell. Supports Claude, D
 
 ## 1. Overview
 
-### What is Ralph?
+### What is Hermes?
 
-Ralph is a system that automates software development by running AI CLI tools (Claude Code, Droid, Aider) in an autonomous loop.
+Hermes is a system that automates software development by running AI CLI tools (Claude Code, Droid, Aider) in an autonomous loop.
 
 ### Key Features
 
@@ -42,11 +42,11 @@ Ralph is a system that automates software development by running AI CLI tools (C
 ### Architecture
 
 ```
-ralph-claude-code/
-├── ralph_loop.ps1          # Main execution loop
-├── ralph-prd.ps1           # PRD to task conversion
-├── ralph-add.ps1           # Single feature addition
-├── ralph_monitor.ps1       # Live monitoring panel
+Hermes-claude-code/
+├── Hermes_loop.ps1          # Main execution loop
+├── Hermes-prd.ps1           # PRD to task conversion
+├── Hermes-add.ps1           # Single feature addition
+├── Hermes_monitor.ps1       # Live monitoring panel
 ├── install.ps1             # Global installation
 ├── setup.ps1               # Project creation
 ├── lib/                    # PowerShell modules
@@ -89,27 +89,27 @@ npm install -g @anthropic-ai/claude-code  # Claude
 pip install aider-chat                     # Aider
 ```
 
-### Installing Ralph
+### Installing Hermes
 
 ```powershell
 # Clone the repository
-git clone https://github.com/frankbria/ralph-claude-code.git
-cd ralph-claude-code
+git clone https://github.com/frankbria/Hermes-claude-code.git
+cd Hermes-claude-code
 
 # Install globally
 .\install.ps1
 
 # Verify installation
-ralph -Help
+Hermes -Help
 ```
 
 ### Installation Paths
 
 | Type      | Path                              |
 |-----------|-----------------------------------|
-| Commands  | `$env:LOCALAPPDATA\Ralph\bin\`    |
-| Scripts   | `$env:LOCALAPPDATA\Ralph\`        |
-| Templates | `$env:LOCALAPPDATA\Ralph\templates\` |
+| Commands  | `$env:LOCALAPPDATA\Hermes\bin\`    |
+| Scripts   | `$env:LOCALAPPDATA\Hermes\`        |
+| Templates | `$env:LOCALAPPDATA\Hermes\templates\` |
 
 ### Uninstalling
 
@@ -125,27 +125,27 @@ ralph -Help
 
 ```powershell
 # Create project
-ralph-setup my-project
+Hermes-setup my-project
 cd my-project
 
 # Edit PROMPT.md
 notepad PROMPT.md
 
-# Start Ralph
-ralph -Monitor
+# Start Hermes
+Hermes -Monitor
 ```
 
 ### Working with Task Mode
 
 ```powershell
 # Create tasks from PRD
-ralph-prd docs/PRD.md
+Hermes-prd docs/PRD.md
 
 # Start task mode
-ralph -TaskMode -AutoBranch -AutoCommit
+Hermes -TaskMode -AutoBranch -AutoCommit
 
 # Run in autonomous mode
-ralph -TaskMode -Autonomous
+Hermes -TaskMode -Autonomous
 ```
 
 ### Project Structure
@@ -173,19 +173,19 @@ my-project/
 
 | Command                | Description                    |
 |------------------------|--------------------------------|
-| `ralph -Monitor`       | Start with monitoring window   |
-| `ralph -Status`        | Show current status            |
-| `ralph -Help`          | Show help message              |
-| `ralph -ResetCircuit`  | Reset circuit breaker          |
-| `ralph-setup <name>`   | Create new project             |
-| `ralph-prd <file>`     | Convert PRD to tasks           |
-| `ralph-add "feature"`  | Add single feature             |
-| `ralph-monitor`        | Standalone monitoring panel    |
+| `Hermes -Monitor`       | Start with monitoring window   |
+| `Hermes -Status`        | Show current status            |
+| `Hermes -Help`          | Show help message              |
+| `Hermes -ResetCircuit`  | Reset circuit breaker          |
+| `Hermes-setup <name>`   | Create new project             |
+| `Hermes-prd <file>`     | Convert PRD to tasks           |
+| `Hermes-add "feature"`  | Add single feature             |
+| `Hermes-monitor`        | Standalone monitoring panel    |
 
-### Ralph Loop Parameters
+### Hermes Loop Parameters
 
 ```powershell
-ralph [-Monitor] [-Calls <int>] [-Timeout <int>] [-VerboseProgress]
+Hermes [-Monitor] [-Calls <int>] [-Timeout <int>] [-VerboseProgress]
       [-Status] [-ResetCircuit] [-CircuitStatus] [-Help]
       [-AI <provider>] [-TaskMode] [-AutoBranch] [-AutoCommit]
       [-StartFrom <TaskId>] [-TaskStatus]
@@ -230,7 +230,7 @@ Task Mode is a development mode that works with structured task files. Each feat
 ### Workflow
 
 ```
-PRD.md -> ralph-prd -> tasks/*.md -> ralph -TaskMode -> Automatic Implementation
+PRD.md -> Hermes-prd -> tasks/*.md -> Hermes -TaskMode -> Automatic Implementation
 ```
 
 ### Task File Format
@@ -312,15 +312,15 @@ Files:
 
 ### Automatic Resume
 
-Ralph automatically resumes from where it left off using `run-state.md`:
+Hermes automatically resumes from where it left off using `run-state.md`:
 
 ```powershell
 # First run - interrupted at T003
-ralph -TaskMode -AutoBranch -AutoCommit
+Hermes -TaskMode -AutoBranch -AutoCommit
 # ... interruption or context limit
 
 # Next run - resumes from T004
-ralph -TaskMode -AutoBranch -AutoCommit
+Hermes -TaskMode -AutoBranch -AutoCommit
 # Output: "Previous run detected - Resuming from T004..."
 ```
 
@@ -328,15 +328,15 @@ ralph -TaskMode -AutoBranch -AutoCommit
 
 ```powershell
 # Full status table
-ralph -TaskStatus
+Hermes -TaskStatus
 
 # Filtered status
-ralph -TaskStatus -StatusFilter BLOCKED
-ralph -TaskStatus -FeatureFilter F001
-ralph -TaskStatus -PriorityFilter P1
+Hermes -TaskStatus -StatusFilter BLOCKED
+Hermes -TaskStatus -FeatureFilter F001
+Hermes -TaskStatus -PriorityFilter P1
 
 # Combined filter
-ralph -TaskStatus -StatusFilter NOT_STARTED -PriorityFilter P1
+Hermes -TaskStatus -StatusFilter NOT_STARTED -PriorityFilter P1
 ```
 
 ---
@@ -346,7 +346,7 @@ ralph -TaskStatus -StatusFilter NOT_STARTED -PriorityFilter P1
 ### Usage
 
 ```powershell
-ralph-prd <prd-file> [-AI <provider>] [-DryRun] [-Force] [-Clean]
+Hermes-prd <prd-file> [-AI <provider>] [-DryRun] [-Force] [-Clean]
 ```
 
 ### Parameters
@@ -364,18 +364,18 @@ ralph-prd <prd-file> [-AI <provider>] [-DryRun] [-Force] [-Clean]
 
 ### Incremental Mode
 
-By default, `ralph-prd` runs in incremental mode:
+By default, `Hermes-prd` runs in incremental mode:
 
 ```powershell
 # First run - creates all features
-ralph-prd docs/PRD.md
+Hermes-prd docs/PRD.md
 
 # PRD updated, new features added
-ralph-prd docs/PRD.md
+Hermes-prd docs/PRD.md
 # Only adds NEW features, preserves existing progress
 
 # Clean start
-ralph-prd docs/PRD.md -Clean
+Hermes-prd docs/PRD.md -Clean
 ```
 
 ### Incremental Mode Behavior
@@ -405,7 +405,7 @@ Summary:
   Tasks: 8
   Estimated: 12 days
 
-Next: Run 'ralph -TaskMode -AutoBranch -AutoCommit' to start
+Next: Run 'Hermes -TaskMode -AutoBranch -AutoCommit' to start
 ```
 
 ---
@@ -415,23 +415,23 @@ Next: Run 'ralph -TaskMode -AutoBranch -AutoCommit' to start
 ### Usage
 
 ```powershell
-ralph-add <feature> [-AI <provider>] [-DryRun] [-Priority <P1-P4>]
+Hermes-add <feature> [-AI <provider>] [-DryRun] [-Priority <P1-P4>]
 ```
 
 ### Input Types
 
 ```powershell
 # Inline description
-ralph-add "user registration system"
+Hermes-add "user registration system"
 
 # Read from file
-ralph-add @docs/webhook-spec.md
+Hermes-add @docs/webhook-spec.md
 
 # Specify priority
-ralph-add "password reset" -Priority P1
+Hermes-add "password reset" -Priority P1
 
 # Preview
-ralph-add "email verification" -DryRun
+Hermes-add "email verification" -DryRun
 ```
 
 ### Parameters
@@ -468,7 +468,7 @@ ralph-add "email verification" -DryRun
 
 ==================================================
 
-Next: Run 'ralph -TaskMode -AutoBranch -AutoCommit' to implement
+Next: Run 'Hermes -TaskMode -AutoBranch -AutoCommit' to implement
 ```
 
 ---
@@ -485,7 +485,7 @@ Next: Run 'ralph -TaskMode -AutoBranch -AutoCommit' to implement
 
 ### Auto Detection
 
-Ralph automatically detects available AI CLIs. Priority order:
+Hermes automatically detects available AI CLIs. Priority order:
 
 1. `claude` (highest)
 2. `droid`
@@ -495,21 +495,21 @@ Ralph automatically detects available AI CLIs. Priority order:
 
 ```powershell
 # Auto detection (default)
-ralph -TaskMode
-ralph-prd docs/PRD.md
-ralph-add "feature"
+Hermes -TaskMode
+Hermes-prd docs/PRD.md
+Hermes-add "feature"
 
 # Specific provider
-ralph -TaskMode -AI droid
-ralph-prd docs/PRD.md -AI claude
-ralph-add "feature" -AI aider
+Hermes -TaskMode -AI droid
+Hermes-prd docs/PRD.md -AI claude
+Hermes-add "feature" -AI aider
 ```
 
 ### Provider Check
 
 ```powershell
 # List available providers
-ralph-prd -List
+Hermes-prd -List
 ```
 
 ### AIProvider.ps1 Functions
@@ -623,7 +623,7 @@ Feature analysis and file creation.
 
 ## 10. Configuration
 
-### ralph_loop.ps1 Configuration
+### Hermes_loop.ps1 Configuration
 
 ```powershell
 $script:Config = @{
@@ -653,11 +653,11 @@ $script:Config = @{
 AI should output this block at the end of each response:
 
 ```
----RALPH_STATUS---
+---Hermes_STATUS---
 STATUS: IN_PROGRESS | COMPLETE | BLOCKED
 EXIT_SIGNAL: false | true
 RECOMMENDATION: <next action>
----END_RALPH_STATUS---
+---END_Hermes_STATUS---
 ```
 
 ---
@@ -697,7 +697,7 @@ pip install aider-chat
 Restart terminal after installation or:
 
 ```powershell
-$env:PATH = "$env:LOCALAPPDATA\Ralph\bin;$env:PATH"
+$env:PATH = "$env:LOCALAPPDATA\Hermes\bin;$env:PATH"
 ```
 
 ### Circuit Breaker Opened
@@ -711,7 +711,7 @@ CIRCUIT BREAKER OPENED - Execution halted
 1. Review recent logs:
 
    ```powershell
-   Get-Content logs\ralph.log -Tail 20
+   Get-Content logs\Hermes.log -Tail 20
    ```
 
 2. Check AI output:
@@ -723,7 +723,7 @@ CIRCUIT BREAKER OPENED - Execution halted
 3. Fix the issue and reset:
 
    ```powershell
-   ralph -ResetCircuit
+   Hermes -ResetCircuit
    ```
 
 ### Task Not Found
@@ -736,7 +736,7 @@ Task not found: T005
 
 - Ensure task ID is typed correctly
 - Check that `tasks/` directory exists
-- List existing tasks with `ralph -TaskStatus`
+- List existing tasks with `Hermes -TaskStatus`
 
 ### Resume Not Working
 
@@ -747,7 +747,7 @@ Resume mechanism depends on `run-state.md`:
 Get-Content tasks/run-state.md
 
 # Manually start from specific task
-ralph -TaskMode -StartFrom T005
+Hermes -TaskMode -StartFrom T005
 ```
 
 ### Syntax Check

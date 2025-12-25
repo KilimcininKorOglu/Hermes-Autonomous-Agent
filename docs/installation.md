@@ -1,4 +1,4 @@
-# Ralph Installation Guide
+# Hermes Installation Guide
 
 ## Requirements
 
@@ -22,14 +22,14 @@
 
 ```powershell
 # Clone repository
-git clone https://github.com/frankbria/ralph-claude-code.git
-cd ralph-claude-code
+git clone https://github.com/frankbria/Hermes-claude-code.git
+cd Hermes-claude-code
 
 # Install globally
 .\install.ps1
 
 # Verify
-ralph -Help
+Hermes -Help
 ```
 
 ---
@@ -98,12 +98,12 @@ pip install aider-chat
 aider --version
 ```
 
-### 4. Install Ralph
+### 4. Install Hermes
 
 ```powershell
 # Clone the repository
-git clone https://github.com/frankbria/ralph-claude-code.git
-cd ralph-claude-code
+git clone https://github.com/frankbria/Hermes-claude-code.git
+cd Hermes-claude-code
 
 # Run installer
 .\install.ps1
@@ -114,14 +114,14 @@ cd ralph-claude-code
 Close and reopen your terminal, or update PATH manually:
 
 ```powershell
-$env:PATH = "$env:LOCALAPPDATA\Ralph\bin;$env:PATH"
+$env:PATH = "$env:LOCALAPPDATA\Hermes\bin;$env:PATH"
 ```
 
 ### 6. Verify Installation
 
 ```powershell
-ralph -Help
-ralph-prd -List
+Hermes -Help
+Hermes-prd -List
 ```
 
 ---
@@ -130,14 +130,14 @@ ralph-prd -List
 
 | Component  | Path                                 |
 |------------|--------------------------------------|
-| Commands   | `$env:LOCALAPPDATA\Ralph\bin\`       |
-| Scripts    | `$env:LOCALAPPDATA\Ralph\`           |
-| Templates  | `$env:LOCALAPPDATA\Ralph\templates\` |
+| Commands   | `$env:LOCALAPPDATA\Hermes\bin\`       |
+| Scripts    | `$env:LOCALAPPDATA\Hermes\`           |
+| Templates  | `$env:LOCALAPPDATA\Hermes\templates\` |
 
 Typically resolves to:
 
 ```
-C:\Users\<username>\AppData\Local\Ralph\
+C:\Users\<username>\AppData\Local\Hermes\
 ```
 
 ---
@@ -145,13 +145,13 @@ C:\Users\<username>\AppData\Local\Ralph\
 ## Uninstallation
 
 ```powershell
-cd ralph-claude-code
+cd Hermes-claude-code
 .\install.ps1 -Uninstall
 ```
 
 This removes:
 
-- All Ralph commands from PATH
+- All Hermes commands from PATH
 - Scripts from AppData
 - Templates directory
 
@@ -165,12 +165,12 @@ This removes:
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-### "ralph is not recognized"
+### "Hermes is not recognized"
 
 Restart terminal or manually add to PATH:
 
 ```powershell
-$env:PATH = "$env:LOCALAPPDATA\Ralph\bin;$env:PATH"
+$env:PATH = "$env:LOCALAPPDATA\Hermes\bin;$env:PATH"
 ```
 
 ### "claude/droid/aider is not recognized"
@@ -179,7 +179,7 @@ Ensure at least one AI CLI is installed:
 
 ```powershell
 # Check available providers
-ralph-prd -List
+Hermes-prd -List
 ```
 
 ### PowerShell version too old
@@ -200,7 +200,7 @@ Then use `pwsh` instead of `powershell`:
 
 ```powershell
 pwsh
-ralph -Help
+Hermes -Help
 ```
 
 ---
@@ -210,29 +210,29 @@ ralph -Help
 ### Create Your First Project
 
 ```powershell
-ralph-setup my-project
+Hermes-setup my-project
 cd my-project
 ```
 
 ### Parse a PRD
 
 ```powershell
-ralph-prd docs/PRD.md -DryRun
-ralph-prd docs/PRD.md
+Hermes-prd docs/PRD.md -DryRun
+Hermes-prd docs/PRD.md
 ```
 
 ### Start Task Mode
 
 ```powershell
-ralph -TaskMode -AutoBranch -AutoCommit
+Hermes -TaskMode -AutoBranch -AutoCommit
 ```
 
 ---
 
-## Updating Ralph
+## Updating Hermes
 
 ```powershell
-cd ralph-claude-code
+cd Hermes-claude-code
 git pull origin main
 .\install.ps1
 ```

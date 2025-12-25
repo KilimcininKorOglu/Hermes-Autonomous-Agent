@@ -1,13 +1,13 @@
 <#
 .SYNOPSIS
-    Ralph Add - Add a single feature to task plan
+    Hermes Add - Add a single feature to task plan
 .DESCRIPTION
     Analyzes a feature description and creates a task file with breakdown.
     Works with existing tasks, continuing from highest Feature/Task IDs.
 .EXAMPLE
-    ralph-add "kullanici kayit sistemi"
-    ralph-add @docs/webhook-spec.md
-    ralph-add "sifre sifirlama" -Priority P1
+    Hermes-add "kullanici kayit sistemi"
+    Hermes-add @docs/webhook-spec.md
+    Hermes-add "sifre sifirlama" -Priority P1
 #>
 
 param(
@@ -42,13 +42,13 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 function Show-Usage {
     Write-Host ""
-    Write-Host "Ralph Add - Single Feature Addition" -ForegroundColor Cyan
+    Write-Host "Hermes Add - Single Feature Addition" -ForegroundColor Cyan
     Write-Host "====================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage:" -ForegroundColor Yellow
-    Write-Host "  ralph-add <feature-description>"
-    Write-Host "  ralph-add @<file-path>"
-    Write-Host "  ralph-add <description> -Priority P1"
+    Write-Host "  Hermes-add <feature-description>"
+    Write-Host "  Hermes-add @<file-path>"
+    Write-Host "  Hermes-add <description> -Priority P1"
     Write-Host ""
     Write-Host "Parameters:" -ForegroundColor Yellow
     Write-Host "  <feature>      Feature description or @filepath"
@@ -60,10 +60,10 @@ function Show-Usage {
     Write-Host "  -Help          Show this help"
     Write-Host ""
     Write-Host "Examples:" -ForegroundColor Yellow
-    Write-Host "  ralph-add `"kullanici kayit sistemi`""
-    Write-Host "  ralph-add @docs/webhook-spec.md"
-    Write-Host "  ralph-add `"sifre sifirlama`" -Priority P1"
-    Write-Host "  ralph-add `"email dogrulama`" -DryRun"
+    Write-Host "  Hermes-add `"kullanici kayit sistemi`""
+    Write-Host "  Hermes-add @docs/webhook-spec.md"
+    Write-Host "  Hermes-add `"sifre sifirlama`" -Priority P1"
+    Write-Host "  Hermes-add `"email dogrulama`" -DryRun"
     Write-Host ""
 }
 
@@ -74,7 +74,7 @@ if ($Help -or -not $Feature) {
 }
 
 Write-Host ""
-Write-Host "Ralph Add - Single Feature Addition" -ForegroundColor Cyan
+Write-Host "Hermes Add - Single Feature Addition" -ForegroundColor Cyan
 Write-Host "====================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -197,5 +197,5 @@ Write-Host "  Effort:     $($feature.TotalEffort) days (total)" -ForegroundColor
 Write-Host ""
 Write-Host ("=" * 50) -ForegroundColor Green
 Write-Host ""
-Write-Host "Next: Run 'ralph -TaskMode -AutoBranch -AutoCommit' to implement" -ForegroundColor Cyan
+Write-Host "Next: Run 'Hermes -TaskMode -AutoBranch -AutoCommit' to implement" -ForegroundColor Cyan
 Write-Host ""

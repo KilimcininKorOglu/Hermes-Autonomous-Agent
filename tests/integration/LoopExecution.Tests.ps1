@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    Integration tests for Ralph loop execution
+    Integration tests for Hermes loop execution
 #>
 
 BeforeAll {
@@ -12,7 +12,7 @@ BeforeAll {
     $script:OriginalLocation = Get-Location
     
     # Create temp directory for tests
-    $script:TestDir = Join-Path $env:TEMP "RalphIntegration_$(Get-Random)"
+    $script:TestDir = Join-Path $env:TEMP "HermesIntegration_$(Get-Random)"
     New-Item -ItemType Directory -Path $script:TestDir -Force | Out-Null
     Set-Location $script:TestDir
     
@@ -48,7 +48,7 @@ Describe "Loop Execution Integration" {
 Implementing new feature...
 Created src/component.js
 Added tests
----RALPH_STATUS---
+---Hermes_STATUS---
 STATUS: IN_PROGRESS
 TASKS_COMPLETED_THIS_LOOP: 2
 FILES_MODIFIED: 3
@@ -56,7 +56,7 @@ TESTS_STATUS: PASSING
 WORK_TYPE: IMPLEMENTATION
 EXIT_SIGNAL: false
 RECOMMENDATION: Continue with next task
----END_RALPH_STATUS---
+---END_Hermes_STATUS---
 "@ | Set-Content $outputFile
             
             # Analyze response
@@ -83,7 +83,7 @@ RECOMMENDATION: Continue with next task
             $outputFile = "logs\claude_output_complete.log"
             @"
 All tasks have been completed.
----RALPH_STATUS---
+---Hermes_STATUS---
 STATUS: COMPLETE
 TASKS_COMPLETED_THIS_LOOP: 1
 FILES_MODIFIED: 1
@@ -91,7 +91,7 @@ TESTS_STATUS: PASSING
 WORK_TYPE: DOCUMENTATION
 EXIT_SIGNAL: true
 RECOMMENDATION: All requirements met, project ready for review
----END_RALPH_STATUS---
+---END_Hermes_STATUS---
 "@ | Set-Content $outputFile
             
             Invoke-ResponseAnalysis -OutputFile $outputFile -LoopNumber 5
@@ -303,10 +303,10 @@ Error: Stack overflow
             @"
 Working on the project...
 Implementing features
----RALPH_STATUS---
+---Hermes_STATUS---
 STATUS: IN_PROGRESS
 EXIT_SIGNAL: false
----END_RALPH_STATUS---
+---END_Hermes_STATUS---
 "@ | Set-Content $output
             
             Invoke-ResponseAnalysis -OutputFile $output -LoopNumber 1

@@ -2,9 +2,9 @@
 
 <#
 .SYNOPSIS
-    Ralph PRD Import - Windows PowerShell Version
+    Hermes PRD Import - Windows PowerShell Version
 .DESCRIPTION
-    Converts existing PRD/specification documents to Ralph project format.
+    Converts existing PRD/specification documents to Hermes project format.
     Uses Claude Code to intelligently parse and structure the requirements.
 .PARAMETER InputFile
     Path to the PRD or specification file to import
@@ -13,9 +13,9 @@
 .PARAMETER Help
     Show help message
 .EXAMPLE
-    .\ralph_import.ps1 requirements.md my-project
+    .\Hermes_import.ps1 requirements.md my-project
 .EXAMPLE
-    ralph-import product-spec.md
+    Hermes-import product-spec.md
 #>
 
 [CmdletBinding()]
@@ -31,16 +31,16 @@ param(
 )
 
 # Configuration
-$script:RalphHome = if ($env:RALPH_HOME) { $env:RALPH_HOME } else { Join-Path $env:LOCALAPPDATA "Ralph" }
-$script:TemplatesDir = Join-Path $script:RalphHome "templates"
+$script:HermesHome = if ($env:Hermes_HOME) { $env:Hermes_HOME } else { Join-Path $env:LOCALAPPDATA "Hermes" }
+$script:TemplatesDir = Join-Path $script:HermesHome "templates"
 $script:ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $script:ClaudeCommand = "claude"
 
 function Show-Help {
     Write-Host ""
-    Write-Host "Ralph PRD Import" -ForegroundColor Cyan
+    Write-Host "Hermes PRD Import" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "Usage: ralph-import <INPUT_FILE> [PROJECT_NAME]" -ForegroundColor White
+    Write-Host "Usage: Hermes-import <INPUT_FILE> [PROJECT_NAME]" -ForegroundColor White
     Write-Host ""
     Write-Host "Arguments:" -ForegroundColor Yellow
     Write-Host "    INPUT_FILE      Path to PRD, spec, or requirements file"
@@ -54,13 +54,13 @@ function Show-Help {
     Write-Host "    - PDF (.pdf) - requires pdftotext"
     Write-Host ""
     Write-Host "Example:" -ForegroundColor Yellow
-    Write-Host "    ralph-import product-requirements.md my-app"
-    Write-Host "    ralph-import api-spec.json"
+    Write-Host "    Hermes-import product-requirements.md my-app"
+    Write-Host "    Hermes-import api-spec.json"
     Write-Host ""
     Write-Host "The import process:" -ForegroundColor Gray
     Write-Host "    1. Reads your PRD/specification file"
     Write-Host "    2. Uses Claude Code to analyze and convert content"
-    Write-Host "    3. Creates a Ralph project with:"
+    Write-Host "    3. Creates a Hermes project with:"
     Write-Host "       - PROMPT.md (development instructions)"
     Write-Host "       - @fix_plan.md (prioritized tasks)"
     Write-Host "       - specs/requirements.md (technical specs)"
@@ -88,7 +88,7 @@ function Get-ProjectNameFromFile {
     $cleanName = $cleanName.Trim('-').ToLower()
     
     if ([string]::IsNullOrEmpty($cleanName)) {
-        $cleanName = "ralph-project"
+        $cleanName = "Hermes-project"
     }
     
     return $cleanName
@@ -149,7 +149,7 @@ function Read-InputFile {
 function Invoke-ClaudeConversion {
     <#
     .SYNOPSIS
-        Uses Claude Code to convert the PRD content to Ralph format
+        Uses Claude Code to convert the PRD content to Hermes format
     #>
     param(
         [string]$Content,
@@ -157,7 +157,7 @@ function Invoke-ClaudeConversion {
     )
     
     $conversionPrompt = @"
-You are converting a Product Requirements Document (PRD) or specification into a Ralph project format.
+You are converting a Product Requirements Document (PRD) or specification into a Hermes project format.
 
 The source document content is:
 ---
@@ -172,7 +172,7 @@ Create development instructions for an AI agent working on this project. Include
 - Key objectives and success criteria
 - Implementation guidelines based on the requirements
 - Testing requirements
-- The standard Ralph status reporting block (RALPH_STATUS with STATUS, EXIT_SIGNAL, RECOMMENDATION)
+- The standard Hermes status reporting block (Hermes_STATUS with STATUS, EXIT_SIGNAL, RECOMMENDATION)
 
 ## 2. @fix_plan.md
 Create a prioritized task list in markdown checkbox format:
@@ -254,10 +254,10 @@ function Split-ConversionOutput {
     return $files
 }
 
-function New-RalphProjectFromPRD {
+function New-HermesProjectFromPRD {
     <#
     .SYNOPSIS
-        Creates a Ralph project from a PRD file
+        Creates a Hermes project from a PRD file
     #>
     param(
         [string]$InputFile,
@@ -273,7 +273,7 @@ function New-RalphProjectFromPRD {
     }
     
     Write-Host ""
-    Write-Host "Importing PRD to Ralph project: $ProjectName" -ForegroundColor Cyan
+    Write-Host "Importing PRD to Hermes project: $ProjectName" -ForegroundColor Cyan
     Write-Host "Source file: $InputFile" -ForegroundColor Gray
     Write-Host ""
     
@@ -418,7 +418,7 @@ __pycache__/
         try {
             git init 2>&1 | Out-Null
             git add . 2>&1 | Out-Null
-            git commit -m "Initial Ralph project from PRD import" 2>&1 | Out-Null
+            git commit -m "Initial Hermes project from PRD import" 2>&1 | Out-Null
             Write-Host "[OK] Initialized git repository" -ForegroundColor Green
         }
         catch {
@@ -430,7 +430,7 @@ __pycache__/
         Write-Host "Project '$ProjectName' created successfully!" -ForegroundColor Green
         Write-Host ""
         Write-Host "Generated files:" -ForegroundColor Cyan
-        Write-Host "  - PROMPT.md          (Ralph development instructions)"
+        Write-Host "  - PROMPT.md          (Hermes development instructions)"
         Write-Host "  - @fix_plan.md       (Prioritized task list)"
         Write-Host "  - specs/requirements.md (Technical requirements)"
         Write-Host "  - @AGENT.md          (Build/run instructions)"
@@ -438,7 +438,7 @@ __pycache__/
         Write-Host "Next steps:" -ForegroundColor Cyan
         Write-Host "  1. cd $ProjectName"
         Write-Host "  2. Review and adjust the generated files"
-        Write-Host "  3. Run: ralph -Monitor"
+        Write-Host "  3. Run: Hermes -Monitor"
         Write-Host ""
     }
     finally {
@@ -456,9 +456,9 @@ if ([string]::IsNullOrEmpty($InputFile)) {
     Write-Host ""
     Write-Host "[ERROR] Input file is required" -ForegroundColor Red
     Write-Host ""
-    Write-Host "Usage: ralph-import <INPUT_FILE> [PROJECT_NAME]"
+    Write-Host "Usage: Hermes-import <INPUT_FILE> [PROJECT_NAME]"
     Write-Host ""
-    Write-Host "Run 'ralph-import -Help' for more information"
+    Write-Host "Run 'Hermes-import -Help' for more information"
     Write-Host ""
     exit 1
 }
@@ -470,4 +470,4 @@ if (-not (Test-Path $InputFile)) {
     exit 1
 }
 
-New-RalphProjectFromPRD -InputFile $InputFile -ProjectName $ProjectName
+New-HermesProjectFromPRD -InputFile $InputFile -ProjectName $ProjectName

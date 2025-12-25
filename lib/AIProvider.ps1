@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    AI CLI Provider abstraction for ralph-prd
+    AI CLI Provider abstraction for Hermes-prd
 .DESCRIPTION
     Provides unified interface for calling different AI CLI tools
     Supports: claude, droid, aider
@@ -120,7 +120,7 @@ function Test-PrdSize {
         Write-Host ""
         Write-Host "Recommendations:" -ForegroundColor Yellow
         Write-Host "  - Split by feature/module into separate files"
-        Write-Host "  - Run ralph-prd on each file separately"
+        Write-Host "  - Run Hermes-prd on each file separately"
         Write-Host "  - Use -Timeout 1800 for extra time"
         Write-Host ""
     }

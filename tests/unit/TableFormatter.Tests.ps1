@@ -84,7 +84,7 @@ Describe "TableFormatter Module" {
     
     Context "Get-FilteredTasks" {
         BeforeEach {
-            $testDir = Join-Path $env:TEMP "ralph-test-$(Get-Random)"
+            $testDir = Join-Path $env:TEMP "Hermes-test-$(Get-Random)"
             New-Item -ItemType Directory -Path "$testDir\tasks" -Force | Out-Null
             Push-Location $testDir
             

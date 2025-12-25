@@ -13,7 +13,7 @@ BeforeAll {
     $script:OriginalLocation = Get-Location
     
     # Create temp directory for tests
-    $script:TestDir = Join-Path $env:TEMP "RalphTests_$(Get-Random)"
+    $script:TestDir = Join-Path $env:TEMP "HermesTests_$(Get-Random)"
     New-Item -ItemType Directory -Path $script:TestDir -Force | Out-Null
     Set-Location $script:TestDir
 }

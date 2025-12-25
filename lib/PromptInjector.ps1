@@ -2,15 +2,15 @@
 
 <#
 .SYNOPSIS
-    Prompt Injector Module for Ralph
+    Prompt Injector Module for Hermes
 .DESCRIPTION
     Injects current task details into PROMPT.md for Claude execution.
     Manages task context section in prompt file.
 #>
 
 # Markers for task section
-$script:TaskSectionStart = "<!-- RALPH_TASK_START -->"
-$script:TaskSectionEnd = "<!-- RALPH_TASK_END -->"
+$script:TaskSectionStart = "<!-- Hermes_TASK_START -->"
+$script:TaskSectionEnd = "<!-- Hermes_TASK_END -->"
 
 function Get-PromptPath {
     <#
@@ -126,12 +126,12 @@ function Get-TaskPromptSection {
     [void]$sb.AppendLine("**IMPORTANT:** Focus ONLY on this task. When complete, output:")
     [void]$sb.AppendLine("")
     [void]$sb.AppendLine("``````")
-    [void]$sb.AppendLine("---RALPH_STATUS---")
+    [void]$sb.AppendLine("---Hermes_STATUS---")
     [void]$sb.AppendLine("STATUS: COMPLETE")
     [void]$sb.AppendLine("TASK_ID: $($Task.TaskId)")
     [void]$sb.AppendLine("EXIT_SIGNAL: false")
     [void]$sb.AppendLine("RECOMMENDATION: Continue to next task")
-    [void]$sb.AppendLine("---END_RALPH_STATUS---")
+    [void]$sb.AppendLine("---END_Hermes_STATUS---")
     [void]$sb.AppendLine("``````")
     [void]$sb.AppendLine("")
     [void]$sb.AppendLine($script:TaskSectionEnd)
@@ -305,8 +305,8 @@ function Update-TaskProgress {
     $content = Get-Content $promptPath -Raw -Encoding UTF8
     
     # Look for progress section marker
-    $progressMarker = "<!-- RALPH_PROGRESS -->"
-    $progressEndMarker = "<!-- RALPH_PROGRESS_END -->"
+    $progressMarker = "<!-- Hermes_PROGRESS -->"
+    $progressEndMarker = "<!-- Hermes_PROGRESS_END -->"
     
     $timestamp = Get-Date -Format "HH:mm:ss"
     $progressSection = @"
@@ -383,7 +383,7 @@ function Backup-Prompt {
     }
     
     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-    $backupPath = Join-Path $BasePath ".ralph" "prompt_backup_$timestamp.md"
+    $backupPath = Join-Path $BasePath ".Hermes" "prompt_backup_$timestamp.md"
     
     $backupDir = Split-Path $backupPath -Parent
     if (-not (Test-Path $backupDir)) {
@@ -439,7 +439,7 @@ function Get-LatestBackup {
         [string]$BasePath = "."
     )
     
-    $backupDir = Join-Path $BasePath ".ralph"
+    $backupDir = Join-Path $BasePath ".Hermes"
     
     if (-not (Test-Path $backupDir)) {
         return ""
@@ -485,7 +485,7 @@ function Add-TaskContextComment {
         timestamp = Get-Date -Format "o"
     } | ConvertTo-Json -Compress
     
-    $comment = "<!-- RALPH_CONTEXT: $context -->"
+    $comment = "<!-- Hermes_CONTEXT: $context -->"
     
     # Add at the very beginning
     $content = "$comment`n$content"
@@ -513,7 +513,7 @@ function Get-TaskContextFromComment {
     
     $content = Get-Content $promptPath -Raw -Encoding UTF8
     
-    if ($content -match "<!-- RALPH_CONTEXT: ({.*?}) -->") {
+    if ($content -match "<!-- Hermes_CONTEXT: ({.*?}) -->") {
         try {
             return $Matches[1] | ConvertFrom-Json -AsHashtable
         }

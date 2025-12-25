@@ -13,7 +13,7 @@ BeforeAll {
     $script:OriginalLocation = Get-Location
     
     # Create temp directory for tests
-    $script:TestDir = Join-Path $env:TEMP "RalphTests_$(Get-Random)"
+    $script:TestDir = Join-Path $env:TEMP "HermesTests_$(Get-Random)"
     New-Item -ItemType Directory -Path $script:TestDir -Force | Out-Null
     Set-Location $script:TestDir
 }
@@ -68,15 +68,15 @@ Describe "ResponseAnalyzer Module" {
         }
     }
     
-    Context "Invoke-ResponseAnalysis - Ralph Status Detection" {
+    Context "Invoke-ResponseAnalysis - Hermes Status Detection" {
         It "should detect EXIT_SIGNAL true in status block" {
             @"
 Some work output here
----RALPH_STATUS---
+---Hermes_STATUS---
 STATUS: COMPLETE
 EXIT_SIGNAL: true
 RECOMMENDATION: All done
----END_RALPH_STATUS---
+---END_Hermes_STATUS---
 "@ | Set-Content "test_output.log"
             
             Invoke-ResponseAnalysis -OutputFile "test_output.log" -LoopNumber 1
@@ -88,10 +88,10 @@ RECOMMENDATION: All done
         
         It "should detect STATUS: COMPLETE" {
             @"
----RALPH_STATUS---
+---Hermes_STATUS---
 STATUS: COMPLETE
 EXIT_SIGNAL: false
----END_RALPH_STATUS---
+---END_Hermes_STATUS---
 "@ | Set-Content "test_output.log"
             
             Invoke-ResponseAnalysis -OutputFile "test_output.log" -LoopNumber 1
@@ -102,11 +102,11 @@ EXIT_SIGNAL: false
         
         It "should detect WORK_TYPE: TESTING" {
             @"
----RALPH_STATUS---
+---Hermes_STATUS---
 STATUS: IN_PROGRESS
 WORK_TYPE: TESTING
 EXIT_SIGNAL: false
----END_RALPH_STATUS---
+---END_Hermes_STATUS---
 "@ | Set-Content "test_output.log"
             
             Invoke-ResponseAnalysis -OutputFile "test_output.log" -LoopNumber 1
@@ -253,9 +253,9 @@ Continuing with work
         
         It "should have max confidence for EXIT_SIGNAL true" {
             @"
----RALPH_STATUS---
+---Hermes_STATUS---
 EXIT_SIGNAL: true
----END_RALPH_STATUS---
+---END_Hermes_STATUS---
 "@ | Set-Content "test_output.log"
             
             Invoke-ResponseAnalysis -OutputFile "test_output.log" -LoopNumber 1

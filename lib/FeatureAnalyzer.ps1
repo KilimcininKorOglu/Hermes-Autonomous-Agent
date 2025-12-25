@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Feature Analyzer Module for Ralph
+    Feature Analyzer Module for Hermes
 .DESCRIPTION
     Analyzes feature descriptions and creates task breakdowns.
-    Used by ralph-add command.
+    Used by Hermes-add command.
 #>
 
 function Get-HighestFeatureId {

@@ -2,9 +2,9 @@
 
 <#
 .SYNOPSIS
-    Ralph Monitor Dashboard - Windows PowerShell Version
+    Hermes Monitor Dashboard - Windows PowerShell Version
 .DESCRIPTION
-    Live monitoring dashboard for Ralph Task Mode.
+    Live monitoring dashboard for Hermes Task Mode.
     Displays real-time information about task progress, current execution,
     circuit breaker state, and recent logs.
 .PARAMETER RefreshInterval
@@ -12,9 +12,9 @@
 .PARAMETER Help
     Show help message
 .EXAMPLE
-    .\ralph_monitor.ps1
+    .\Hermes_monitor.ps1
 .EXAMPLE
-    .\ralph_monitor.ps1 -RefreshInterval 5
+    .\Hermes_monitor.ps1 -RefreshInterval 5
 #>
 
 [CmdletBinding()]
@@ -28,7 +28,7 @@ param(
 # Configuration
 $script:StatusFile = "status.json"
 $script:ProgressFile = "progress.json"
-$script:LogFile = "logs\ralph.log"
+$script:LogFile = "logs\Hermes.log"
 $script:CallCountFile = ".call_count"
 $script:CircuitBreakerFile = ".circuit_breaker_state"
 $script:RunStateFile = "tasks\run-state.md"
@@ -43,9 +43,9 @@ if (Test-Path $taskReaderPath) {
 
 function Show-Help {
     Write-Host ""
-    Write-Host "Ralph Monitor Dashboard" -ForegroundColor Cyan
+    Write-Host "Hermes Monitor Dashboard" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "Usage: ralph-monitor [OPTIONS]" -ForegroundColor White
+    Write-Host "Usage: Hermes-monitor [OPTIONS]" -ForegroundColor White
     Write-Host ""
     Write-Host "Options:" -ForegroundColor Yellow
     Write-Host "    -RefreshInterval SEC   Refresh interval in seconds (default: 2)"
@@ -72,7 +72,7 @@ function Get-TerminalWidth {
 
 function Write-Header {
     $width = Get-TerminalWidth
-    $title = " RALPH TASK MODE MONITOR "
+    $title = " Hermes TASK MODE MONITOR "
     $padding = [Math]::Max(0, [Math]::Floor(($width - $title.Length) / 2))
     
     Write-Host ("=" * $width) -ForegroundColor Cyan
@@ -488,12 +488,12 @@ function Write-Dashboard {
 }
 
 function Start-Monitor {
-    # Check if in Ralph project
-    $isRalphProject = (Test-Path "PROMPT.md") -or (Test-Path $script:StatusFile) -or (Test-Path $script:TasksDir)
+    # Check if in Hermes project
+    $isHermesProject = (Test-Path "PROMPT.md") -or (Test-Path $script:StatusFile) -or (Test-Path $script:TasksDir)
     
-    if (-not $isRalphProject) {
+    if (-not $isHermesProject) {
         Write-Host ""
-        Write-Host "Warning: This doesn't appear to be a Ralph project directory." -ForegroundColor Yellow
+        Write-Host "Warning: This doesn't appear to be a Hermes project directory." -ForegroundColor Yellow
         Write-Host "Looking for: PROMPT.md, status.json, or tasks/" -ForegroundColor Gray
         Write-Host "Current directory: $(Get-Location)" -ForegroundColor Gray
         Write-Host ""
@@ -502,7 +502,7 @@ function Start-Monitor {
         Start-Sleep -Seconds 2
     }
     
-    Write-Host "Starting Ralph Task Mode Monitor..." -ForegroundColor Cyan
+    Write-Host "Starting Hermes Task Mode Monitor..." -ForegroundColor Cyan
     Write-Host "Press Ctrl+C to stop" -ForegroundColor Gray
     Start-Sleep -Seconds 1
     

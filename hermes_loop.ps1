@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    Ralph Loop for Claude Code - Windows PowerShell Version
+    Hermes Loop for Claude Code - Windows PowerShell Version
 .DESCRIPTION
     Autonomous AI development loop with intelligent exit detection and rate limiting.
     Continuously executes Claude Code against your project until completion.
@@ -25,9 +25,9 @@
 .PARAMETER CircuitStatus
     Show circuit breaker status and exit
 .EXAMPLE
-    .\ralph_loop.ps1 -Monitor
+    .\Hermes_loop.ps1 -Monitor
 .EXAMPLE
-    .\ralph_loop.ps1 -Calls 50 -Timeout 30
+    .\Hermes_loop.ps1 -Calls 50 -Timeout 30
 #>
 
 [CmdletBinding()]
@@ -165,12 +165,12 @@ function Show-Help {
     #>
     
     Write-Host ""
-    Write-Host "Ralph Loop - Autonomous AI Development" -ForegroundColor Cyan
+    Write-Host "Hermes Loop - Autonomous AI Development" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "IMPORTANT: This command must be run from a Ralph project directory." -ForegroundColor Yellow
-    Write-Host "           Use 'ralph-setup project-name' to create a new project first."
+    Write-Host "IMPORTANT: This command must be run from a Hermes project directory." -ForegroundColor Yellow
+    Write-Host "           Use 'Hermes-setup project-name' to create a new project first."
     Write-Host ""
-    Write-Host "Usage: ralph [OPTIONS]" -ForegroundColor White
+    Write-Host "Usage: Hermes [OPTIONS]" -ForegroundColor White
     Write-Host ""
     Write-Host "Options:" -ForegroundColor Yellow
     Write-Host "    -h, -Help              Show this help message"
@@ -203,24 +203,24 @@ function Show-Help {
     Write-Host "    - status.json        Current status (JSON)"
     Write-Host ""
     Write-Host "Example workflow:" -ForegroundColor Yellow
-    Write-Host "    ralph-setup my-project     # Create project"
+    Write-Host "    Hermes-setup my-project     # Create project"
     Write-Host "    cd my-project              # Enter project directory"
-    Write-Host "    ralph -Monitor             # Start Ralph with monitoring"
+    Write-Host "    Hermes -Monitor             # Start Hermes with monitoring"
     Write-Host ""
     Write-Host "Examples:" -ForegroundColor Yellow
-    Write-Host "    ralph -Calls 50 -Prompt my_prompt.md"
-    Write-Host "    ralph -Monitor -Timeout 30"
-    Write-Host "    ralph -VerboseProgress"
+    Write-Host "    Hermes -Calls 50 -Prompt my_prompt.md"
+    Write-Host "    Hermes -Monitor -Timeout 30"
+    Write-Host "    Hermes -VerboseProgress"
     Write-Host ""
     Write-Host "Task Mode Examples:" -ForegroundColor Yellow
-    Write-Host "    ralph -TaskMode -AutoBranch -AutoCommit"
-    Write-Host "    ralph -TaskMode -AutoBranch -AutoCommit -Autonomous"
-    Write-Host "    ralph -TaskMode -AI droid -AutoBranch -AutoCommit"
-    Write-Host "    ralph -TaskMode -StartFrom T005"
-    Write-Host "    ralph -TaskStatus"
-    Write-Host "    ralph -TaskStatus -StatusFilter BLOCKED"
-    Write-Host "    ralph -TaskStatus -FeatureFilter F001"
-    Write-Host "    ralph -TaskStatus -PriorityFilter P1"
+    Write-Host "    Hermes -TaskMode -AutoBranch -AutoCommit"
+    Write-Host "    Hermes -TaskMode -AutoBranch -AutoCommit -Autonomous"
+    Write-Host "    Hermes -TaskMode -AI droid -AutoBranch -AutoCommit"
+    Write-Host "    Hermes -TaskMode -StartFrom T005"
+    Write-Host "    Hermes -TaskStatus"
+    Write-Host "    Hermes -TaskStatus -StatusFilter BLOCKED"
+    Write-Host "    Hermes -TaskStatus -FeatureFilter F001"
+    Write-Host "    Hermes -TaskStatus -PriorityFilter P1"
     Write-Host ""
 }
 
@@ -252,7 +252,7 @@ function Write-Status {
     }
     
     # Append to log file
-    "[$timestamp] [$Level] $Message" | Add-Content -Path "$($script:Config.LogDir)\ralph.log" -Encoding UTF8
+    "[$timestamp] [$Level] $Message" | Add-Content -Path "$($script:Config.LogDir)\Hermes.log" -Encoding UTF8
 }
 
 function Initialize-CallTracking {
@@ -653,13 +653,13 @@ function Invoke-AIExecution {
     }
 }
 
-function Start-RalphLoop {
+function Start-HermesLoop {
     <#
     .SYNOPSIS
-        Main Ralph loop execution
+        Main Hermes loop execution
     #>
     
-    Write-Status -Level "SUCCESS" -Message "Ralph loop starting with $($script:Config.AIProvider)"
+    Write-Status -Level "SUCCESS" -Message "Hermes loop starting with $($script:Config.AIProvider)"
     Write-Status -Level "INFO" -Message "AI Provider: $($script:Config.AIProvider)"
     Write-Status -Level "INFO" -Message "Max calls per hour: $($script:Config.MaxCallsPerHour)"
     Write-Status -Level "INFO" -Message "Logs: $($script:Config.LogDir)\ | Status: $($script:Config.StatusFile)"
@@ -672,24 +672,24 @@ function Start-RalphLoop {
         New-Item -ItemType Directory -Path $script:Config.DocsDir -Force | Out-Null
     }
     
-    # Check if this is a Ralph project
+    # Check if this is a Hermes project
     if (-not (Test-Path $script:Config.PromptFile)) {
         Write-Status -Level "ERROR" -Message "Prompt file '$($script:Config.PromptFile)' not found!"
         Write-Host ""
         
         if ((Test-Path "tasks") -or (Test-Path "specs")) {
-            Write-Host "This appears to be a Ralph project but is missing PROMPT.md." -ForegroundColor Yellow
+            Write-Host "This appears to be a Hermes project but is missing PROMPT.md." -ForegroundColor Yellow
             Write-Host "You may need to create or restore the PROMPT.md file."
         }
         else {
-            Write-Host "This directory is not a Ralph project." -ForegroundColor Yellow
+            Write-Host "This directory is not a Hermes project." -ForegroundColor Yellow
         }
         
         Write-Host ""
         Write-Host "To fix this:" -ForegroundColor Cyan
-        Write-Host "  1. Create a new project: ralph-setup my-project"
-        Write-Host "  2. Import existing requirements: ralph-import requirements.md"
-        Write-Host "  3. Navigate to an existing Ralph project directory"
+        Write-Host "  1. Create a new project: Hermes-setup my-project"
+        Write-Host "  2. Import existing requirements: Hermes-import requirements.md"
+        Write-Host "  3. Navigate to an existing Hermes project directory"
         Write-Host "  4. Or create PROMPT.md manually in this directory"
         Write-Host ""
         return
@@ -727,7 +727,7 @@ function Start-RalphLoop {
                 -LastAction "graceful_exit" -Status "completed" -ExitReason $exitReason
             
             Write-Host ""
-            Write-Status -Level "SUCCESS" -Message "Ralph has completed the project! Final stats:"
+            Write-Status -Level "SUCCESS" -Message "Hermes has completed the project! Final stats:"
             Write-Status -Level "INFO" -Message "  - Total loops: $($script:LoopCount)"
             Write-Status -Level "INFO" -Message "  - API calls used: $(Get-CallCount)"
             Write-Status -Level "INFO" -Message "  - Exit reason: $exitReason"
@@ -754,7 +754,7 @@ function Start-RalphLoop {
                 Update-LoopStatus -LoopCount $script:LoopCount -CallsMade (Get-CallCount) `
                     -LastAction "circuit_breaker_open" -Status "halted" -ExitReason "stagnation_detected"
                 Write-Status -Level "ERROR" -Message "Circuit breaker has opened - halting loop"
-                Write-Status -Level "INFO" -Message "Run 'ralph -ResetCircuit' to reset the circuit breaker after addressing issues"
+                Write-Status -Level "INFO" -Message "Run 'Hermes -ResetCircuit' to reset the circuit breaker after addressing issues"
                 break
             }
             2 {
@@ -806,19 +806,19 @@ function Start-RalphLoop {
 function Show-CurrentStatus {
     <#
     .SYNOPSIS
-        Shows current Ralph status
+        Shows current Hermes status
     #>
     
     if (Test-Path $script:Config.StatusFile) {
         Write-Host ""
-        Write-Host "Current Ralph Status:" -ForegroundColor Cyan
+        Write-Host "Current Hermes Status:" -ForegroundColor Cyan
         Write-Host ""
         $status = Get-Content $script:Config.StatusFile -Raw | ConvertFrom-Json
         $status | Format-List
     }
     else {
         Write-Host ""
-        Write-Host "No status file found. Ralph may not be running." -ForegroundColor Yellow
+        Write-Host "No status file found. Hermes may not be running." -ForegroundColor Yellow
         Write-Host "Status file expected at: $($script:Config.StatusFile)" -ForegroundColor Gray
         Write-Host ""
     }
@@ -827,12 +827,12 @@ function Show-CurrentStatus {
 function Start-WithMonitor {
     <#
     .SYNOPSIS
-        Starts Ralph with a separate monitor window
+        Starts Hermes with a separate monitor window
     #>
     
     Write-Status -Level "INFO" -Message "Starting with monitoring..."
     
-    $monitorScript = Join-Path $script:ScriptDir "ralph_monitor.ps1"
+    $monitorScript = Join-Path $script:ScriptDir "Hermes_monitor.ps1"
     
     if (Test-Path $monitorScript) {
         # Start monitor in a new PowerShell window
@@ -845,7 +845,7 @@ function Start-WithMonitor {
     }
     
     # Start main loop
-    Start-RalphLoop
+    Start-HermesLoop
 }
 
 function Show-TaskStatus {
@@ -1073,7 +1073,7 @@ function Start-TaskModeLoop {
     $script:Config.ConsecutiveErrors = 0
     $script:Config.ErrorsRecovered = 0
     
-    Write-Status -Level "SUCCESS" -Message "Ralph Task Mode starting..."
+    Write-Status -Level "SUCCESS" -Message "Hermes Task Mode starting..."
     Write-Status -Level "INFO" -Message "AI Provider: $($script:Config.AIProvider)"
     Write-Status -Level "INFO" -Message "Tasks directory: $($script:Config.TasksDir)"
     Write-Status -Level "INFO" -Message "Auto-branch: $($script:Config.AutoBranch)"
@@ -1406,7 +1406,7 @@ if ($CircuitStatus) {
 if ($TaskMode) {
     if ($Monitor) {
         Write-Status -Level "INFO" -Message "Starting with monitoring..."
-        $monitorScript = Join-Path $script:ScriptDir "ralph_monitor.ps1"
+        $monitorScript = Join-Path $script:ScriptDir "Hermes_monitor.ps1"
         if (Test-Path $monitorScript) {
             Start-Process pwsh -ArgumentList "-NoExit", "-File", $monitorScript -WindowStyle Normal
         }
@@ -1417,5 +1417,5 @@ elseif ($Monitor) {
     Start-WithMonitor
 }
 else {
-    Start-RalphLoop
+    Start-HermesLoop
 }

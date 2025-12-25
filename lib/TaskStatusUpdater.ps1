@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-    Task Status Updater Module for Ralph
+    Task Status Updater Module for Hermes
 .DESCRIPTION
     Updates task and feature statuses in task files.
     Maintains tasks-status.md tracking file.
