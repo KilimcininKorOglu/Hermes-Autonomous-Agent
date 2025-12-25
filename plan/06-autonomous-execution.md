@@ -2,13 +2,13 @@
 
 ## Ozet
 
-`ralph -TaskMode` komutuna tam otonom calisma modu ekleme. Kullanici onay beklemeden tum tasklari ve feature'lari bitirene kadar devam etme.
+`hermes -TaskMode` komutuna tam otonom calisma modu ekleme. Kullanici onay beklemeden tum tasklari ve feature'lari bitirene kadar devam etme.
 
 ## Mevcut Durum
 
 ### Var Olan
 
-- `ralph -TaskMode` task loop'u calistiriyor
+- `hermes -TaskMode` task loop'u calistiriyor
 - Her loop'ta Claude Code cagriliyor
 - Task completion detection var
 - Auto-branch ve auto-commit var
@@ -23,10 +23,10 @@
 ## Hedef
 
 ```powershell
-ralph -TaskMode -AutoBranch -AutoCommit -Autonomous
+hermes -TaskMode -AutoBranch -AutoCommit -Autonomous
 
 # Veya varsayilan olarak autonomous
-ralph -TaskMode -AutoBranch -AutoCommit
+hermes -TaskMode -AutoBranch -AutoCommit
 ```
 
 ### Beklenen Davranis
@@ -91,7 +91,7 @@ Starting T001: Kayit formu UI (F001)
 ### Yeni Parametre
 
 ```powershell
-# ralph_loop.ps1
+# hermes_loop.ps1
 param(
     # ... mevcut parametreler ...
     

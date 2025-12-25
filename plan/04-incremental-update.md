@@ -1,12 +1,12 @@
-# Plan 04: Incremental Update for ralph-prd
+# Plan 04: Incremental Update for hermes-prd
 
 ## Ozet
 
-`ralph-prd` komutunu mevcut tasklari koruyacak sekilde gelistirme. Ayni PRD tekrar calistirildiginda sadece yeni/degisen feature'lari ekle, mevcut ilerlemeyi koru.
+`hermes-prd` komutunu mevcut tasklari koruyacak sekilde gelistirme. Ayni PRD tekrar calistirildiginda sadece yeni/degisen feature'lari ekle, mevcut ilerlemeyi koru.
 
 ## Mevcut Durum
 
-`ralph-prd` her seferinde:
+`hermes-prd` her seferinde:
 
 - Tum task dosyalarini sifirdan olusturur
 - Mevcut ilerleme (COMPLETED, IN_PROGRESS) kaybolur
@@ -16,11 +16,11 @@
 
 ```powershell
 # Ilk calistirma
-ralph-prd docs/PRD.md
+hermes-prd docs/PRD.md
 # Olusturur: F001-F003, T001-T015
 
 # PRD guncellendi, yeni feature eklendi
-ralph-prd docs/PRD.md
+hermes-prd docs/PRD.md
 # Sadece yeni feature'i ekler: F004, T016-T020
 # Mevcut F001-F003'u KORUR
 ```
@@ -71,7 +71,7 @@ Changes detected:
   
   Warnings:
     - F003 definition changed but has NOT_STARTED tasks
-      Consider: ralph-prd --force to overwrite
+      Consider: hermes-prd --force to overwrite
   
   Removed from PRD (not deleted):
     - F999: Legacy Feature - still in tasks/
@@ -185,7 +185,7 @@ The following features already exist. Do NOT include them in your output:
 1. [ ] `Get-ExistingTaskState` fonksiyonu yaz
 2. [ ] `Compare-PrdWithTasks` fonksiyonu yaz
 3. [ ] `Merge-PrdChanges` fonksiyonu yaz
-4. [ ] `ralph-prd.ps1`'e -Force, -Clean parametreleri ekle
+4. [ ] `hermes-prd.ps1`'e -Force, -Clean parametreleri ekle
 5. [ ] Prompt template'i guncelle
 6. [ ] Change summary output'u ekle
 7. [ ] Unit testler

@@ -2,7 +2,7 @@
 
 ## Ozet
 
-`ralph -TaskStatus` komutunu gelistirerek ASCII table formati, filtreleme ve daha detayli gorunum ekleme.
+`hermes -TaskStatus` komutunu gelistirerek ASCII table formati, filtreleme ve daha detayli gorunum ekleme.
 
 ## Mevcut Durum
 
@@ -22,12 +22,12 @@
 
 ```powershell
 # Tam tablo
-ralph -TaskStatus
+hermes -TaskStatus
 
 # Filtreleme
-ralph -TaskStatus -Filter IN_PROGRESS
-ralph -TaskStatus -Feature F001
-ralph -TaskStatus -Priority P1
+hermes -TaskStatus -Filter IN_PROGRESS
+hermes -TaskStatus -Feature F001
+hermes -TaskStatus -Priority P1
 ```
 
 ## Cikti Ornegi
@@ -58,7 +58,7 @@ Progress: [████████░░░░░░░░░░░░░░░
 ### Filtrelenmis
 
 ```powershell
-ralph -TaskStatus -Filter BLOCKED
+hermes -TaskStatus -Filter BLOCKED
 ```
 
 ```
@@ -77,7 +77,7 @@ Blocked Tasks:
 ### Yeni Parametreler
 
 ```powershell
-# ralph_loop.ps1'e eklenecek
+# hermes_loop.ps1'e eklenecek
 [string]$Filter = "",      # COMPLETED, IN_PROGRESS, NOT_STARTED, BLOCKED
 [string]$Feature = "",     # F001, F002, etc.
 [string]$Priority = ""     # P1, P2, P3, P4
@@ -144,7 +144,7 @@ $script:TableChars = @{
 ## Uygulama Adimlari
 
 1. [ ] `lib/TableFormatter.ps1` olustur (ASCII table modulu)
-2. [ ] `ralph_loop.ps1`'e yeni parametreler ekle
+2. [ ] `hermes_loop.ps1`'e yeni parametreler ekle
 3. [ ] `Show-EnhancedTaskStatus` fonksiyonu yaz
 4. [ ] Mevcut `Show-TaskStatus`'u guncelle veya degistir
 5. [ ] Unit testler

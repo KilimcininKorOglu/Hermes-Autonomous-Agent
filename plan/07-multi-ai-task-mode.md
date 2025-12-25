@@ -2,17 +2,17 @@
 
 ## Overview
 
-Task Mode (`ralph -TaskMode`) currently uses only Claude CLI. This plan adds support for Droid and Aider CLIs, allowing users to choose their preferred AI provider for task execution.
+Task Mode (`hermes -TaskMode`) currently uses only Claude CLI. This plan adds support for Droid and Aider CLIs, allowing users to choose their preferred AI provider for task execution.
 
 ## Current State
 
 | Component | AI Support |
 |-----------|------------|
-| `ralph-prd.ps1` | claude, droid, aider (via AIProvider.ps1) |
-| `ralph-add.ps1` | claude, droid, aider (via AIProvider.ps1) |
-| `ralph_loop.ps1` | **claude only** (hard-coded) |
+| `hermes-prd.ps1` | claude, droid, aider (via AIProvider.ps1) |
+| `hermes-add.ps1` | claude, droid, aider (via AIProvider.ps1) |
+| `hermes_loop.ps1` | **claude only** (hard-coded) |
 
-### Hard-coded Claude in ralph_loop.ps1
+### Hard-coded Claude in hermes_loop.ps1
 
 ```powershell
 # Line 108
@@ -27,7 +27,7 @@ $result = $content | & $claudeCmd 2>&1
 
 ## Proposed Changes
 
-### 1. Add -AI Parameter to ralph_loop.ps1
+### 1. Add -AI Parameter to hermes_loop.ps1
 
 ```powershell
 param(
@@ -108,10 +108,10 @@ function Invoke-AIExecution {
 ```powershell
 function Show-Help {
     Write-Host @"
-Ralph Loop - Autonomous AI Development
+Hermes Loop - Autonomous AI Development
 
 USAGE:
-    ralph [-Monitor] [-Calls <int>] [-AI <provider>] ...
+    Hermes [-Monitor] [-Calls <int>] [-AI <provider>] ...
 
 OPTIONS:
     -AI <provider>    AI provider: claude, droid, aider, auto (default: auto)
@@ -130,7 +130,7 @@ Write-Host "[INFO] AI Provider: $($script:Config.AIProvider)" -ForegroundColor C
 
 | File | Changes |
 |------|---------|
-| `ralph_loop.ps1` | Add -AI param, use AIProvider.ps1, update execution |
+| `hermes_loop.ps1` | Add -AI param, use AIProvider.ps1, update execution |
 | `lib/AIProvider.ps1` | Add `Invoke-TaskExecution` function (simpler than PRD) |
 
 ## New Function in AIProvider.ps1
@@ -202,19 +202,19 @@ function Invoke-TaskExecution {
 
 ```powershell
 # Auto-detect (default, backward compatible)
-ralph -TaskMode -AutoBranch -AutoCommit
+hermes -TaskMode -AutoBranch -AutoCommit
 
 # Explicit Claude
-ralph -TaskMode -AI claude -AutoBranch -AutoCommit
+hermes -TaskMode -AI claude -AutoBranch -AutoCommit
 
 # Use Droid
-ralph -TaskMode -AI droid -AutoBranch -AutoCommit
+hermes -TaskMode -AI droid -AutoBranch -AutoCommit
 
 # Use Aider
-ralph -TaskMode -AI aider -AutoBranch -AutoCommit
+hermes -TaskMode -AI aider -AutoBranch -AutoCommit
 
 # Autonomous with specific provider
-ralph -TaskMode -AI droid -Autonomous
+hermes -TaskMode -AI droid -Autonomous
 ```
 
 ## Implementation Steps
@@ -223,7 +223,7 @@ ralph -TaskMode -AI droid -Autonomous
    - Add `Invoke-TaskExecution` function
    - Export the new function
 
-2. **Update ralph_loop.ps1**
+2. **Update hermes_loop.ps1**
    - Add `-AI` parameter with validation
    - Load AIProvider.ps1 at startup
    - Resolve provider (auto-detect or explicit)
@@ -251,7 +251,7 @@ ralph -TaskMode -AI droid -Autonomous
 | Task | Estimate |
 |------|----------|
 | AIProvider.ps1 update | 1 hour |
-| ralph_loop.ps1 refactor | 2 hours |
+| hermes_loop.ps1 refactor | 2 hours |
 | Testing | 1 hour |
 | Documentation | 30 min |
 | **Total** | **4.5 hours** |
@@ -266,9 +266,9 @@ ralph -TaskMode -AI droid -Autonomous
 
 ## Success Criteria
 
-- [ ] `ralph -TaskMode -AI droid` works end-to-end
-- [ ] `ralph -TaskMode -AI aider` works end-to-end
-- [ ] `ralph -TaskMode` (auto) maintains backward compatibility
+- [ ] `hermes -TaskMode -AI droid` works end-to-end
+- [ ] `hermes -TaskMode -AI aider` works end-to-end
+- [ ] `hermes -TaskMode` (auto) maintains backward compatibility
 - [ ] Status display shows active provider
 - [ ] All existing tests pass
 - [ ] New unit tests for provider selection

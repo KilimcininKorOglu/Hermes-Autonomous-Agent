@@ -28,7 +28,7 @@ Set-RunStateCompleted # Tamamlandi olarak isaretle
 
 ```powershell
 # Session baslangicinda
-ralph -TaskMode
+hermes -TaskMode
 
 # Otomatik tespit:
 # "run-state.md found with IN_PROGRESS status"
@@ -184,7 +184,7 @@ function Update-RunStateProgress {
 }
 ```
 
-### ralph_loop.ps1 Degisiklikleri
+### hermes_loop.ps1 Degisiklikleri
 
 ```powershell
 # Task Mode baslarken
@@ -206,7 +206,7 @@ if ($TaskMode) {
 ### Quick Resume Trigger (Ayri Script)
 
 ```powershell
-# ralph-resume.ps1
+# hermes-resume.ps1
 <#
 .SYNOPSIS
     Quick resume trigger for interrupted task mode
@@ -218,7 +218,7 @@ $triggers = @("devam", "continue", "devam et", "resume")
 if ($args -and $triggers -contains $args[0].ToLower()) {
     if (Test-ShouldResume -BasePath ".") {
         Write-Host "[INFO] Resuming task mode..." -ForegroundColor Cyan
-        & "$PSScriptRoot\ralph_loop.ps1" -TaskMode -AutoBranch -AutoCommit
+        & "$PSScriptRoot\hermes_loop.ps1" -TaskMode -AutoBranch -AutoCommit
     }
     else {
         Write-Host "[INFO] No active run to resume" -ForegroundColor Yellow
@@ -232,9 +232,9 @@ if ($args -and $triggers -contains $args[0].ToLower()) {
 2. [ ] `Resume-TaskMode` fonksiyonu ekle
 3. [ ] `Add-ErrorLogEntry` fonksiyonu ekle
 4. [ ] `Update-RunStateProgress` fonksiyonu ekle
-5. [ ] `ralph_loop.ps1` basinda resume check ekle
+5. [ ] `hermes_loop.ps1` basinda resume check ekle
 6. [ ] `run-state.md` formatini zenginlestir
-7. [ ] `ralph-resume.ps1` script'i olustur (opsiyonel)
+7. [ ] `hermes-resume.ps1` script'i olustur (opsiyonel)
 8. [ ] Unit testler
 9. [ ] README.md guncelle
 

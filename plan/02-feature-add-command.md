@@ -1,25 +1,25 @@
-# Plan 02: Feature Add Command (ralph-add)
+# Plan 02: Feature Add Command (hermes-add)
 
 ## Ozet
 
-Tek bir feature eklemek icin `ralph-add` komutu. PRD olmadan, inline veya dosyadan feature tanimlamasi.
+Tek bir feature eklemek icin `hermes-add` komutu. PRD olmadan, inline veya dosyadan feature tanimlamasi.
 
 ## Mevcut Durum
 
-- `ralph-prd`: PRD dosyasindan task olusturur (tum PRD)
+- `hermes-prd`: PRD dosyasindan task olusturur (tum PRD)
 - Tek feature eklemek icin komut **YOK**
 
 ## Hedef
 
 ```powershell
 # Inline aciklama ile
-ralph-add "kullanici kayit sistemi"
+hermes-add "kullanici kayit sistemi"
 
 # Dosyadan
-ralph-add @docs/webhook-spec.md
+hermes-add @docs/webhook-spec.md
 
 # Mevcut tasklara ekleme
-ralph-add "sifre sifirlama"  # F002, T006-T008 olarak devam eder
+hermes-add "sifre sifirlama"  # F002, T006-T008 olarak devam eder
 ```
 
 ## Gereksinimler
@@ -30,7 +30,7 @@ Mevcut en yuksek Feature ID ve Task ID'yi bul, devam et:
 
 ```powershell
 # Mevcut: F001 (T001-T005)
-ralph-add "sifre sifirlama"
+hermes-add "sifre sifirlama"
 # Olusturur: F002 (T006-T008)
 ```
 
@@ -38,8 +38,8 @@ ralph-add "sifre sifirlama"
 
 | Mod | Ornek | Aciklama |
 |-----|-------|----------|
-| Inline | `ralph-add "aciklama"` | Kisa aciklama, AI tarafindan analiz |
-| File | `ralph-add @file.md` | Dosya icerigi analiz edilir |
+| Inline | `hermes-add "aciklama"` | Kisa aciklama, AI tarafindan analiz |
+| File | `hermes-add @file.md` | Dosya icerigi analiz edilir |
 
 ### 3. AI Entegrasyonu
 
@@ -59,7 +59,7 @@ ralph-add "sifre sifirlama"
   Tasks:      3 (T006-T008)
   Effort:     2 days (total)
 
-Next: Run 'ralph -TaskMode' to implement
+Next: Run 'hermes -TaskMode' to implement
 ```
 
 ## Teknik Tasarim
@@ -67,13 +67,13 @@ Next: Run 'ralph -TaskMode' to implement
 ### Dosya Yapisi
 
 ```
-ralph-add.ps1           # Ana script
+hermes-add.ps1           # Ana script
 lib/FeatureAnalyzer.ps1 # Feature analiz modulu (yeni)
 lib/prompts/
   feature-analyzer.md   # Feature analiz prompt'u (yeni)
 ```
 
-### ralph-add.ps1 Parametreleri
+### hermes-add.ps1 Parametreleri
 
 ```powershell
 param(
@@ -136,7 +136,7 @@ Analyze the feature description and create a task breakdown.
 
 1. [ ] `lib/FeatureAnalyzer.ps1` olustur
 2. [ ] `lib/prompts/feature-analyzer.md` olustur
-3. [ ] `ralph-add.ps1` olustur
+3. [ ] `hermes-add.ps1` olustur
 4. [ ] `install.ps1` guncelle
 5. [ ] Unit testler
 6. [ ] README.md guncelle

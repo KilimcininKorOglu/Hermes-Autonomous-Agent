@@ -16,22 +16,22 @@ Kullanicinin PRD dosyasini alip, sectigi AI CLI araciyla `tasks/` klasorune task
 
 ```powershell
 # Varsayilan (claude)
-ralph-prd docs/PRD.md
+hermes-prd docs/PRD.md
 
 # AI secerek
-ralph-prd docs/PRD.md -AI claude
-ralph-prd docs/PRD.md -AI droid
-ralph-prd docs/PRD.md -AI aider
+hermes-prd docs/PRD.md -AI claude
+hermes-prd docs/PRD.md -AI droid
+hermes-prd docs/PRD.md -AI aider
 
 # Hangi AI'lar mevcut?
-ralph-prd -List
+hermes-prd -List
 ```
 
 ## Nasil Calisir?
 
 ```
 ┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   PRD.md    │────▶│   ralph-prd.ps1  │────▶│  tasks/*.md     │
+│   PRD.md    │────▶│   hermes-prd.ps1  │────▶│  tasks/*.md     │
 └─────────────┘     └──────────────────┘     └─────────────────┘
                             │
                             ▼
@@ -58,8 +58,8 @@ ralph-prd -List
 ## Dosya Yapisi
 
 ```
-ralph-claude-code/
-├── ralph-prd.ps1              # Ana script (YENI)
+hermes-claude-code/
+├── hermes-prd.ps1              # Ana script (YENI)
 ├── lib/
 │   ├── AIProvider.ps1         # AI CLI abstraction (YENI)
 │   └── prompts/
@@ -747,7 +747,7 @@ function Test-PrdSize {
         Write-Host ""
         Write-Host "Recommendations:" -ForegroundColor Yellow
         Write-Host "  - Split by feature/module into separate files"
-        Write-Host "  - Run ralph-prd on each file separately"
+        Write-Host "  - Run hermes-prd on each file separately"
         Write-Host "  - Use -Timeout 1800 for extra time"
         Write-Host ""
     }
@@ -776,7 +776,7 @@ function Test-PrdSize {
 [INFO] Attempt 1/10...
 ```
 
-## ralph-prd.ps1 Parametreleri
+## hermes-prd.ps1 Parametreleri
 
 ```powershell
 param(
@@ -794,7 +794,7 @@ param(
 ## Cikti Ornegi
 
 ```powershell
-PS> ralph-prd docs/PRD.md -AI claude
+PS> hermes-prd docs/PRD.md -AI claude
 
 [INFO] Reading PRD: docs/PRD.md
 [INFO] Using AI: claude
@@ -810,15 +810,15 @@ Summary:
   Tasks: 11
   Estimated: 8 days
 
-Next: Run 'ralph -TaskMode -AutoBranch -AutoCommit' to start
+Next: Run 'hermes -TaskMode -AutoBranch -AutoCommit' to start
 ```
 
 ## Uygulama Sirasi
 
 1. `lib/AIProvider.ps1` - AI CLI abstraction
 2. `lib/prompts/prd-parser.md` - Parse prompt template
-3. `ralph-prd.ps1` - Ana script
-4. `install.ps1` guncelle - ralph-prd komutunu ekle
+3. `hermes-prd.ps1` - Ana script
+4. `install.ps1` guncelle - hermes-prd komutunu ekle
 5. Test ve dokumantasyon
 
 ## Sonraki Adimlar
@@ -832,7 +832,7 @@ Onay sonrasi uygulama:
 
 ### Faz 2: Ana Script
 
-- [ ] ralph-prd.ps1
+- [ ] hermes-prd.ps1
 
 ### Faz 3: Entegrasyon
 
