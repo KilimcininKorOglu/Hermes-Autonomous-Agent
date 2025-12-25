@@ -6,12 +6,11 @@ Kullanicinin PRD dosyasini alip, sectigi AI CLI araciyla `tasks/` klasorune task
 
 ## Desteklenecek AI CLI Araclari
 
-| Arac | Komut | Kurulum |
-|------|-------|---------|
-| Claude Code | `claude` | `npm install -g @anthropic-ai/claude-code` |
-| Gemini CLI | `gemini` | `npm install -g @google/gemini-cli` |
-| Droid CLI | `droid` | Factory AI |
-| Aider | `aider` | `pip install aider-chat` |
+| Arac | Komut | Kurulum | Non-Interactive |
+|------|-------|---------|-----------------|
+| Claude Code | `claude` | `npm install -g @anthropic-ai/claude-code` | `-p` flag |
+| Droid CLI | `droid` | `curl -fsSL https://app.factory.ai/cli \| sh` | `exec` mode |
+| Aider | `aider` | `pip install aider-chat` | `--message` flag |
 
 ## Kullanim
 
@@ -21,7 +20,6 @@ ralph-prd docs/PRD.md
 
 # AI secerek
 ralph-prd docs/PRD.md -AI claude
-ralph-prd docs/PRD.md -AI gemini
 ralph-prd docs/PRD.md -AI droid
 ralph-prd docs/PRD.md -AI aider
 
@@ -41,7 +39,6 @@ ralph-prd -List
                     │  AI CLI Sec   │
                     ├───────────────┤
                     │ • claude      │
-                    │ • gemini      │
                     │ • droid       │
                     │ • aider       │
                     └───────────────┘
@@ -76,36 +73,108 @@ Her AI CLI icin ortak interface:
 ```powershell
 function Invoke-AICommand {
     param(
-        [string]$Provider,  # claude, gemini, droid, aider
-        [string]$Prompt,
-        [string]$Context
+        [ValidateSet("claude", "droid", "aider")]
+        [string]$Provider,
+        [string]$PromptText,
+        [string]$InputFile
     )
     
+    $content = Get-Content $InputFile -Raw
+    
     switch ($Provider) {
-        "claude" { 
-            $Context | claude --print "$Prompt"
+        "claude" {
+            # -p flag ile non-interactive mode
+            # Pipe ile icerik gonderilir
+            $content | claude -p $PromptText
         }
-        "gemini" { 
-            $Context | gemini --prompt "$Prompt"
-        }
-        "droid" { 
-            droid --prompt "$Prompt" --context $Context
+        "droid" {
+            # exec mode ile non-interactive
+            # --auto low ile dosya olusturma izni
+            $content | droid exec --auto low $PromptText
         }
         "aider" {
-            aider --message "$Prompt" --file $Context
+            # --message ile tek seferlik calistirma
+            # --yes otomatik onay
+            # --no-auto-commits git commit yapmasin
+            aider --yes --no-auto-commits --message $PromptText $InputFile
         }
     }
 }
 
 function Test-AIAvailable {
     param([string]$Provider)
-    # CLI'nin kurulu olup olmadigini kontrol et
+    
+    switch ($Provider) {
+        "claude" { 
+            $null = Get-Command claude -ErrorAction SilentlyContinue
+            return $?
+        }
+        "droid" {
+            $null = Get-Command droid -ErrorAction SilentlyContinue
+            return $?
+        }
+        "aider" {
+            $null = Get-Command aider -ErrorAction SilentlyContinue
+            return $?
+        }
+    }
+    return $false
 }
 
 function Get-AvailableAIs {
-    # Sistemde mevcut AI CLI'lari listele
+    $available = @()
+    @("claude", "droid", "aider") | ForEach-Object {
+        if (Test-AIAvailable -Provider $_) {
+            $available += $_
+        }
+    }
+    return $available
+}
+
+function Get-FirstAvailableAI {
+    # Oncelik sirasi: claude > droid > aider
+    $priority = @("claude", "droid", "aider")
+    foreach ($ai in $priority) {
+        if (Test-AIAvailable -Provider $ai) {
+            return $ai
+        }
+    }
+    return $null
 }
 ```
+
+## AI CLI Komut Detaylari
+
+### Claude Code
+
+| Islem | Komut |
+|-------|-------|
+| Interactive mode | `claude` |
+| Non-interactive | `claude -p "query"` |
+| Pipe ile girdi | `cat file \| claude -p "query"` |
+| Cikti formati | `claude -p "query" --output-format json` |
+
+### Droid (Factory AI)
+
+| Islem | Komut |
+|-------|-------|
+| Interactive mode | `droid` |
+| Non-interactive | `droid exec "query"` |
+| Pipe ile girdi | `cat file \| droid exec "query"` |
+| Dosyadan prompt | `droid exec -f prompt.md` |
+| Autonomy seviyesi | `droid exec --auto low/medium/high` |
+| Cikti formati | `droid exec -o json "query"` |
+
+### Aider
+
+| Islem | Komut |
+|-------|-------|
+| Interactive mode | `aider file1 file2` |
+| Non-interactive | `aider --message "query" file1` |
+| Dosyadan mesaj | `aider --message-file prompt.md file1` |
+| Otomatik onay | `aider --yes --message "query"` |
+| Auto-commit kapat | `aider --no-auto-commits` |
+| Dry run | `aider --dry-run --message "query"` |
 
 ## lib/prompts/prd-parser.md
 
@@ -149,7 +218,7 @@ For each feature, output a markdown file with this structure:
 ```powershell
 param(
     [string]$PrdFile,           # PRD dosya yolu
-    [ValidateSet("claude", "gemini", "droid", "aider", "auto")]
+    [ValidateSet("claude", "droid", "aider", "auto")]
     [string]$AI = "auto",       # auto = ilk bulunani kullan
     [switch]$List,              # Mevcut AI'lari listele
     [switch]$DryRun,            # Sadece goster, dosya olusturma
