@@ -39,20 +39,24 @@ ralph -Help
 ### 1. Install PowerShell 7+
 
 **Using winget:**
+
 ```powershell
 winget install Microsoft.PowerShell
 ```
 
 **Using Chocolatey:**
+
 ```powershell
 choco install powershell-core
 ```
 
 **Manual download:**
-- Visit: https://github.com/PowerShell/PowerShell/releases
+
+- Visit: <https://github.com/PowerShell/PowerShell/releases>
 - Download the MSI installer for Windows
 
 Verify installation:
+
 ```powershell
 pwsh --version
 # Should show: PowerShell 7.x.x
@@ -61,16 +65,19 @@ pwsh --version
 ### 2. Install Git
 
 **Using winget:**
+
 ```powershell
 winget install Git.Git
 ```
 
 **Using Chocolatey:**
+
 ```powershell
 choco install git
 ```
 
 Verify installation:
+
 ```powershell
 git --version
 ```
@@ -78,12 +85,14 @@ git --version
 ### 3. Install AI CLI (at least one)
 
 **Claude Code:**
+
 ```powershell
 npm install -g @anthropic-ai/claude-code
 claude --version
 ```
 
 **Aider:**
+
 ```powershell
 pip install aider-chat
 aider --version
@@ -103,6 +112,7 @@ cd ralph-claude-code
 ### 5. Restart Terminal
 
 Close and reopen your terminal, or update PATH manually:
+
 ```powershell
 $env:PATH = "$env:LOCALAPPDATA\Ralph\bin;$env:PATH"
 ```
@@ -125,6 +135,7 @@ ralph-prd -List
 | Templates  | `$env:LOCALAPPDATA\Ralph\templates\` |
 
 Typically resolves to:
+
 ```
 C:\Users\<username>\AppData\Local\Ralph\
 ```
@@ -139,6 +150,7 @@ cd ralph-claude-code
 ```
 
 This removes:
+
 - All Ralph commands from PATH
 - Scripts from AppData
 - Templates directory
@@ -156,6 +168,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### "ralph is not recognized"
 
 Restart terminal or manually add to PATH:
+
 ```powershell
 $env:PATH = "$env:LOCALAPPDATA\Ralph\bin;$env:PATH"
 ```
@@ -163,6 +176,7 @@ $env:PATH = "$env:LOCALAPPDATA\Ralph\bin;$env:PATH"
 ### "claude/droid/aider is not recognized"
 
 Ensure at least one AI CLI is installed:
+
 ```powershell
 # Check available providers
 ralph-prd -List
@@ -171,16 +185,19 @@ ralph-prd -List
 ### PowerShell version too old
 
 Check your version:
+
 ```powershell
 $PSVersionTable.PSVersion
 ```
 
 If below 7.0, install PowerShell 7+:
+
 ```powershell
 winget install Microsoft.PowerShell
 ```
 
 Then use `pwsh` instead of `powershell`:
+
 ```powershell
 pwsh
 ralph -Help
