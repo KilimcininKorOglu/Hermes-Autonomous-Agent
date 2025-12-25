@@ -38,8 +38,12 @@ $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Import modules
+. "$scriptDir\lib\ConfigManager.ps1"
 . "$scriptDir\lib\AIProvider.ps1"
 . "$scriptDir\lib\TaskReader.ps1"
+
+# Load configuration
+$hermesConfig = Get-HermesConfig
 
 # Get prompt template path
 $promptTemplatePath = "$scriptDir\lib\prompts\prd-parser.md"
@@ -409,14 +413,23 @@ if ($isIncremental) {
 Write-Host "[INFO] Reading PRD: $PrdFile" -ForegroundColor Cyan
 $prdInfo = Test-PrdSize -PrdFile $PrdFile
 
-# Determine AI provider
-if ($AI -eq "auto") {
+# Determine AI provider (CLI > config > auto-detect)
+$configProvider = Get-ConfigValue -Key "ai.provider"
+if ($AI -eq "auto" -and $configProvider -ne "auto") {
+    $AI = $configProvider
+} elseif ($AI -eq "auto") {
     $AI = Get-AutoProvider
     if (-not $AI) {
         Write-Error "No AI provider found. Install claude, droid, or aider."
         exit 1
     }
 }
+
+# Get timeout from config if not overridden
+$configTimeout = Get-ConfigValue -Key "ai.timeout"
+$configMaxRetries = Get-ConfigValue -Key "ai.maxRetries"
+if ($Timeout -eq 1200 -and $configTimeout) { $Timeout = $configTimeout }
+if ($MaxRetries -eq 10 -and $configMaxRetries) { $MaxRetries = $configMaxRetries }
 
 # Verify provider is available
 if (-not (Test-AIProvider -Provider $AI)) {

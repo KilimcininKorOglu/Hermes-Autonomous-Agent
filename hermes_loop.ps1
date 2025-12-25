@@ -94,6 +94,7 @@ param(
 $script:ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Import library modules
+. "$script:ScriptDir\lib\ConfigManager.ps1"
 . "$script:ScriptDir\lib\AIProvider.ps1"
 . "$script:ScriptDir\lib\CircuitBreaker.ps1"
 . "$script:ScriptDir\lib\ResponseAnalyzer.ps1"
@@ -103,11 +104,17 @@ $script:ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 . "$script:ScriptDir\lib\PromptInjector.ps1"
 . "$script:ScriptDir\lib\TableFormatter.ps1"
 
-# Resolve AI Provider
-$script:ResolvedAIProvider = if ($AI -eq "auto") {
-    Get-AutoProvider
-} else {
+# Load configuration (merges global, project, and CLI params)
+$script:HermesConfig = Get-HermesConfig
+
+# Resolve AI Provider from config or CLI
+$configProvider = Get-ConfigValue -Key "ai.provider"
+$script:ResolvedAIProvider = if ($AI -ne "auto") {
     $AI
+} elseif ($configProvider -ne "auto") {
+    $configProvider
+} else {
+    Get-AutoProvider
 }
 
 # Validate AI provider
@@ -121,16 +128,16 @@ if (-not (Test-AIProvider -Provider $script:ResolvedAIProvider)) {
     exit 1
 }
 
-# Configuration
+# Configuration (merge CLI params with config file values)
 $script:Config = @{
     PromptFile = $Prompt
-    LogDir = "logs"
+    LogDir = Get-ConfigValue -Key "paths.logsDir" -Override $(if ($PSBoundParameters.ContainsKey('LogDir')) { $LogDir } else { $null })
     DocsDir = "docs\generated"
     StatusFile = "status.json"
     ProgressFile = "progress.json"
     AIProvider = $script:ResolvedAIProvider
-    AITimeoutMinutes = $Timeout
-    MaxCallsPerHour = $Calls
+    AITimeoutMinutes = Get-ConfigValue -Key "loop.timeoutMinutes" -Override $(if ($Timeout -ne 15) { $Timeout } else { $null })
+    MaxCallsPerHour = Get-ConfigValue -Key "loop.maxCallsPerHour" -Override $(if ($Calls -ne 100) { $Calls } else { $null })
     VerboseProgress = $VerboseProgress
     CallCountFile = ".call_count"
     TimestampFile = ".last_reset"
@@ -139,17 +146,17 @@ $script:Config = @{
     MaxConsecutiveDoneSignals = 2
     # Task Mode Config
     TaskMode = $TaskMode
-    TasksDir = $TasksDir
-    AutoBranch = $AutoBranch
-    AutoCommit = $AutoCommit
+    TasksDir = Get-ConfigValue -Key "paths.tasksDir" -Override $(if ($TasksDir -ne "tasks") { $TasksDir } else { $null })
+    AutoBranch = if ($AutoBranch) { $true } else { Get-ConfigValue -Key "taskMode.autoBranch" }
+    AutoCommit = if ($AutoCommit) { $true } else { Get-ConfigValue -Key "taskMode.autoCommit" }
     StartFromTask = $StartFrom
     # Task State
     CurrentTask = $null
     CurrentFeature = $null
     CurrentBranch = ""
     # Autonomous Mode
-    Autonomous = $Autonomous
-    MaxConsecutiveErrors = $MaxConsecutiveErrors
+    Autonomous = if ($Autonomous) { $true } else { Get-ConfigValue -Key "taskMode.autonomous" }
+    MaxConsecutiveErrors = Get-ConfigValue -Key "taskMode.maxConsecutiveErrors" -Override $(if ($MaxConsecutiveErrors -ne 5) { $MaxConsecutiveErrors } else { $null })
     ConsecutiveErrors = 0
     StartTime = $null
     ErrorsRecovered = 0

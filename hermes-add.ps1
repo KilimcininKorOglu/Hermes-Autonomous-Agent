@@ -37,8 +37,12 @@ $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Import modules
+. "$scriptDir\lib\ConfigManager.ps1"
 . "$scriptDir\lib\AIProvider.ps1"
 . "$scriptDir\lib\FeatureAnalyzer.ps1"
+
+# Load configuration
+$hermesConfig = Get-HermesConfig
 
 function Show-Usage {
     Write-Host ""
@@ -103,14 +107,23 @@ $ids = Get-NextIds -BasePath "."
 Write-Host "[INFO] Next Feature ID: F$($ids.NextFeatureIdPadded)" -ForegroundColor Gray
 Write-Host "[INFO] Next Task ID: T$($ids.NextTaskIdPadded)" -ForegroundColor Gray
 
-# Determine AI provider
-if ($AI -eq "auto") {
+# Determine AI provider (CLI > config > auto-detect)
+$configProvider = Get-ConfigValue -Key "ai.provider"
+if ($AI -eq "auto" -and $configProvider -ne "auto") {
+    $AI = $configProvider
+} elseif ($AI -eq "auto") {
     $AI = Get-AutoProvider
     if (-not $AI) {
         Write-Error "No AI provider found. Install claude, droid, or aider."
         exit 1
     }
 }
+
+# Get timeout from config if not overridden
+$configTimeout = Get-ConfigValue -Key "ai.timeout"
+$configMaxRetries = Get-ConfigValue -Key "ai.maxRetries"
+if ($Timeout -eq 300 -and $configTimeout) { $Timeout = $configTimeout }
+if ($MaxRetries -eq 3 -and $configMaxRetries) { $MaxRetries = $configMaxRetries }
 
 if (-not (Test-AIProvider -Provider $AI)) {
     Write-Error "AI provider '$AI' is not installed or not in PATH"

@@ -323,6 +323,49 @@ function Add-ToPath {
     }
 }
 
+function Initialize-Config {
+    <#
+    .SYNOPSIS
+        Creates default config file if it doesn't exist
+    #>
+    
+    Write-Log -Level "INFO" -Message "Initializing configuration..."
+    
+    $configPath = Join-Path $script:HermesHome "config.json"
+    
+    if (Test-Path $configPath) {
+        Write-Log -Level "INFO" -Message "Config file already exists"
+        return
+    }
+    
+    $defaultConfig = @{
+        ai = @{
+            provider = "auto"
+            timeout = 300
+            maxRetries = 10
+        }
+        taskMode = @{
+            autoBranch = $false
+            autoCommit = $false
+            autonomous = $false
+            maxConsecutiveErrors = 5
+        }
+        loop = @{
+            maxCallsPerHour = 100
+            timeoutMinutes = 15
+        }
+        paths = @{
+            tasksDir = "tasks"
+            logsDir = "logs"
+        }
+    }
+    
+    $json = $defaultConfig | ConvertTo-Json -Depth 10
+    $json | Set-Content $configPath -Encoding UTF8
+    
+    Write-Log -Level "SUCCESS" -Message "Default config created: $configPath"
+}
+
 function Remove-FromPath {
     <#
     .SYNOPSIS
@@ -392,6 +435,9 @@ function Install-Hermes {
     
     # Create command wrappers
     Install-Commands
+    
+    # Initialize default config
+    Initialize-Config
     
     # Update PATH
     Add-ToPath
