@@ -223,6 +223,14 @@ function Invoke-AIWithTimeout {
     $result = Receive-Job $job
     Remove-Job $job -Force
     
+    # Ensure result is a string (Receive-Job can return array)
+    if ($result -is [array]) {
+        $result = $result -join "`n"
+    }
+    if (-not $result) {
+        $result = ""
+    }
+    
     return $result
 }
 

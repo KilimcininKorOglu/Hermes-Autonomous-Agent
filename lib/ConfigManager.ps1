@@ -8,7 +8,8 @@
 $script:DefaultConfig = @{
     ai = @{
         provider = "auto"
-        timeout = 300
+        timeout = 300           # Default timeout for task mode (5 min)
+        prdTimeout = 1200       # Timeout for PRD parsing (20 min)
         maxRetries = 10
     }
     taskMode = @{

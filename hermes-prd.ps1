@@ -425,8 +425,9 @@ if ($AI -eq "auto" -and $configProvider -ne "auto") {
     }
 }
 
-# Get timeout from config if not overridden
-$configTimeout = Get-ConfigValue -Key "ai.timeout"
+# Get timeout from config if not overridden (use prdTimeout for PRD parsing)
+$configTimeout = Get-ConfigValue -Key "ai.prdTimeout"
+if (-not $configTimeout) { $configTimeout = Get-ConfigValue -Key "ai.timeout" }
 $configMaxRetries = Get-ConfigValue -Key "ai.maxRetries"
 if ($Timeout -eq 1200 -and $configTimeout) { $Timeout = $configTimeout }
 if ($MaxRetries -eq 10 -and $configMaxRetries) { $MaxRetries = $configMaxRetries }
