@@ -56,7 +56,20 @@ param(
     
     [switch]$ResetCircuit,
     
-    [switch]$CircuitStatus
+    [switch]$CircuitStatus,
+    
+    # Task Mode Parameters
+    [switch]$TaskMode,
+    
+    [string]$TasksDir = "tasks",
+    
+    [switch]$AutoBranch,
+    
+    [switch]$AutoCommit,
+    
+    [string]$StartFrom = "",
+    
+    [switch]$TaskStatus
 )
 
 # Get script directory for module imports
@@ -65,6 +78,10 @@ $script:ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 # Import library modules
 . "$script:ScriptDir\lib\CircuitBreaker.ps1"
 . "$script:ScriptDir\lib\ResponseAnalyzer.ps1"
+. "$script:ScriptDir\lib\TaskReader.ps1"
+. "$script:ScriptDir\lib\TaskStatusUpdater.ps1"
+. "$script:ScriptDir\lib\GitBranchManager.ps1"
+. "$script:ScriptDir\lib\PromptInjector.ps1"
 
 # Configuration
 $script:Config = @{
@@ -82,6 +99,16 @@ $script:Config = @{
     ExitSignalsFile = ".exit_signals"
     MaxConsecutiveTestLoops = 3
     MaxConsecutiveDoneSignals = 2
+    # Task Mode Config
+    TaskMode = $TaskMode
+    TasksDir = $TasksDir
+    AutoBranch = $AutoBranch
+    AutoCommit = $AutoCommit
+    StartFromTask = $StartFrom
+    # Task State
+    CurrentTask = $null
+    CurrentFeature = $null
+    CurrentBranch = ""
 }
 
 # Global loop counter for cleanup
@@ -112,6 +139,14 @@ function Show-Help {
     Write-Host "    -ResetCircuit          Reset circuit breaker to CLOSED state"
     Write-Host "    -CircuitStatus         Show circuit breaker status"
     Write-Host ""
+    Write-Host "Task Mode Options:" -ForegroundColor Yellow
+    Write-Host "    -TaskMode              Enable task-plan integration mode"
+    Write-Host "    -TasksDir DIR          Tasks directory (default: tasks)"
+    Write-Host "    -AutoBranch            Auto-create/switch feature branches"
+    Write-Host "    -AutoCommit            Auto-commit on task completion"
+    Write-Host "    -StartFrom TXXX        Start from specific task ID"
+    Write-Host "    -TaskStatus            Show task progress and exit"
+    Write-Host ""
     Write-Host "Files created:" -ForegroundColor Yellow
     Write-Host "    - logs\              All execution logs"
     Write-Host "    - docs\generated\    Generated documentation"
@@ -126,6 +161,11 @@ function Show-Help {
     Write-Host "    ralph -Calls 50 -Prompt my_prompt.md"
     Write-Host "    ralph -Monitor -Timeout 30"
     Write-Host "    ralph -VerboseProgress"
+    Write-Host ""
+    Write-Host "Task Mode Examples:" -ForegroundColor Yellow
+    Write-Host "    ralph -TaskMode -AutoBranch -AutoCommit"
+    Write-Host "    ralph -TaskMode -StartFrom T005"
+    Write-Host "    ralph -TaskStatus"
     Write-Host ""
 }
 
@@ -756,6 +796,333 @@ function Start-WithMonitor {
     Start-RalphLoop
 }
 
+function Show-TaskStatus {
+    <#
+    .SYNOPSIS
+        Shows current task progress
+    #>
+    
+    if (-not (Test-TasksDirectoryExists -BasePath ".")) {
+        Write-Host ""
+        Write-Host "No tasks directory found." -ForegroundColor Yellow
+        Write-Host "Expected: $($script:Config.TasksDir)/" -ForegroundColor Gray
+        Write-Host ""
+        return
+    }
+    
+    $progress = Get-TaskProgress -BasePath "."
+    $features = Get-AllFeatures -BasePath "."
+    
+    Write-Host ""
+    Write-Host ("=" * 60) -ForegroundColor Cyan
+    Write-Host "              TASK PROGRESS SUMMARY" -ForegroundColor Cyan
+    Write-Host ("=" * 60) -ForegroundColor Cyan
+    Write-Host ""
+    
+    # Progress bar
+    $barWidth = 30
+    $filled = [Math]::Floor(($progress.Percentage / 100) * $barWidth)
+    $empty = $barWidth - $filled
+    $bar = "[" + ([char]0x2588).ToString() * $filled + ([char]0x2591).ToString() * $empty + "]"
+    
+    Write-Host "Overall: $bar $($progress.Percentage)%" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Total Tasks:   $($progress.Total)" -ForegroundColor White
+    Write-Host "Completed:     $($progress.Completed)" -ForegroundColor Green
+    Write-Host "In Progress:   $($progress.InProgress)" -ForegroundColor Yellow
+    Write-Host "Not Started:   $($progress.NotStarted)" -ForegroundColor Gray
+    Write-Host "Blocked:       $($progress.Blocked)" -ForegroundColor Red
+    Write-Host ""
+    
+    # Feature breakdown
+    Write-Host "By Feature:" -ForegroundColor Cyan
+    Write-Host ""
+    
+    foreach ($feature in $features) {
+        $fp = Get-FeatureProgress -FeatureId $feature.FeatureId -BasePath "."
+        $statusColor = switch ($feature.Status) {
+            "COMPLETED" { "Green" }
+            "IN_PROGRESS" { "Yellow" }
+            "BLOCKED" { "Red" }
+            default { "Gray" }
+        }
+        
+        $featureLine = "  $($feature.FeatureId): $($feature.FeatureName)"
+        if ($featureLine.Length -gt 45) {
+            $featureLine = $featureLine.Substring(0, 42) + "..."
+        }
+        $featureLine = $featureLine.PadRight(48)
+        
+        Write-Host "$featureLine $($fp.Completed)/$($fp.Total) ($($fp.Percentage)%)" -ForegroundColor $statusColor
+    }
+    
+    Write-Host ""
+    
+    # Next task
+    $nextTask = Get-NextTask -BasePath "."
+    if ($nextTask) {
+        Write-Host "Next Task: $($nextTask.TaskId) - $($nextTask.Name)" -ForegroundColor Cyan
+        Write-Host "Feature:   $($nextTask.FeatureId)" -ForegroundColor Gray
+        Write-Host "Priority:  $($nextTask.Priority)" -ForegroundColor Gray
+    }
+    else {
+        Write-Host "All tasks completed!" -ForegroundColor Green
+    }
+    
+    Write-Host ""
+    Write-Host ("=" * 60) -ForegroundColor Cyan
+    Write-Host ""
+}
+
+function Start-TaskModeLoop {
+    <#
+    .SYNOPSIS
+        Main loop for Task Mode execution
+    #>
+    
+    Write-Status -Level "SUCCESS" -Message "Ralph Task Mode starting..."
+    Write-Status -Level "INFO" -Message "Tasks directory: $($script:Config.TasksDir)"
+    Write-Status -Level "INFO" -Message "Auto-branch: $($script:Config.AutoBranch)"
+    Write-Status -Level "INFO" -Message "Auto-commit: $($script:Config.AutoCommit)"
+    
+    # Check if tasks directory exists
+    if (-not (Test-TasksDirectoryExists -BasePath ".")) {
+        Write-Status -Level "ERROR" -Message "Tasks directory not found: $($script:Config.TasksDir)"
+        Write-Host ""
+        Write-Host "Create tasks using task-plan or manually create $($script:Config.TasksDir)/ directory." -ForegroundColor Yellow
+        Write-Host ""
+        return
+    }
+    
+    # Initialize directories
+    if (-not (Test-Path $script:Config.LogDir)) {
+        New-Item -ItemType Directory -Path $script:Config.LogDir -Force | Out-Null
+    }
+    if (-not (Test-Path $script:Config.DocsDir)) {
+        New-Item -ItemType Directory -Path $script:Config.DocsDir -Force | Out-Null
+    }
+    
+    # Check if PROMPT.md exists
+    if (-not (Test-Path $script:Config.PromptFile)) {
+        Write-Status -Level "ERROR" -Message "Prompt file not found: $($script:Config.PromptFile)"
+        return
+    }
+    
+    # Backup original PROMPT.md
+    $promptBackup = Backup-Prompt -BasePath "."
+    if ($promptBackup) {
+        Write-Status -Level "INFO" -Message "PROMPT.md backed up to: $promptBackup"
+    }
+    
+    $script:LoopCount = 0
+    $taskLoopCount = 0
+    $maxLoopsPerTask = 10
+    
+    # If StartFrom specified, find that task
+    if ($script:Config.StartFromTask) {
+        $startTask = Get-TaskById -TaskId $script:Config.StartFromTask -BasePath "."
+        if ($startTask) {
+            Write-Status -Level "INFO" -Message "Starting from task: $($script:Config.StartFromTask)"
+        }
+        else {
+            Write-Status -Level "ERROR" -Message "Task not found: $($script:Config.StartFromTask)"
+            return
+        }
+    }
+    
+    while ($true) {
+        $script:LoopCount++
+        
+        # Get next task
+        $task = if ($script:Config.StartFromTask -and $script:LoopCount -eq 1) {
+            Get-TaskById -TaskId $script:Config.StartFromTask -BasePath "."
+        }
+        else {
+            Get-NextTask -BasePath "."
+        }
+        
+        if (-not $task) {
+            Write-Status -Level "SUCCESS" -Message "All tasks completed!"
+            Remove-TaskFromPrompt -BasePath "."
+            
+            $progress = Get-TaskProgress -BasePath "."
+            Write-Host ""
+            Write-Host ("=" * 50) -ForegroundColor Green
+            Write-Host "  PROJECT COMPLETE!" -ForegroundColor Green
+            Write-Host ("=" * 50) -ForegroundColor Green
+            Write-Host "  Total Tasks: $($progress.Total)" -ForegroundColor White
+            Write-Host "  Completed:   $($progress.Completed)" -ForegroundColor White
+            Write-Host "  Total Loops: $($script:LoopCount)" -ForegroundColor White
+            Write-Host ("=" * 50) -ForegroundColor Green
+            Write-Host ""
+            break
+        }
+        
+        $currentTaskId = $task.TaskId
+        $script:Config.CurrentTask = $task
+        
+        # Check if this is a new task or continuing
+        if ($task.Status -eq "NOT_STARTED") {
+            $taskLoopCount = 0
+            
+            Write-Status -Level "INFO" -Message "Starting new task: $currentTaskId - $($task.Name)"
+            
+            # Get feature info
+            $feature = Get-FeatureById -FeatureId $task.FeatureId -BasePath "."
+            $script:Config.CurrentFeature = $feature
+            
+            # Auto-branch management
+            if ($script:Config.AutoBranch -and $feature) {
+                $branchName = Get-FeatureBranchName -FeatureId $feature.FeatureId -FeatureName $feature.FeatureName
+                
+                if (-not (Test-BranchExists -Name $branchName)) {
+                    New-FeatureBranch -FeatureId $feature.FeatureId -FeatureName $feature.FeatureName | Out-Null
+                }
+                else {
+                    Switch-ToFeatureBranch -BranchName $branchName | Out-Null
+                }
+                
+                $script:Config.CurrentBranch = $branchName
+            }
+            
+            # Update task status to IN_PROGRESS
+            Set-TaskStatus -TaskId $currentTaskId -Status "IN_PROGRESS" -BasePath "."
+            
+            # Inject task into PROMPT.md
+            $featureName = if ($feature) { $feature.FeatureName } else { "" }
+            Add-TaskToPrompt -Task $task -FeatureName $featureName -BranchName $script:Config.CurrentBranch -BasePath "."
+            
+            # Update run state
+            $nextTask = Get-NextTask -BasePath "."
+            $nextTaskId = if ($nextTask -and $nextTask.TaskId -ne $currentTaskId) { $nextTask.TaskId } else { "" }
+            Update-RunState -CurrentTaskId $currentTaskId -CurrentFeatureId $task.FeatureId `
+                -CurrentBranch $script:Config.CurrentBranch -NextTaskId $nextTaskId -BasePath "."
+        }
+        else {
+            $taskLoopCount++
+            Write-Status -Level "INFO" -Message "Continuing task: $currentTaskId (loop $taskLoopCount)"
+        }
+        
+        # Check task timeout
+        if ($taskLoopCount -ge $maxLoopsPerTask) {
+            Write-Status -Level "WARN" -Message "Task $currentTaskId exceeded max loops ($maxLoopsPerTask)"
+            Set-TaskStatus -TaskId $currentTaskId -Status "BLOCKED" -BasePath "."
+            continue
+        }
+        
+        # Initialize call tracking
+        Initialize-CallTracking
+        
+        Write-Status -Level "LOOP" -Message "=== Task $currentTaskId - Loop #$($script:LoopCount) ==="
+        
+        # Check circuit breaker
+        if (Test-ShouldHalt) {
+            Write-Status -Level "ERROR" -Message "Circuit breaker opened - halting"
+            break
+        }
+        
+        # Check rate limits
+        if (-not (Test-CanMakeCall)) {
+            Wait-ForReset
+            continue
+        }
+        
+        # Execute Claude Code
+        $execResult = Invoke-ClaudeCode -LoopCount $script:LoopCount
+        
+        if ($execResult -eq 0) {
+            # Check if task completed
+            $analysis = Get-AnalysisResult
+            
+            if ($analysis -and $analysis.analysis.task_completed) {
+                Write-Status -Level "SUCCESS" -Message "Task $currentTaskId completed!"
+                
+                # Mark success criteria
+                Complete-AllSuccessCriteria -TaskId $currentTaskId -BasePath "."
+                
+                # Auto-commit
+                if ($script:Config.AutoCommit) {
+                    Add-AllChanges | Out-Null
+                    $commitResult = New-TaskCommit -TaskId $currentTaskId -TaskName $task.Name `
+                        -SuccessCriteria $task.SuccessCriteria
+                    
+                    if ($commitResult) {
+                        $commitHash = Get-LastCommitHash
+                        Add-TaskCompletionLog -TaskId $currentTaskId -FeatureId $task.FeatureId `
+                            -CommitHash $commitHash -BasePath "."
+                    }
+                }
+                
+                # Update task status
+                Set-TaskStatus -TaskId $currentTaskId -Status "COMPLETED" -BasePath "."
+                
+                # Check if feature is complete
+                if (Test-FeatureComplete -FeatureId $task.FeatureId -BasePath ".") {
+                    Write-Status -Level "SUCCESS" -Message "Feature $($task.FeatureId) completed!"
+                    Set-FeatureStatus -FeatureId $task.FeatureId -Status "COMPLETED" -BasePath "."
+                    
+                    # Merge to main if auto-branch
+                    if ($script:Config.AutoBranch) {
+                        $feature = Get-FeatureById -FeatureId $task.FeatureId -BasePath "."
+                        $taskCount = (Get-TasksByFeature -FeatureId $task.FeatureId -BasePath ".").Count
+                        
+                        # Commit any remaining changes
+                        if ($script:Config.AutoCommit) {
+                            Add-AllChanges | Out-Null
+                            New-FeatureCommit -FeatureId $task.FeatureId -FeatureName $feature.FeatureName `
+                                -TaskCount $taskCount | Out-Null
+                        }
+                        
+                        # Merge to main
+                        $mergeResult = Merge-FeatureToMain -BranchName $script:Config.CurrentBranch `
+                            -FeatureId $task.FeatureId -FeatureName $feature.FeatureName -DeleteBranch
+                        
+                        if ($mergeResult) {
+                            Write-Status -Level "SUCCESS" -Message "Feature merged to main"
+                        }
+                        else {
+                            Write-Status -Level "WARN" -Message "Merge failed - manual intervention required"
+                        }
+                    }
+                }
+                
+                # Remove task from PROMPT.md for next task
+                Remove-TaskFromPrompt -BasePath "."
+                
+                # Reset StartFrom so we get next task naturally
+                $script:Config.StartFromTask = ""
+            }
+            elseif ($analysis -and $analysis.analysis.task_blocked) {
+                Write-Status -Level "WARN" -Message "Task $currentTaskId is blocked: $($analysis.analysis.blocked_reason)"
+                Set-TaskStatus -TaskId $currentTaskId -Status "BLOCKED" -BasePath "."
+            }
+            
+            Start-Sleep -Seconds 5
+        }
+        elseif ($execResult -eq 3) {
+            # Circuit breaker
+            Write-Status -Level "ERROR" -Message "Circuit breaker opened"
+            break
+        }
+        elseif ($execResult -eq 2) {
+            # API limit
+            Write-Status -Level "WARN" -Message "API limit reached"
+            Wait-ForReset
+        }
+        else {
+            # Error - retry after delay
+            Write-Status -Level "WARN" -Message "Execution failed, retrying in 30s..."
+            Start-Sleep -Seconds 30
+        }
+        
+        Write-Status -Level "LOOP" -Message "=== Completed Loop #$($script:LoopCount) ==="
+    }
+    
+    # Cleanup - restore PROMPT.md
+    Remove-TaskFromPrompt -BasePath "."
+    Set-RunStateCompleted -BasePath "."
+}
+
 # Main entry point
 if ($Help) {
     Show-Help
@@ -764,6 +1131,11 @@ if ($Help) {
 
 if ($Status) {
     Show-CurrentStatus
+    exit 0
+}
+
+if ($TaskStatus) {
+    Show-TaskStatus
     exit 0
 }
 
@@ -777,7 +1149,18 @@ if ($CircuitStatus) {
     exit 0
 }
 
-if ($Monitor) {
+# Determine which loop to run
+if ($TaskMode) {
+    if ($Monitor) {
+        Write-Status -Level "INFO" -Message "Starting with monitoring..."
+        $monitorScript = Join-Path $script:ScriptDir "ralph_monitor.ps1"
+        if (Test-Path $monitorScript) {
+            Start-Process pwsh -ArgumentList "-NoExit", "-File", $monitorScript -WindowStyle Normal
+        }
+    }
+    Start-TaskModeLoop
+}
+elseif ($Monitor) {
     Start-WithMonitor
 }
 else {
