@@ -38,12 +38,16 @@ $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Import modules
+. "$scriptDir\lib\Logger.ps1"
 . "$scriptDir\lib\ConfigManager.ps1"
 . "$scriptDir\lib\AIProvider.ps1"
 . "$scriptDir\lib\TaskReader.ps1"
 
 # Load configuration
 $hermesConfig = Get-HermesConfig
+
+# Initialize logger
+Initialize-Logger -Command "hermes-prd" | Out-Null
 
 # Get prompt template path
 $promptTemplatePath = "$scriptDir\lib\prompts\prd-parser.md"
@@ -390,12 +394,15 @@ Write-Host "Hermes Autonomous Agent - PRD Parser" -ForegroundColor Cyan
 Write-Host "================" -ForegroundColor Cyan
 Write-Host ""
 
+Write-LogSection -Title "PRD Parser Started"
+Write-Log -Level "INFO" -Message "PRD File: $PrdFile" -NoConsole
+
 # Handle -Clean flag
 if ($Clean) {
     if (Test-Path $OutputDir) {
-        Write-Host "[WARN] Removing existing tasks directory: $OutputDir" -ForegroundColor Yellow
+        Write-Log -Level "WARN" -Message "Removing existing tasks directory: $OutputDir"
         Remove-Item -Path $OutputDir -Recurse -Force
-        Write-Host "[OK] Tasks directory cleaned" -ForegroundColor Green
+        Write-Log -Level "SUCCESS" -Message "Tasks directory cleaned"
     }
 }
 
@@ -404,14 +411,15 @@ $existingState = Get-ExistingTaskState -TasksDir $OutputDir
 $isIncremental = $existingState.HasTasks
 
 if ($isIncremental) {
-    Write-Host "[INFO] Existing tasks found - running in incremental mode" -ForegroundColor Cyan
-    Write-Host "[INFO] Features: $($existingState.Features.Count), Highest ID: F$($existingState.HighestFeatureId)" -ForegroundColor Gray
-    Write-Host "[INFO] Tasks: Highest ID: T$($existingState.HighestTaskId)" -ForegroundColor Gray
+    Write-Log -Level "INFO" -Message "Existing tasks found - running in incremental mode"
+    Write-Log -Level "INFO" -Message "Features: $($existingState.Features.Count), Highest ID: F$($existingState.HighestFeatureId)" -NoConsole
+    Write-Log -Level "INFO" -Message "Tasks: Highest ID: T$($existingState.HighestTaskId)" -NoConsole
 }
 
 # Read and check PRD size
-Write-Host "[INFO] Reading PRD: $PrdFile" -ForegroundColor Cyan
+Write-Log -Level "INFO" -Message "Reading PRD: $PrdFile"
 $prdInfo = Test-PrdSize -PrdFile $PrdFile
+Write-Log -Level "INFO" -Message "PRD size: $($prdInfo.Size) chars, $($prdInfo.Lines) lines" -NoConsole
 
 # Determine AI provider (CLI > config > auto-detect)
 $configProvider = Get-ConfigValue -Key "ai.provider"
@@ -420,7 +428,8 @@ if ($AI -eq "auto" -and $configProvider -ne "auto") {
 } elseif ($AI -eq "auto") {
     $AI = Get-AutoProvider
     if (-not $AI) {
-        Write-Error "No AI provider found. Install claude, droid, or aider."
+        Write-Log -Level "ERROR" -Message "No AI provider found. Install claude, droid, or aider."
+        Close-Logger -Success $false
         exit 1
     }
 }
@@ -434,11 +443,12 @@ if ($MaxRetries -eq 10 -and $configMaxRetries) { $MaxRetries = $configMaxRetries
 
 # Verify provider is available
 if (-not (Test-AIProvider -Provider $AI)) {
-    Write-Error "AI provider '$AI' is not installed or not in PATH"
+    Write-Log -Level "ERROR" -Message "AI provider '$AI' is not installed or not in PATH"
+    Close-Logger -Success $false
     exit 1
 }
 
-Write-Host "[INFO] Using AI: $AI" -ForegroundColor Cyan
+Write-Log -Level "INFO" -Message "Using AI: $AI (timeout: ${Timeout}s, retries: $MaxRetries)"
 
 # Load prompt template
 $promptTemplate = Get-Content $promptTemplatePath -Raw
@@ -470,7 +480,7 @@ ONLY output NEW features that are not listed above.
 If there are no new features to add, output: NO_NEW_FEATURES
 
 "@
-    Write-Host "[INFO] Incremental context added to prompt" -ForegroundColor Gray
+    Write-Log -Level "INFO" -Message "Incremental context added to prompt" -NoConsole
 }
 
 # Replace placeholder with PRD content
@@ -478,7 +488,7 @@ $fullPrompt = $promptTemplate -replace '\{PRD_CONTENT\}', $prdInfo.Content
 $fullPrompt = $fullPrompt -replace '\{INCREMENTAL_CONTEXT\}', $incrementalContext
 
 # Call AI with retry
-Write-Host "[INFO] Parsing PRD with $AI..." -ForegroundColor Cyan
+Write-Log -Level "INFO" -Message "Parsing PRD with $AI..."
 Write-Host ""
 
 $result = Invoke-AIWithRetry -Provider $AI `
@@ -489,10 +499,12 @@ $result = Invoke-AIWithRetry -Provider $AI `
     -TimeoutSeconds $Timeout
 
 if (-not $result.Success) {
-    Write-Error "Failed to parse PRD: $($result.Error)"
+    Write-Log -Level "ERROR" -Message "Failed to parse PRD: $($result.Error)"
+    Close-Logger -Success $false
     exit 1
 }
 
+Write-Log -Level "SUCCESS" -Message "AI completed in $($result.Attempts) attempt(s)" -NoConsole
 Write-Host ""
 
 # Check for NO_NEW_FEATURES response
@@ -531,12 +543,13 @@ if ($DryRun) {
 
 # Handle no new features case
 if ($noNewFeatures) {
-    Write-Host "No new features detected in PRD." -ForegroundColor Yellow
+    Write-Log -Level "WARN" -Message "No new features detected in PRD"
     if ($isIncremental) {
         Write-IncrementalSummary -ExistingState $existingState -NewFeatureCount 0 -NewTaskCount 0
     }
     Write-Host ""
     Write-Host "All features in PRD already exist in tasks directory." -ForegroundColor Cyan
+    Close-Logger -Success $true
     exit 0
 }
 
@@ -552,6 +565,7 @@ if ($isIncremental) {
     Write-IncrementalSummary -ExistingState $existingState -NewFeatureCount $summary.Features -NewTaskCount $summary.Tasks
 }
 
+Write-Log -Level "SUCCESS" -Message "Created $($summary.Features) features with $($summary.Tasks) tasks"
 Write-Host "Summary:" -ForegroundColor Green
 Write-Host "  New Features: $($summary.Features)"
 Write-Host "  New Tasks: $($summary.Tasks)"
@@ -570,3 +584,5 @@ if ($isIncremental) {
 Write-Host ""
 Write-Host "Next: Run 'hermes -TaskMode -AutoBranch -AutoCommit' to start" -ForegroundColor Cyan
 Write-Host ""
+
+Close-Logger -Success $true

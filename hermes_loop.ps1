@@ -94,6 +94,7 @@ param(
 $script:ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Import library modules
+. "$script:ScriptDir\lib\Logger.ps1"
 . "$script:ScriptDir\lib\ConfigManager.ps1"
 . "$script:ScriptDir\lib\AIProvider.ps1"
 . "$script:ScriptDir\lib\CircuitBreaker.ps1"
@@ -258,8 +259,10 @@ function Write-Status {
         New-Item -ItemType Directory -Path $script:Config.LogDir -Force | Out-Null
     }
     
-    # Append to log file
-    "[$timestamp] [$Level] $Message" | Add-Content -Path "$($script:Config.LogDir)\Hermes.log" -Encoding UTF8
+    # Append to dated log file
+    $dateStr = Get-Date -Format "yyyy-MM-dd"
+    $logFile = Join-Path $script:Config.LogDir "hermes-loop-$dateStr.log"
+    "[$timestamp] [$Level] $Message" | Add-Content -Path $logFile -Encoding UTF8
 }
 
 function Initialize-CallTracking {

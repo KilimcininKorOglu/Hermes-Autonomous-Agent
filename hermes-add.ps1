@@ -37,12 +37,16 @@ $ErrorActionPreference = "Stop"
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Import modules
+. "$scriptDir\lib\Logger.ps1"
 . "$scriptDir\lib\ConfigManager.ps1"
 . "$scriptDir\lib\AIProvider.ps1"
 . "$scriptDir\lib\FeatureAnalyzer.ps1"
 
 # Load configuration
 $hermesConfig = Get-HermesConfig
+
+# Initialize logger
+Initialize-Logger -Command "hermes-add" | Out-Null
 
 function Show-Usage {
     Write-Host ""
@@ -126,14 +130,15 @@ if ($Timeout -eq 300 -and $configTimeout) { $Timeout = $configTimeout }
 if ($MaxRetries -eq 3 -and $configMaxRetries) { $MaxRetries = $configMaxRetries }
 
 if (-not (Test-AIProvider -Provider $AI)) {
-    Write-Error "AI provider '$AI' is not installed or not in PATH"
+    Write-Log -Level "ERROR" -Message "AI provider '$AI' is not installed or not in PATH"
+    Close-Logger -Success $false
     exit 1
 }
 
-Write-Host "[INFO] Using AI: $AI" -ForegroundColor Cyan
+Write-Log -Level "INFO" -Message "Using AI: $AI (timeout: ${Timeout}s)"
 
 # Build prompt
-Write-Host "[INFO] Building analysis prompt..." -ForegroundColor Cyan
+Write-Log -Level "INFO" -Message "Building analysis prompt..." -NoConsole
 try {
     $prompt = Build-FeaturePrompt -FeatureDescription $featureInput.Content `
         -NextFeatureId $ids.NextFeatureId `
@@ -141,12 +146,13 @@ try {
         -PriorityOverride $Priority
 }
 catch {
-    Write-Error "Failed to build prompt: $_"
+    Write-Log -Level "ERROR" -Message "Failed to build prompt: $_"
+    Close-Logger -Success $false
     exit 1
 }
 
 # Call AI
-Write-Host "[INFO] Analyzing feature with $AI..." -ForegroundColor Cyan
+Write-Log -Level "INFO" -Message "Analyzing feature with $AI..."
 Write-Host ""
 
 $result = Invoke-AIWithRetry -Provider $AI `
@@ -156,16 +162,18 @@ $result = Invoke-AIWithRetry -Provider $AI `
     -TimeoutSeconds $Timeout
 
 if (-not $result.Success) {
-    Write-Error "Failed to analyze feature: $($result.Error)"
+    Write-Log -Level "ERROR" -Message "Failed to analyze feature: $($result.Error)"
+    Close-Logger -Success $false
     exit 1
 }
 
 # Parse output
-Write-Host "[INFO] Parsing AI output..." -ForegroundColor Cyan
+Write-Log -Level "INFO" -Message "Parsing AI output..." -NoConsole
 $feature = Parse-FeatureOutput -Output $result.Raw
 
 if (-not $feature) {
-    Write-Error "Failed to parse AI output. No valid feature file found."
+    Write-Log -Level "ERROR" -Message "Failed to parse AI output. No valid feature file found."
+    Close-Logger -Success $false
     exit 1
 }
 
@@ -182,17 +190,19 @@ if ($DryRun) {
     Write-Host "  Effort: $($feature.TotalEffort) days" -ForegroundColor Gray
     Write-Host ""
     Write-Host "Run without -DryRun to create the file." -ForegroundColor Cyan
+    Write-Log -Level "INFO" -Message "DryRun completed" -NoConsole
+    Close-Logger -Success $true
     exit 0
 }
 
 # Write feature file
-Write-Host "[INFO] Creating feature file..." -ForegroundColor Cyan
+Write-Log -Level "INFO" -Message "Creating feature file..." -NoConsole
 $filePath = Write-FeatureFile -Feature $feature -OutputDir $OutputDir
 
-Write-Host "[OK] Created: $filePath" -ForegroundColor Green
+Write-Log -Level "SUCCESS" -Message "Created: $filePath"
 
 # Update tasks-status.md
-Write-Host "[INFO] Updating tasks-status.md..." -ForegroundColor Cyan
+Write-Log -Level "INFO" -Message "Updating tasks-status.md..." -NoConsole
 Update-TasksStatus -Feature $feature -OutputDir $OutputDir
 
 # Success output
@@ -212,3 +222,6 @@ Write-Host ("=" * 50) -ForegroundColor Green
 Write-Host ""
 Write-Host "Next: Run 'hermes -TaskMode -AutoBranch -AutoCommit' to implement" -ForegroundColor Cyan
 Write-Host ""
+
+Write-Log -Level "SUCCESS" -Message "Feature $($feature.FeatureId) added with $($feature.TaskCount) tasks" -NoConsole
+Close-Logger -Success $true
