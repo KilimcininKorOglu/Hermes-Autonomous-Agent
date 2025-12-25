@@ -78,10 +78,10 @@ if ($Coverage) {
     $config.CodeCoverage.Enabled = $true
     $config.CodeCoverage.Path = @(
         (Join-Path $projectRoot "lib\*.ps1"),
-        (Join-Path $projectRoot "Hermes_loop.ps1"),
-        (Join-Path $projectRoot "Hermes_monitor.ps1"),
+        (Join-Path $projectRoot "hermes_loop.ps1"),
+        (Join-Path $projectRoot "hermes_monitor.ps1"),
         (Join-Path $projectRoot "setup.ps1"),
-        (Join-Path $projectRoot "Hermes_import.ps1")
+        (Join-Path $projectRoot "hermes_import.ps1")
     )
     $config.CodeCoverage.OutputPath = Join-Path $scriptRoot "coverage.xml"
     $config.CodeCoverage.OutputFormat = "JaCoCo"

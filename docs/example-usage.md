@@ -14,7 +14,7 @@ We will perform autonomous development using the e-commerce platform PRD (`sampl
 
 ```powershell
 # Create new project
-Hermes-setup ecommerce-platform
+hermes-setup ecommerce-platform
 cd ecommerce-platform
 ```
 
@@ -38,7 +38,7 @@ ecommerce-platform/
 ```powershell
 # Copy PRD file into project
 mkdir docs
-copy "C:\path\to\Hermes-claude-code\docs\sample-prd.md" "docs\PRD.md"
+copy "C:\path\to\hermes-claude-code\docs\sample-prd.md" "docs\PRD.md"
 ```
 
 ---
@@ -48,7 +48,7 @@ copy "C:\path\to\Hermes-claude-code\docs\sample-prd.md" "docs\PRD.md"
 ### Preview (DryRun)
 
 ```powershell
-Hermes-prd docs/PRD.md -DryRun
+hermes-prd docs/PRD.md -DryRun
 ```
 
 **Expected Output:**
@@ -83,7 +83,7 @@ Run without -DryRun to create files.
 ### Actual Creation
 
 ```powershell
-Hermes-prd docs/PRD.md
+hermes-prd docs/PRD.md
 ```
 
 **Created Files:**
@@ -210,7 +210,7 @@ Hermes -TaskMode -AutoBranch -AutoCommit -Monitor
 
 ```powershell
 # In another terminal
-Hermes-monitor
+hermes-monitor
 ```
 
 ### Examine Log Files
@@ -276,17 +276,17 @@ If new features are added to PRD:
 notepad docs/PRD.md
 
 # Re-run - only new features are added
-Hermes-prd docs/PRD.md
+hermes-prd docs/PRD.md
 ```
 
 ### Method 2: Add Single Feature
 
 ```powershell
 # Inline description
-Hermes-add "User profile page and avatar upload"
+hermes-add "User profile page and avatar upload"
 
 # From file
-Hermes-add @docs/new-feature-spec.md
+hermes-add @docs/new-feature-spec.md
 ```
 
 ---
@@ -295,13 +295,13 @@ Hermes-add @docs/new-feature-spec.md
 
 ```powershell
 # Parse PRD with Droid
-Hermes-prd docs/PRD.md -AI droid
+hermes-prd docs/PRD.md -AI droid
 
 # Task Mode with Aider
 Hermes -TaskMode -AI aider -AutoBranch -AutoCommit
 
 # List available providers
-Hermes-prd -List
+hermes-prd -List
 ```
 
 ---
@@ -309,11 +309,11 @@ Hermes-prd -List
 ## Workflow Summary
 
 ```
-1. Hermes-setup ecommerce-platform
+1. hermes-setup ecommerce-platform
 2. cd ecommerce-platform
 3. # Copy PRD file to docs/PRD.md
-4. Hermes-prd docs/PRD.md -DryRun          # Preview
-5. Hermes-prd docs/PRD.md                   # Create tasks
+4. hermes-prd docs/PRD.md -DryRun          # Preview
+5. hermes-prd docs/PRD.md                   # Create tasks
 6. Hermes -TaskStatus                       # View status
 7. Hermes -TaskMode -AutoBranch -AutoCommit -Autonomous  # Start
 8. # ... Hermes is working ...
@@ -351,10 +351,10 @@ After Task Mode completes:
 
 ```powershell
 # Increase timeout
-Hermes-prd docs/PRD.md -Timeout 1800
+hermes-prd docs/PRD.md -Timeout 1800
 
 # Try different AI
-Hermes-prd docs/PRD.md -AI droid
+hermes-prd docs/PRD.md -AI droid
 ```
 
 ### Task Blocked

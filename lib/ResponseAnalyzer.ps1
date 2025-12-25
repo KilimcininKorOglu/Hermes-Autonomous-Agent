@@ -126,7 +126,7 @@ function Invoke-ResponseAnalysis {
     $analysis.output_length = $outputContent.Length
     
     # 1. Check for structured Hermes status output
-    if ($outputContent -match "---Hermes_STATUS---") {
+    if ($outputContent -match "---HERMES_STATUS---") {
         # Extract STATUS
         if ($outputContent -match "STATUS:\s*(COMPLETE|DONE)") {
             $analysis.has_completion_signal = $true

@@ -173,7 +173,7 @@ Create dashboard layout.
             Remove-TaskFromPrompt -BasePath $script:ProjectDir
             
             $content = Get-Content (Join-Path $script:ProjectDir "PROMPT.md") -Raw
-            $content | Should -Not -Match "Hermes_TASK_START"
+            $content | Should -Not -Match "HERMES_TASK_START"
         }
     }
     
@@ -273,7 +273,7 @@ Create dashboard layout.
             Remove-TaskFromPrompt -BasePath $script:ProjectDir
             
             $content = Get-Content (Join-Path $script:ProjectDir "PROMPT.md") -Raw
-            $content | Should -Not -Match "Hermes_TASK"
+            $content | Should -Not -Match "HERMES_TASK"
             
             # Original content preserved
             $content | Should -Match "Project Instructions"

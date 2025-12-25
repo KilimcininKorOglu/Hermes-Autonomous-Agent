@@ -48,7 +48,7 @@ Describe "Loop Execution Integration" {
 Implementing new feature...
 Created src/component.js
 Added tests
----Hermes_STATUS---
+---HERMES_STATUS---
 STATUS: IN_PROGRESS
 TASKS_COMPLETED_THIS_LOOP: 2
 FILES_MODIFIED: 3
@@ -56,7 +56,7 @@ TESTS_STATUS: PASSING
 WORK_TYPE: IMPLEMENTATION
 EXIT_SIGNAL: false
 RECOMMENDATION: Continue with next task
----END_Hermes_STATUS---
+---END_HERMES_STATUS---
 "@ | Set-Content $outputFile
             
             # Analyze response
@@ -83,7 +83,7 @@ RECOMMENDATION: Continue with next task
             $outputFile = "logs\claude_output_complete.log"
             @"
 All tasks have been completed.
----Hermes_STATUS---
+---HERMES_STATUS---
 STATUS: COMPLETE
 TASKS_COMPLETED_THIS_LOOP: 1
 FILES_MODIFIED: 1
@@ -91,7 +91,7 @@ TESTS_STATUS: PASSING
 WORK_TYPE: DOCUMENTATION
 EXIT_SIGNAL: true
 RECOMMENDATION: All requirements met, project ready for review
----END_Hermes_STATUS---
+---END_HERMES_STATUS---
 "@ | Set-Content $outputFile
             
             Invoke-ResponseAnalysis -OutputFile $outputFile -LoopNumber 5
@@ -303,10 +303,10 @@ Error: Stack overflow
             @"
 Working on the project...
 Implementing features
----Hermes_STATUS---
+---HERMES_STATUS---
 STATUS: IN_PROGRESS
 EXIT_SIGNAL: false
----END_Hermes_STATUS---
+---END_HERMES_STATUS---
 "@ | Set-Content $output
             
             Invoke-ResponseAnalysis -OutputFile $output -LoopNumber 1

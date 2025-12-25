@@ -12,7 +12,7 @@
 .EXAMPLE
     .\setup.ps1 my-awesome-project
 .EXAMPLE
-    Hermes-setup my-awesome-project
+    hermes-setup my-awesome-project
 #>
 
 [CmdletBinding()]
@@ -25,8 +25,8 @@ param(
 )
 
 # Get Hermes home directory
-$script:HermesHome = if ($env:Hermes_HOME) { 
-    $env:Hermes_HOME 
+$script:HermesHome = if ($env:HERMES_HOME) { 
+    $env:HERMES_HOME 
 } 
 else { 
     Join-Path $env:LOCALAPPDATA "Hermes" 
@@ -39,19 +39,19 @@ function Show-Help {
     Write-Host ""
     Write-Host "Hermes Project Setup" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "Usage: Hermes-setup [PROJECT_NAME]" -ForegroundColor White
+    Write-Host "Usage: hermes-setup [PROJECT_NAME]" -ForegroundColor White
     Write-Host ""
     Write-Host "Arguments:" -ForegroundColor Yellow
     Write-Host "    PROJECT_NAME    Name of the project (default: my-project)"
     Write-Host ""
     Write-Host "Example:" -ForegroundColor Yellow
-    Write-Host "    Hermes-setup my-awesome-project"
+    Write-Host "    hermes-setup my-awesome-project"
     Write-Host "    cd my-awesome-project"
     Write-Host "    Hermes -Monitor"
     Write-Host ""
     Write-Host "This creates a new directory with:" -ForegroundColor Gray
     Write-Host "    PROMPT.md        Main development instructions for Hermes"
-    Write-Host "    tasks/           Task files (created by Hermes-prd)"
+    Write-Host "    tasks/           Task files (created by hermes-prd)"
     Write-Host "    specs/           Project specifications"
     Write-Host "    src/             Source code"
     Write-Host "    logs/            Execution logs"
@@ -205,7 +205,7 @@ function New-HermesProject {
         Write-Host "Next steps:" -ForegroundColor Cyan
         Write-Host "  1. cd $Name"
         Write-Host "  2. Create a PRD document (e.g., docs/PRD.md)"
-        Write-Host "  3. Run: Hermes-prd docs/PRD.md"
+        Write-Host "  3. Run: hermes-prd docs/PRD.md"
         Write-Host "  4. Run: Hermes -TaskMode -AutoBranch -AutoCommit"
         Write-Host ""
     }
@@ -246,11 +246,11 @@ You are Hermes, an autonomous AI development agent working on the $ProjectName p
 At the end of your response, include this status block:
 
 ``````
----Hermes_STATUS---
+---HERMES_STATUS---
 STATUS: IN_PROGRESS | COMPLETE | BLOCKED
 EXIT_SIGNAL: false | true
 RECOMMENDATION: <one line summary of what to do next>
----END_Hermes_STATUS---
+---END_HERMES_STATUS---
 ``````
 
 ## File Structure
@@ -274,13 +274,13 @@ A Hermes-managed project for autonomous AI development.
 ## Getting Started
 
 1. Create a PRD document in ``docs/PRD.md``
-2. Run: ``Hermes-prd docs/PRD.md``
+2. Run: ``hermes-prd docs/PRD.md``
 3. Run: ``Hermes -TaskMode -AutoBranch -AutoCommit``
 
 ## Project Structure
 
 - ``PROMPT.md`` - Main development instructions for Hermes
-- ``tasks/`` - Task files (created by Hermes-prd)
+- ``tasks/`` - Task files (created by hermes-prd)
 - ``src/`` - Source code
 - ``docs/`` - Project documentation
 - ``logs/`` - Hermes execution logs
@@ -288,7 +288,7 @@ A Hermes-managed project for autonomous AI development.
 ## Commands
 
 ``````powershell
-Hermes-prd docs/PRD.md                          # Parse PRD to tasks
+hermes-prd docs/PRD.md                          # Parse PRD to tasks
 Hermes -TaskMode -AutoBranch -AutoCommit        # Run Task Mode
 Hermes -TaskStatus                              # Show task progress
 Hermes -TaskMode -Autonomous                    # Run without pausing
@@ -296,7 +296,7 @@ Hermes -TaskMode -Autonomous                    # Run without pausing
 
 ## Created with Hermes for Claude Code
 
-[Hermes](https://github.com/frankbria/Hermes-claude-code) - Autonomous AI development loop
+[Hermes](https://github.com/frankbria/hermes-claude-code) - Autonomous AI development loop
 "@
 }
 

@@ -22,8 +22,8 @@
 
 ```powershell
 # Clone repository
-git clone https://github.com/frankbria/Hermes-claude-code.git
-cd Hermes-claude-code
+git clone https://github.com/frankbria/hermes-claude-code.git
+cd hermes-claude-code
 
 # Install globally
 .\install.ps1
@@ -102,8 +102,8 @@ aider --version
 
 ```powershell
 # Clone the repository
-git clone https://github.com/frankbria/Hermes-claude-code.git
-cd Hermes-claude-code
+git clone https://github.com/frankbria/hermes-claude-code.git
+cd hermes-claude-code
 
 # Run installer
 .\install.ps1
@@ -121,7 +121,7 @@ $env:PATH = "$env:LOCALAPPDATA\Hermes\bin;$env:PATH"
 
 ```powershell
 Hermes -Help
-Hermes-prd -List
+hermes-prd -List
 ```
 
 ---
@@ -145,7 +145,7 @@ C:\Users\<username>\AppData\Local\Hermes\
 ## Uninstallation
 
 ```powershell
-cd Hermes-claude-code
+cd hermes-claude-code
 .\install.ps1 -Uninstall
 ```
 
@@ -179,7 +179,7 @@ Ensure at least one AI CLI is installed:
 
 ```powershell
 # Check available providers
-Hermes-prd -List
+hermes-prd -List
 ```
 
 ### PowerShell version too old
@@ -210,15 +210,15 @@ Hermes -Help
 ### Create Your First Project
 
 ```powershell
-Hermes-setup my-project
+hermes-setup my-project
 cd my-project
 ```
 
 ### Parse a PRD
 
 ```powershell
-Hermes-prd docs/PRD.md -DryRun
-Hermes-prd docs/PRD.md
+hermes-prd docs/PRD.md -DryRun
+hermes-prd docs/PRD.md
 ```
 
 ### Start Task Mode
@@ -232,7 +232,7 @@ Hermes -TaskMode -AutoBranch -AutoCommit
 ## Updating Hermes
 
 ```powershell
-cd Hermes-claude-code
+cd hermes-claude-code
 git pull origin main
 .\install.ps1
 ```

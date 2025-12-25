@@ -5,7 +5,7 @@
     Hermes for Claude Code - Windows Installation Script
 .DESCRIPTION
     Installs Hermes globally on Windows systems.
-    Creates commands: Hermes, Hermes-monitor, Hermes-setup, Hermes-import
+    Creates commands: Hermes, hermes-monitor, hermes-setup, hermes-import
 .PARAMETER Uninstall
     Remove Hermes installation
 .PARAMETER Help

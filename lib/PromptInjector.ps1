@@ -9,8 +9,8 @@
 #>
 
 # Markers for task section
-$script:TaskSectionStart = "<!-- Hermes_TASK_START -->"
-$script:TaskSectionEnd = "<!-- Hermes_TASK_END -->"
+$script:TaskSectionStart = "<!-- HERMES_TASK_START -->"
+$script:TaskSectionEnd = "<!-- HERMES_TASK_END -->"
 
 function Get-PromptPath {
     <#
@@ -126,12 +126,12 @@ function Get-TaskPromptSection {
     [void]$sb.AppendLine("**IMPORTANT:** Focus ONLY on this task. When complete, output:")
     [void]$sb.AppendLine("")
     [void]$sb.AppendLine("``````")
-    [void]$sb.AppendLine("---Hermes_STATUS---")
+    [void]$sb.AppendLine("---HERMES_STATUS---")
     [void]$sb.AppendLine("STATUS: COMPLETE")
     [void]$sb.AppendLine("TASK_ID: $($Task.TaskId)")
     [void]$sb.AppendLine("EXIT_SIGNAL: false")
     [void]$sb.AppendLine("RECOMMENDATION: Continue to next task")
-    [void]$sb.AppendLine("---END_Hermes_STATUS---")
+    [void]$sb.AppendLine("---END_HERMES_STATUS---")
     [void]$sb.AppendLine("``````")
     [void]$sb.AppendLine("")
     [void]$sb.AppendLine($script:TaskSectionEnd)
@@ -305,8 +305,8 @@ function Update-TaskProgress {
     $content = Get-Content $promptPath -Raw -Encoding UTF8
     
     # Look for progress section marker
-    $progressMarker = "<!-- Hermes_PROGRESS -->"
-    $progressEndMarker = "<!-- Hermes_PROGRESS_END -->"
+    $progressMarker = "<!-- HERMES_PROGRESS -->"
+    $progressEndMarker = "<!-- HERMES_PROGRESS_END -->"
     
     $timestamp = Get-Date -Format "HH:mm:ss"
     $progressSection = @"
@@ -485,7 +485,7 @@ function Add-TaskContextComment {
         timestamp = Get-Date -Format "o"
     } | ConvertTo-Json -Compress
     
-    $comment = "<!-- Hermes_CONTEXT: $context -->"
+    $comment = "<!-- HERMES_CONTEXT: $context -->"
     
     # Add at the very beginning
     $content = "$comment`n$content"
@@ -513,7 +513,7 @@ function Get-TaskContextFromComment {
     
     $content = Get-Content $promptPath -Raw -Encoding UTF8
     
-    if ($content -match "<!-- Hermes_CONTEXT: ({.*?}) -->") {
+    if ($content -match "<!-- HERMES_CONTEXT: ({.*?}) -->") {
         try {
             return $Matches[1] | ConvertFrom-Json -AsHashtable
         }

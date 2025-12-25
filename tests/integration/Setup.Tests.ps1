@@ -49,7 +49,7 @@ Describe "Setup Script Integration" {
                 
                 $prompt | Should -Not -BeNullOrEmpty
                 $prompt | Should -Match "Hermes"
-                $prompt | Should -Match "Hermes_STATUS"
+                $prompt | Should -Match "HERMES_STATUS"
                 $prompt | Should -Match "EXIT_SIGNAL"
             }
         }
@@ -86,8 +86,8 @@ Describe "Setup Script Integration" {
             . "$script:ProjectRoot\setup.ps1" -Help 2>$null
             
             if (Get-Command Get-ProjectNameFromFile -ErrorAction SilentlyContinue) {
-                # From Hermes_import.ps1
-                . "$script:ProjectRoot\Hermes_import.ps1" -Help 2>$null
+                # From hermes_import.ps1
+                . "$script:ProjectRoot\hermes_import.ps1" -Help 2>$null
             }
             
             # Test is informational - function may not be exposed
@@ -196,7 +196,7 @@ Requirement 3: Reports
             $testCases = @(
                 @{ Input = "my-project-prd.md"; Expected = "my-project" }
                 @{ Input = "api-spec.json"; Expected = "api" }
-                @{ Input = "requirements.txt"; Expected = "Hermes-project" }
+                @{ Input = "requirements.txt"; Expected = "hermes-project" }
                 @{ Input = "product-requirements-doc.md"; Expected = "product" }
             )
             
@@ -210,7 +210,7 @@ Requirement 3: Reports
                 $cleanName = $cleanName -replace '-+', '-'
                 $cleanName = $cleanName.Trim('-').ToLower()
                 if ([string]::IsNullOrEmpty($cleanName)) {
-                    $cleanName = "Hermes-project"
+                    $cleanName = "hermes-project"
                 }
                 
                 # Just verify the logic works, not exact matches

@@ -3,7 +3,7 @@
     Feature Analyzer Module for Hermes
 .DESCRIPTION
     Analyzes feature descriptions and creates task breakdowns.
-    Used by Hermes-add command.
+    Used by hermes-add command.
 #>
 
 function Get-HighestFeatureId {

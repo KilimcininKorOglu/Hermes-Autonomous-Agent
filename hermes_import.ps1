@@ -13,9 +13,9 @@
 .PARAMETER Help
     Show help message
 .EXAMPLE
-    .\Hermes_import.ps1 requirements.md my-project
+    .\hermes_import.ps1 requirements.md my-project
 .EXAMPLE
-    Hermes-import product-spec.md
+    hermes-import product-spec.md
 #>
 
 [CmdletBinding()]
@@ -31,7 +31,7 @@ param(
 )
 
 # Configuration
-$script:HermesHome = if ($env:Hermes_HOME) { $env:Hermes_HOME } else { Join-Path $env:LOCALAPPDATA "Hermes" }
+$script:HermesHome = if ($env:HERMES_HOME) { $env:HERMES_HOME } else { Join-Path $env:LOCALAPPDATA "Hermes" }
 $script:TemplatesDir = Join-Path $script:HermesHome "templates"
 $script:ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $script:ClaudeCommand = "claude"
@@ -40,7 +40,7 @@ function Show-Help {
     Write-Host ""
     Write-Host "Hermes PRD Import" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "Usage: Hermes-import <INPUT_FILE> [PROJECT_NAME]" -ForegroundColor White
+    Write-Host "Usage: hermes-import <INPUT_FILE> [PROJECT_NAME]" -ForegroundColor White
     Write-Host ""
     Write-Host "Arguments:" -ForegroundColor Yellow
     Write-Host "    INPUT_FILE      Path to PRD, spec, or requirements file"
@@ -54,8 +54,8 @@ function Show-Help {
     Write-Host "    - PDF (.pdf) - requires pdftotext"
     Write-Host ""
     Write-Host "Example:" -ForegroundColor Yellow
-    Write-Host "    Hermes-import product-requirements.md my-app"
-    Write-Host "    Hermes-import api-spec.json"
+    Write-Host "    hermes-import product-requirements.md my-app"
+    Write-Host "    hermes-import api-spec.json"
     Write-Host ""
     Write-Host "The import process:" -ForegroundColor Gray
     Write-Host "    1. Reads your PRD/specification file"
@@ -172,7 +172,7 @@ Create development instructions for an AI agent working on this project. Include
 - Key objectives and success criteria
 - Implementation guidelines based on the requirements
 - Testing requirements
-- The standard Hermes status reporting block (Hermes_STATUS with STATUS, EXIT_SIGNAL, RECOMMENDATION)
+- The standard Hermes status reporting block (HERMES_STATUS with STATUS, EXIT_SIGNAL, RECOMMENDATION)
 
 ## 2. @fix_plan.md
 Create a prioritized task list in markdown checkbox format:
@@ -456,9 +456,9 @@ if ([string]::IsNullOrEmpty($InputFile)) {
     Write-Host ""
     Write-Host "[ERROR] Input file is required" -ForegroundColor Red
     Write-Host ""
-    Write-Host "Usage: Hermes-import <INPUT_FILE> [PROJECT_NAME]"
+    Write-Host "Usage: hermes-import <INPUT_FILE> [PROJECT_NAME]"
     Write-Host ""
-    Write-Host "Run 'Hermes-import -Help' for more information"
+    Write-Host "Run 'hermes-import -Help' for more information"
     Write-Host ""
     exit 1
 }

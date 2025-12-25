@@ -42,11 +42,11 @@ Hermes is a system that automates software development by running AI CLI tools (
 ### Architecture
 
 ```
-Hermes-claude-code/
-├── Hermes_loop.ps1          # Main execution loop
-├── Hermes-prd.ps1           # PRD to task conversion
-├── Hermes-add.ps1           # Single feature addition
-├── Hermes_monitor.ps1       # Live monitoring panel
+hermes-claude-code/
+├── hermes_loop.ps1          # Main execution loop
+├── hermes-prd.ps1           # PRD to task conversion
+├── hermes-add.ps1           # Single feature addition
+├── hermes_monitor.ps1       # Live monitoring panel
 ├── install.ps1             # Global installation
 ├── setup.ps1               # Project creation
 ├── lib/                    # PowerShell modules
@@ -93,8 +93,8 @@ pip install aider-chat                     # Aider
 
 ```powershell
 # Clone the repository
-git clone https://github.com/frankbria/Hermes-claude-code.git
-cd Hermes-claude-code
+git clone https://github.com/frankbria/hermes-claude-code.git
+cd hermes-claude-code
 
 # Install globally
 .\install.ps1
@@ -125,7 +125,7 @@ Hermes -Help
 
 ```powershell
 # Create project
-Hermes-setup my-project
+hermes-setup my-project
 cd my-project
 
 # Edit PROMPT.md
@@ -139,7 +139,7 @@ Hermes -Monitor
 
 ```powershell
 # Create tasks from PRD
-Hermes-prd docs/PRD.md
+hermes-prd docs/PRD.md
 
 # Start task mode
 Hermes -TaskMode -AutoBranch -AutoCommit
@@ -177,10 +177,10 @@ my-project/
 | `Hermes -Status`        | Show current status            |
 | `Hermes -Help`          | Show help message              |
 | `Hermes -ResetCircuit`  | Reset circuit breaker          |
-| `Hermes-setup <name>`   | Create new project             |
-| `Hermes-prd <file>`     | Convert PRD to tasks           |
-| `Hermes-add "feature"`  | Add single feature             |
-| `Hermes-monitor`        | Standalone monitoring panel    |
+| `hermes-setup <name>`   | Create new project             |
+| `hermes-prd <file>`     | Convert PRD to tasks           |
+| `hermes-add "feature"`  | Add single feature             |
+| `hermes-monitor`        | Standalone monitoring panel    |
 
 ### Hermes Loop Parameters
 
@@ -230,7 +230,7 @@ Task Mode is a development mode that works with structured task files. Each feat
 ### Workflow
 
 ```
-PRD.md -> Hermes-prd -> tasks/*.md -> Hermes -TaskMode -> Automatic Implementation
+PRD.md -> hermes-prd -> tasks/*.md -> Hermes -TaskMode -> Automatic Implementation
 ```
 
 ### Task File Format
@@ -346,7 +346,7 @@ Hermes -TaskStatus -StatusFilter NOT_STARTED -PriorityFilter P1
 ### Usage
 
 ```powershell
-Hermes-prd <prd-file> [-AI <provider>] [-DryRun] [-Force] [-Clean]
+hermes-prd <prd-file> [-AI <provider>] [-DryRun] [-Force] [-Clean]
 ```
 
 ### Parameters
@@ -364,18 +364,18 @@ Hermes-prd <prd-file> [-AI <provider>] [-DryRun] [-Force] [-Clean]
 
 ### Incremental Mode
 
-By default, `Hermes-prd` runs in incremental mode:
+By default, `hermes-prd` runs in incremental mode:
 
 ```powershell
 # First run - creates all features
-Hermes-prd docs/PRD.md
+hermes-prd docs/PRD.md
 
 # PRD updated, new features added
-Hermes-prd docs/PRD.md
+hermes-prd docs/PRD.md
 # Only adds NEW features, preserves existing progress
 
 # Clean start
-Hermes-prd docs/PRD.md -Clean
+hermes-prd docs/PRD.md -Clean
 ```
 
 ### Incremental Mode Behavior
@@ -415,23 +415,23 @@ Next: Run 'Hermes -TaskMode -AutoBranch -AutoCommit' to start
 ### Usage
 
 ```powershell
-Hermes-add <feature> [-AI <provider>] [-DryRun] [-Priority <P1-P4>]
+hermes-add <feature> [-AI <provider>] [-DryRun] [-Priority <P1-P4>]
 ```
 
 ### Input Types
 
 ```powershell
 # Inline description
-Hermes-add "user registration system"
+hermes-add "user registration system"
 
 # Read from file
-Hermes-add @docs/webhook-spec.md
+hermes-add @docs/webhook-spec.md
 
 # Specify priority
-Hermes-add "password reset" -Priority P1
+hermes-add "password reset" -Priority P1
 
 # Preview
-Hermes-add "email verification" -DryRun
+hermes-add "email verification" -DryRun
 ```
 
 ### Parameters
@@ -496,20 +496,20 @@ Hermes automatically detects available AI CLIs. Priority order:
 ```powershell
 # Auto detection (default)
 Hermes -TaskMode
-Hermes-prd docs/PRD.md
-Hermes-add "feature"
+hermes-prd docs/PRD.md
+hermes-add "feature"
 
 # Specific provider
 Hermes -TaskMode -AI droid
-Hermes-prd docs/PRD.md -AI claude
-Hermes-add "feature" -AI aider
+hermes-prd docs/PRD.md -AI claude
+hermes-add "feature" -AI aider
 ```
 
 ### Provider Check
 
 ```powershell
 # List available providers
-Hermes-prd -List
+hermes-prd -List
 ```
 
 ### AIProvider.ps1 Functions
@@ -623,7 +623,7 @@ Feature analysis and file creation.
 
 ## 10. Configuration
 
-### Hermes_loop.ps1 Configuration
+### hermes_loop.ps1 Configuration
 
 ```powershell
 $script:Config = @{
@@ -653,11 +653,11 @@ $script:Config = @{
 AI should output this block at the end of each response:
 
 ```
----Hermes_STATUS---
+---HERMES_STATUS---
 STATUS: IN_PROGRESS | COMPLETE | BLOCKED
 EXIT_SIGNAL: false | true
 RECOMMENDATION: <next action>
----END_Hermes_STATUS---
+---END_HERMES_STATUS---
 ```
 
 ---

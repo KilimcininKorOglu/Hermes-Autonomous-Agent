@@ -5,9 +5,9 @@
     Analyzes a feature description and creates a task file with breakdown.
     Works with existing tasks, continuing from highest Feature/Task IDs.
 .EXAMPLE
-    Hermes-add "kullanici kayit sistemi"
-    Hermes-add @docs/webhook-spec.md
-    Hermes-add "sifre sifirlama" -Priority P1
+    hermes-add "kullanici kayit sistemi"
+    hermes-add @docs/webhook-spec.md
+    hermes-add "sifre sifirlama" -Priority P1
 #>
 
 param(
@@ -46,9 +46,9 @@ function Show-Usage {
     Write-Host "====================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage:" -ForegroundColor Yellow
-    Write-Host "  Hermes-add <feature-description>"
-    Write-Host "  Hermes-add @<file-path>"
-    Write-Host "  Hermes-add <description> -Priority P1"
+    Write-Host "  hermes-add <feature-description>"
+    Write-Host "  hermes-add @<file-path>"
+    Write-Host "  hermes-add <description> -Priority P1"
     Write-Host ""
     Write-Host "Parameters:" -ForegroundColor Yellow
     Write-Host "  <feature>      Feature description or @filepath"
@@ -60,10 +60,10 @@ function Show-Usage {
     Write-Host "  -Help          Show this help"
     Write-Host ""
     Write-Host "Examples:" -ForegroundColor Yellow
-    Write-Host "  Hermes-add `"kullanici kayit sistemi`""
-    Write-Host "  Hermes-add @docs/webhook-spec.md"
-    Write-Host "  Hermes-add `"sifre sifirlama`" -Priority P1"
-    Write-Host "  Hermes-add `"email dogrulama`" -DryRun"
+    Write-Host "  hermes-add `"kullanici kayit sistemi`""
+    Write-Host "  hermes-add @docs/webhook-spec.md"
+    Write-Host "  hermes-add `"sifre sifirlama`" -Priority P1"
+    Write-Host "  hermes-add `"email dogrulama`" -DryRun"
     Write-Host ""
 }
 

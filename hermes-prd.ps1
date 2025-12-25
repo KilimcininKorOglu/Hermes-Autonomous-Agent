@@ -4,10 +4,10 @@
 .DESCRIPTION
     Reads a PRD file and uses AI to generate task files in task-plan format
 .EXAMPLE
-    Hermes-prd docs/PRD.md
-    Hermes-prd docs/PRD.md -AI claude
-    Hermes-prd docs/PRD.md -AI droid -DryRun
-    Hermes-prd -List
+    hermes-prd docs/PRD.md
+    hermes-prd docs/PRD.md -AI claude
+    hermes-prd docs/PRD.md -AI droid -DryRun
+    hermes-prd -List
 #>
 
 param(
@@ -230,8 +230,8 @@ function Show-Usage {
     Write-Host "================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage:" -ForegroundColor Yellow
-    Write-Host "  Hermes-prd <prd-file> [-AI <provider>] [-DryRun] [-OutputDir <dir>]"
-    Write-Host "  Hermes-prd -List"
+    Write-Host "  hermes-prd <prd-file> [-AI <provider>] [-DryRun] [-OutputDir <dir>]"
+    Write-Host "  hermes-prd -List"
     Write-Host ""
     Write-Host "Parameters:" -ForegroundColor Yellow
     Write-Host "  <prd-file>     Path to PRD markdown file"
@@ -245,13 +245,13 @@ function Show-Usage {
     Write-Host "  -List          List available AI providers"
     Write-Host ""
     Write-Host "Incremental Update:" -ForegroundColor Yellow
-    Write-Host "  By default, Hermes-prd preserves existing features and only adds new ones."
+    Write-Host "  By default, hermes-prd preserves existing features and only adds new ones."
     Write-Host "  Completed and in-progress features are never overwritten."
     Write-Host ""
     Write-Host "Examples:" -ForegroundColor Yellow
-    Write-Host "  Hermes-prd docs/PRD.md"
-    Write-Host "  Hermes-prd docs/PRD.md -AI claude"
-    Write-Host "  Hermes-prd docs/PRD.md -DryRun"
+    Write-Host "  hermes-prd docs/PRD.md"
+    Write-Host "  hermes-prd docs/PRD.md -AI claude"
+    Write-Host "  hermes-prd docs/PRD.md -DryRun"
     Write-Host ""
 }
 

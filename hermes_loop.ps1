@@ -25,9 +25,9 @@
 .PARAMETER CircuitStatus
     Show circuit breaker status and exit
 .EXAMPLE
-    .\Hermes_loop.ps1 -Monitor
+    .\hermes_loop.ps1 -Monitor
 .EXAMPLE
-    .\Hermes_loop.ps1 -Calls 50 -Timeout 30
+    .\hermes_loop.ps1 -Calls 50 -Timeout 30
 #>
 
 [CmdletBinding()]
@@ -168,7 +168,7 @@ function Show-Help {
     Write-Host "Hermes Loop - Autonomous AI Development" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "IMPORTANT: This command must be run from a Hermes project directory." -ForegroundColor Yellow
-    Write-Host "           Use 'Hermes-setup project-name' to create a new project first."
+    Write-Host "           Use 'hermes-setup project-name' to create a new project first."
     Write-Host ""
     Write-Host "Usage: Hermes [OPTIONS]" -ForegroundColor White
     Write-Host ""
@@ -203,7 +203,7 @@ function Show-Help {
     Write-Host "    - status.json        Current status (JSON)"
     Write-Host ""
     Write-Host "Example workflow:" -ForegroundColor Yellow
-    Write-Host "    Hermes-setup my-project     # Create project"
+    Write-Host "    hermes-setup my-project     # Create project"
     Write-Host "    cd my-project              # Enter project directory"
     Write-Host "    Hermes -Monitor             # Start Hermes with monitoring"
     Write-Host ""
@@ -687,8 +687,8 @@ function Start-HermesLoop {
         
         Write-Host ""
         Write-Host "To fix this:" -ForegroundColor Cyan
-        Write-Host "  1. Create a new project: Hermes-setup my-project"
-        Write-Host "  2. Import existing requirements: Hermes-import requirements.md"
+        Write-Host "  1. Create a new project: hermes-setup my-project"
+        Write-Host "  2. Import existing requirements: hermes-import requirements.md"
         Write-Host "  3. Navigate to an existing Hermes project directory"
         Write-Host "  4. Or create PROMPT.md manually in this directory"
         Write-Host ""
@@ -832,7 +832,7 @@ function Start-WithMonitor {
     
     Write-Status -Level "INFO" -Message "Starting with monitoring..."
     
-    $monitorScript = Join-Path $script:ScriptDir "Hermes_monitor.ps1"
+    $monitorScript = Join-Path $script:ScriptDir "hermes_monitor.ps1"
     
     if (Test-Path $monitorScript) {
         # Start monitor in a new PowerShell window
@@ -1406,7 +1406,7 @@ if ($CircuitStatus) {
 if ($TaskMode) {
     if ($Monitor) {
         Write-Status -Level "INFO" -Message "Starting with monitoring..."
-        $monitorScript = Join-Path $script:ScriptDir "Hermes_monitor.ps1"
+        $monitorScript = Join-Path $script:ScriptDir "hermes_monitor.ps1"
         if (Test-Path $monitorScript) {
             Start-Process pwsh -ArgumentList "-NoExit", "-File", $monitorScript -WindowStyle Normal
         }

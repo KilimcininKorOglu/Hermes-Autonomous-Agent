@@ -72,11 +72,11 @@ Describe "ResponseAnalyzer Module" {
         It "should detect EXIT_SIGNAL true in status block" {
             @"
 Some work output here
----Hermes_STATUS---
+---HERMES_STATUS---
 STATUS: COMPLETE
 EXIT_SIGNAL: true
 RECOMMENDATION: All done
----END_Hermes_STATUS---
+---END_HERMES_STATUS---
 "@ | Set-Content "test_output.log"
             
             Invoke-ResponseAnalysis -OutputFile "test_output.log" -LoopNumber 1
@@ -88,10 +88,10 @@ RECOMMENDATION: All done
         
         It "should detect STATUS: COMPLETE" {
             @"
----Hermes_STATUS---
+---HERMES_STATUS---
 STATUS: COMPLETE
 EXIT_SIGNAL: false
----END_Hermes_STATUS---
+---END_HERMES_STATUS---
 "@ | Set-Content "test_output.log"
             
             Invoke-ResponseAnalysis -OutputFile "test_output.log" -LoopNumber 1
@@ -102,11 +102,11 @@ EXIT_SIGNAL: false
         
         It "should detect WORK_TYPE: TESTING" {
             @"
----Hermes_STATUS---
+---HERMES_STATUS---
 STATUS: IN_PROGRESS
 WORK_TYPE: TESTING
 EXIT_SIGNAL: false
----END_Hermes_STATUS---
+---END_HERMES_STATUS---
 "@ | Set-Content "test_output.log"
             
             Invoke-ResponseAnalysis -OutputFile "test_output.log" -LoopNumber 1
@@ -253,9 +253,9 @@ Continuing with work
         
         It "should have max confidence for EXIT_SIGNAL true" {
             @"
----Hermes_STATUS---
+---HERMES_STATUS---
 EXIT_SIGNAL: true
----END_Hermes_STATUS---
+---END_HERMES_STATUS---
 "@ | Set-Content "test_output.log"
             
             Invoke-ResponseAnalysis -OutputFile "test_output.log" -LoopNumber 1

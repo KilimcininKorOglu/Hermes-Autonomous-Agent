@@ -21,8 +21,8 @@ Autonomous AI development loop system for Windows PowerShell. Supports multiple 
 
 ### Task Management
 
-- **PRD Parser (`Hermes-prd`)** - Converts PRD documents to structured task files
-- **Feature Add (`Hermes-add`)** - Add single features inline or from file
+- **PRD Parser (`hermes-prd`)** - Converts PRD documents to structured task files
+- **Feature Add (`hermes-add`)** - Add single features inline or from file
 - **Incremental Updates** - Re-run PRD parser without losing progress
 - **ID Continuity** - Feature and Task IDs auto-increment across all files
 
@@ -36,7 +36,7 @@ Autonomous AI development loop system for Windows PowerShell. Supports multiple 
 ### Status and Filtering
 
 - **ASCII Status Tables** - Beautiful table display with `Hermes -TaskStatus`
-- **Live Monitor** - Real-time dashboard with `Hermes-monitor`
+- **Live Monitor** - Real-time dashboard with `hermes-monitor`
 - **Status Filtering** - Filter by COMPLETED, IN_PROGRESS, NOT_STARTED, BLOCKED
 - **Feature/Priority Filtering** - Filter by Feature ID or Priority level
 
@@ -62,16 +62,16 @@ Autonomous AI development loop system for Windows PowerShell. Supports multiple 
 
 ```powershell
 # Install Hermes
-git clone https://github.com/frankbria/Hermes-claude-code.git
-cd Hermes-claude-code
+git clone https://github.com/frankbria/hermes-claude-code.git
+cd hermes-claude-code
 .\install.ps1
 
 # Create a new project
-Hermes-setup my-project
+hermes-setup my-project
 cd my-project
 
 # Create PRD and parse to tasks
-Hermes-prd docs/PRD.md
+hermes-prd docs/PRD.md
 
 # Start Task Mode
 Hermes -TaskMode -AutoBranch -AutoCommit
@@ -81,13 +81,13 @@ Hermes -TaskMode -AutoBranch -AutoCommit
 
 | Command                                   | Description                |
 |-------------------------------------------|----------------------------|
-| `Hermes-setup <name>`                      | Create new project         |
-| `Hermes-prd <file>`                        | Parse PRD to task files    |
-| `Hermes-add "feature"`                     | Add single feature         |
+| `hermes-setup <name>`                      | Create new project         |
+| `hermes-prd <file>`                        | Parse PRD to task files    |
+| `hermes-add "feature"`                     | Add single feature         |
 | `Hermes -TaskMode -AutoBranch -AutoCommit` | Run with full automation   |
 | `Hermes -TaskMode -Autonomous`             | Run without pausing        |
 | `Hermes -TaskStatus`                       | Show task progress table   |
-| `Hermes-monitor`                           | Live monitoring dashboard  |
+| `hermes-monitor`                           | Live monitoring dashboard  |
 
 ## Supported AI Providers
 
@@ -100,8 +100,8 @@ Hermes -TaskMode -AutoBranch -AutoCommit
 ```powershell
 # Specify provider
 Hermes -TaskMode -AI droid -AutoBranch -AutoCommit
-Hermes-prd docs/PRD.md -AI claude
-Hermes-add "feature" -AI aider
+hermes-prd docs/PRD.md -AI claude
+hermes-add "feature" -AI aider
 ```
 
 ## Project Structure
@@ -122,7 +122,7 @@ my-project/
 ## Task Mode Workflow
 
 ```
-PRD.md -> Hermes-prd -> tasks/*.md -> Hermes -TaskMode -> Implementation
+PRD.md -> hermes-prd -> tasks/*.md -> Hermes -TaskMode -> Implementation
 ```
 
 ### Task File Format

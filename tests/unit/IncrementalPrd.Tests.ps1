@@ -2,7 +2,7 @@
 
 $scriptRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
-# Load the Hermes-prd script to get functions (without executing main)
+# Load the hermes-prd script to get functions (without executing main)
 # We'll define the functions locally for testing
 
 function Get-ExistingTaskState {

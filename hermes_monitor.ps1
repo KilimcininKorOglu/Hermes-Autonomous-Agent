@@ -12,9 +12,9 @@
 .PARAMETER Help
     Show help message
 .EXAMPLE
-    .\Hermes_monitor.ps1
+    .\hermes_monitor.ps1
 .EXAMPLE
-    .\Hermes_monitor.ps1 -RefreshInterval 5
+    .\hermes_monitor.ps1 -RefreshInterval 5
 #>
 
 [CmdletBinding()]
@@ -45,7 +45,7 @@ function Show-Help {
     Write-Host ""
     Write-Host "Hermes Monitor Dashboard" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "Usage: Hermes-monitor [OPTIONS]" -ForegroundColor White
+    Write-Host "Usage: hermes-monitor [OPTIONS]" -ForegroundColor White
     Write-Host ""
     Write-Host "Options:" -ForegroundColor Yellow
     Write-Host "    -RefreshInterval SEC   Refresh interval in seconds (default: 2)"
