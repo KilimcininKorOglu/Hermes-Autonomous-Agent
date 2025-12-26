@@ -22,12 +22,15 @@ cd ecommerce-platform
 
 ```
 ecommerce-platform/
-├── PROMPT.md
-├── tasks/
-├── src/
-├── docs/
-├── logs/
-└── README.md
+├── .gitignore          # Contains ".hermes/"
+├── .hermes/            # All Hermes files (gitignored)
+│   ├── config.json     # Project configuration
+│   ├── PROMPT.md       # AI prompt file
+│   ├── tasks/          # Task files
+│   ├── logs/           # Execution logs
+│   └── docs/           # PRD and documentation
+├── README.md
+└── (src/, tests/ created by AI)
 ```
 
 ---
@@ -35,9 +38,8 @@ ecommerce-platform/
 ## Step 2: Copy PRD File
 
 ```powershell
-# Copy PRD file into project
-mkdir docs
-copy "C:\path\to\hermes-claude-code\docs\sample-prd.md" "docs\PRD.md"
+# Copy PRD file into .hermes/docs/
+copy "C:\path\to\hermes-claude-code\docs\sample-prd.md" ".hermes\docs\PRD.md"
 ```
 
 ---
@@ -47,34 +49,38 @@ copy "C:\path\to\hermes-claude-code\docs\sample-prd.md" "docs\PRD.md"
 ### Preview (DryRun)
 
 ```powershell
-hermes-prd docs/PRD.md -DryRun
+hermes-prd .hermes/docs/PRD.md -DryRun
 ```
 
 **Expected Output:**
 
 ```
-Hermes PRD Parser
+Hermes Autonomous Agent - PRD Parser
 ================
 
-[INFO] Reading PRD: docs/PRD.md
-[INFO] PRD size: 5200 characters, 180 lines
-[INFO] Using AI: claude
+[INFO] Reading PRD: .hermes/docs/PRD.md
+[INFO] PRD size: 5946 characters, 264 lines
+[INFO] Using AI: claude (timeout: 1200s, retries: 10)
+[INFO] Parsing PRD with claude...
+
 [INFO] Attempt 1/10...
+[DEBUG] Starting claude execution...
+[DEBUG] claude completed in 166.5 seconds
 [OK] AI completed successfully
 
 Files to create:
 
-  [+] tasks/001-user-authentication.md (45 lines)
-  [+] tasks/002-product-catalog.md (52 lines)
-  [+] tasks/003-shopping-cart.md (48 lines)
-  [+] tasks/004-checkout-orders.md (55 lines)
-  [+] tasks/005-admin-panel.md (42 lines)
-  [+] tasks/tasks-status.md (35 lines)
+  [+] 001-user-authentication.md (F001, T001-T007)
+  [+] 002-product-catalog.md (F002, T008-T014)
+  [+] 003-shopping-cart.md (F003, T015-T020)
+  [+] 004-checkout-orders.md (F004, T021-T028)
+  [+] 005-admin-panel.md (F005, T029-T035)
+  [+] tasks-status.md
 
 Summary (DryRun):
   New Features: 5
-  New Tasks: 18
-  Estimated: 25 days
+  New Tasks: 35
+  Estimated: 0 days
 
 Run without -DryRun to create files.
 ```
@@ -82,18 +88,18 @@ Run without -DryRun to create files.
 ### Actual Creation
 
 ```powershell
-hermes-prd docs/PRD.md
+hermes-prd .hermes/docs/PRD.md
 ```
 
 **Created Files:**
 
 ```
-tasks/
-├── 001-user-authentication.md    # F001, T001-T004
-├── 002-product-catalog.md        # F002, T005-T008
-├── 003-shopping-cart.md          # F003, T009-T011
-├── 004-checkout-orders.md        # F004, T012-T015
-├── 005-admin-panel.md            # F005, T016-T018
+.hermes/tasks/
+├── 001-user-authentication.md    # F001, T001-T007
+├── 002-product-catalog.md        # F002, T008-T014
+├── 003-shopping-cart.md          # F003, T015-T020
+├── 004-checkout-orders.md        # F004, T021-T028
+├── 005-admin-panel.md            # F005, T029-T035
 └── tasks-status.md               # Status tracking
 ```
 
@@ -216,10 +222,10 @@ hermes-monitor
 
 ```powershell
 # Latest log
-Get-Content logs/hermes.log -Tail 50
+Get-Content .hermes/logs/hermes-loop-*.log -Tail 50
 
 # Latest AI output
-Get-ChildItem logs/*_output_*.log | 
+Get-ChildItem .hermes/logs/*_output_*.log | 
     Sort-Object LastWriteTime -Descending | 
     Select-Object -First 1 | 
     Get-Content
@@ -272,10 +278,10 @@ If new features are added to PRD:
 
 ```powershell
 # Update PRD
-notepad docs/PRD.md
+notepad .hermes/docs/PRD.md
 
 # Re-run - only new features are added
-hermes-prd docs/PRD.md
+hermes-prd .hermes/docs/PRD.md
 ```
 
 ### Method 2: Add Single Feature
@@ -285,22 +291,41 @@ hermes-prd docs/PRD.md
 hermes-add "User profile page and avatar upload"
 
 # From file
-hermes-add @docs/new-feature-spec.md
+hermes-add @.hermes/docs/new-feature-spec.md
 ```
 
 ---
 
-## Step 10: Use Different AI Provider
+## Step 10: AI Provider Selection
+
+Hermes uses **task-based AI selection** by default:
+- **Planning tasks** (PRD parsing, feature addition): `claude`
+- **Coding tasks** (task execution): `droid`
 
 ```powershell
-# Parse PRD with Droid
-hermes-prd docs/PRD.md -AI droid
+# Default: uses claude for PRD parsing (planning task)
+hermes-prd .hermes/docs/PRD.md
 
-# Task Mode with Aider
-hermes -TaskMode -AI aider -AutoBranch -AutoCommit
+# Default: uses droid for task execution (coding task)
+hermes -TaskMode -AutoBranch -AutoCommit
+
+# Override with specific provider
+hermes-prd .hermes/docs/PRD.md -AI droid
+hermes -TaskMode -AI claude -AutoBranch -AutoCommit
 
 # List available providers
 hermes-prd -List
+```
+
+Configure in `.hermes/config.json`:
+
+```json
+{
+  "ai": {
+    "planning": "claude",
+    "coding": "droid"
+  }
+}
 ```
 
 ---
@@ -310,12 +335,12 @@ hermes-prd -List
 ```
 1. hermes-setup ecommerce-platform
 2. cd ecommerce-platform
-3. # Copy PRD file to docs/PRD.md
-4. hermes-prd docs/PRD.md -DryRun          # Preview
-5. hermes-prd docs/PRD.md                   # Create tasks
+3. copy sample-prd.md .hermes/docs/PRD.md   # Copy PRD file
+4. hermes-prd .hermes/docs/PRD.md -DryRun   # Preview
+5. hermes-prd .hermes/docs/PRD.md           # Create tasks
 6. hermes -TaskStatus                       # View status
 7. hermes -TaskMode -AutoBranch -AutoCommit -Autonomous  # Start
-8. # ... Hermes is working ...
+8. # ... Hermes is working (uses droid for coding) ...
 9. hermes -TaskStatus                       # Check progress
 ```
 
@@ -350,10 +375,10 @@ After Task Mode completes:
 
 ```powershell
 # Increase timeout
-hermes-prd docs/PRD.md -Timeout 1800
+hermes-prd .hermes/docs/PRD.md -Timeout 1800
 
 # Try different AI
-hermes-prd docs/PRD.md -AI droid
+hermes-prd .hermes/docs/PRD.md -AI droid
 ```
 
 ### Task Blocked
@@ -384,11 +409,18 @@ hermes -TaskMode -AutoBranch -AutoCommit
 ## Tips
 
 1. **For large PRDs:** Split PRD into separate files by feature
-2. **Error tracking:** Regularly check the `logs/` directory
+2. **Error tracking:** Regularly check the `.hermes/logs/` directory
 3. **Branch cleanup:** Merged branches are automatically deleted
 4. **Incremental:** When you update and re-run PRD, only new features are added
 5. **DryRun:** Always check with `-DryRun` first
+6. **AI Selection:** Planning=claude (PRD), Coding=droid (tasks)
+7. **Gitignored:** All `.hermes/` files are gitignored by default
 
 ---
 
 **Ready!** You can now perform autonomous development with Hermes.
+
+---
+
+**Version:** 1.1  
+**Last Updated:** 2025-12-26
