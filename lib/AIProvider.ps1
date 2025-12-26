@@ -159,7 +159,7 @@ function Invoke-AICommand {
     
     switch ($Provider) {
         "claude" {
-            $result = $Content | claude -p $PromptText 2>&1
+            $result = $Content | claude -p --dangerously-skip-permissions $PromptText 2>&1
         }
         "droid" {
             $result = $Content | droid exec --auto high --dangerously-skip-permissions $PromptText 2>&1
@@ -204,7 +204,7 @@ function Invoke-AIWithTimeout {
                 # Use job for claude (may need stdin)
                 $job = Start-Job -ScriptBlock {
                     param($content, $prompt)
-                    $content | claude -p $prompt
+                    $content | claude -p --dangerously-skip-permissions $prompt
                 } -ArgumentList $Content, $PromptText
                 
                 $completed = Wait-Job $job -Timeout $TimeoutSeconds
@@ -469,7 +469,7 @@ function Invoke-TaskExecution {
         
         switch ($provider) {
             "claude" {
-                $content | claude 2>&1
+                $content | claude --dangerously-skip-permissions 2>&1
             }
             "droid" {
                 $content | droid exec --auto high --dangerously-skip-permissions 2>&1
