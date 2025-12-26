@@ -175,6 +175,45 @@ function Invoke-AICommand {
     return $result
 }
 
+function Wait-ProcessWithCtrlC {
+    <#
+    .SYNOPSIS
+        Wait for process with Ctrl+C support
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [System.Diagnostics.Process]$Process,
+        
+        [int]$TimeoutSeconds = 1200,
+        
+        [int]$CheckIntervalMs = 500
+    )
+    
+    $elapsed = 0
+    $timeoutMs = $TimeoutSeconds * 1000
+    
+    while (-not $Process.HasExited -and $elapsed -lt $timeoutMs) {
+        Start-Sleep -Milliseconds $CheckIntervalMs
+        $elapsed += $CheckIntervalMs
+        
+        # Check for Ctrl+C (KeyAvailable doesn't work in all scenarios, but process check does)
+        if ([Console]::KeyAvailable) {
+            $key = [Console]::ReadKey($true)
+            if ($key.Key -eq 'C' -and $key.Modifiers -eq 'Control') {
+                Write-Host "`n[WARN] Ctrl+C detected, stopping AI process..." -ForegroundColor Yellow
+                $Process.Kill()
+                throw "Cancelled by user (Ctrl+C)"
+            }
+        }
+    }
+    
+    if (-not $Process.HasExited) {
+        return $false  # Timeout
+    }
+    
+    return $true  # Completed
+}
+
 function Invoke-AIWithTimeout {
     <#
     .SYNOPSIS
@@ -197,11 +236,13 @@ function Invoke-AIWithTimeout {
     
     $result = $null
     $tempPromptFile = $null
+    $process = $null
     $startTime = Get-Date
     
     Write-Host "[DEBUG] Starting $Provider execution at $($startTime.ToString('HH:mm:ss'))..." -ForegroundColor DarkGray
     Write-Host "[DEBUG] Timeout: $TimeoutSeconds seconds" -ForegroundColor DarkGray
     Write-Host "[DEBUG] Prompt length: $($PromptText.Length) chars" -ForegroundColor DarkGray
+    Write-Host "[INFO] Press Ctrl+C to cancel..." -ForegroundColor Gray
     
     try {
         switch ($Provider) {
@@ -238,7 +279,7 @@ function Invoke-AIWithTimeout {
                 $process.StandardInput.Close()
                 
                 Write-Host "[DEBUG] Waiting for claude process (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
-                $exited = $process.WaitForExit($TimeoutSeconds * 1000)
+                $exited = Wait-ProcessWithCtrlC -Process $process -TimeoutSeconds $TimeoutSeconds
                 if (-not $exited) {
                     Write-Host "[DEBUG] Process timed out!" -ForegroundColor Red
                     $process.Kill()
@@ -276,7 +317,7 @@ function Invoke-AIWithTimeout {
                 $process.Start() | Out-Null
                 
                 Write-Host "[DEBUG] Waiting for droid process (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
-                $exited = $process.WaitForExit($TimeoutSeconds * 1000)
+                $exited = Wait-ProcessWithCtrlC -Process $process -TimeoutSeconds $TimeoutSeconds
                 if (-not $exited) {
                     Write-Host "[DEBUG] Process timed out!" -ForegroundColor Red
                     $process.Kill()
@@ -310,7 +351,7 @@ function Invoke-AIWithTimeout {
                 $process.Start() | Out-Null
                 
                 Write-Host "[DEBUG] Waiting for aider process (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
-                $exited = $process.WaitForExit($TimeoutSeconds * 1000)
+                $exited = Wait-ProcessWithCtrlC -Process $process -TimeoutSeconds $TimeoutSeconds
                 if (-not $exited) {
                     Write-Host "[DEBUG] Process timed out!" -ForegroundColor Red
                     $process.Kill()
@@ -331,6 +372,14 @@ function Invoke-AIWithTimeout {
         Write-Host "[DEBUG] $Provider completed in $([Math]::Round($duration, 1)) seconds" -ForegroundColor DarkGray
     }
     finally {
+        # Kill process if still running (e.g., on Ctrl+C)
+        if ($process -and -not $process.HasExited) {
+            try {
+                $process.Kill()
+                Write-Host "[DEBUG] Process killed during cleanup" -ForegroundColor DarkGray
+            } catch { }
+        }
+        
         # Cleanup temp prompt file
         if ($tempPromptFile -and (Test-Path $tempPromptFile)) {
             Remove-Item $tempPromptFile -Force -ErrorAction SilentlyContinue
