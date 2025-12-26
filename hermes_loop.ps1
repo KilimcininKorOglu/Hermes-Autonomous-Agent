@@ -502,9 +502,9 @@ function Invoke-AIExecution {
         # Read prompt content
         $promptContent = Get-Content $script:Config.PromptFile -Raw
         
-        # Check if streaming is enabled (only for claude)
+        # Check if streaming is enabled (for claude and droid)
         $streamOutput = $false
-        if ($provider -eq "claude") {
+        if ($provider -eq "claude" -or $provider -eq "droid") {
             $streamConfig = Get-ConfigValue -Key "ai.streamOutput"
             $streamOutput = ($streamConfig -eq $true) -or ($streamConfig -eq "true")
             if ($streamOutput) {
