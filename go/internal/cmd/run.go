@@ -20,42 +20,28 @@ import (
 	"hermes/internal/ui"
 )
 
-type runOptions struct {
-	autoBranch bool
-	autoCommit bool
-	autonomous bool
-	pause      bool
-	timeout    int
-	debug      bool
-}
-
 // NewRunCmd creates the run subcommand
 func NewRunCmd() *cobra.Command {
-	opts := &runOptions{}
-
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Run task execution loop",
 		Long:  "Execute tasks from task files using Claude CLI",
 		Example: `  hermes run
   hermes run --auto-branch --auto-commit
-  hermes run --autonomous`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runExecute(opts)
-		},
+  hermes run --autonomous=false`,
+		RunE: runExecute,
 	}
 
-	cmd.Flags().BoolVar(&opts.autoBranch, "auto-branch", false, "Create feature branches automatically")
-	cmd.Flags().BoolVar(&opts.autoCommit, "auto-commit", false, "Commit on task completion")
-	cmd.Flags().BoolVar(&opts.autonomous, "autonomous", true, "Run without pausing between tasks")
-	cmd.Flags().BoolVar(&opts.pause, "pause", false, "Pause between tasks (disables autonomous)")
-	cmd.Flags().IntVar(&opts.timeout, "timeout", 300, "AI timeout in seconds")
-	cmd.Flags().BoolVar(&opts.debug, "debug", false, "Enable debug output")
+	cmd.Flags().Bool("auto-branch", false, "Create feature branches (overrides config)")
+	cmd.Flags().Bool("auto-commit", false, "Commit on task completion (overrides config)")
+	cmd.Flags().Bool("autonomous", true, "Run without pausing (overrides config)")
+	cmd.Flags().Int("timeout", 0, "AI timeout in seconds (0 = use config)")
+	cmd.Flags().Bool("debug", false, "Enable debug output")
 
 	return cmd
 }
 
-func runExecute(opts *runOptions) error {
+func runExecute(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -74,8 +60,27 @@ func runExecute(opts *runOptions) error {
 		cfg = config.DefaultConfig()
 	}
 
+	// Apply CLI flags (override config if flag was explicitly set)
+	autoBranch := cfg.TaskMode.AutoBranch
+	autoCommit := cfg.TaskMode.AutoCommit
+	autonomous := cfg.TaskMode.Autonomous
+	debug := false
+
+	if cmd.Flags().Changed("auto-branch") {
+		autoBranch, _ = cmd.Flags().GetBool("auto-branch")
+	}
+	if cmd.Flags().Changed("auto-commit") {
+		autoCommit, _ = cmd.Flags().GetBool("auto-commit")
+	}
+	if cmd.Flags().Changed("autonomous") {
+		autonomous, _ = cmd.Flags().GetBool("autonomous")
+	}
+	if cmd.Flags().Changed("debug") {
+		debug, _ = cmd.Flags().GetBool("debug")
+	}
+
 	// Initialize logger
-	logger, err := ui.NewLogger(".", opts.debug)
+	logger, err := ui.NewLogger(".", debug)
 	if err != nil {
 		return err
 	}
@@ -140,7 +145,7 @@ func runExecute(opts *runOptions) error {
 		logger.Info("Working on task: %s - %s", nextTask.ID, nextTask.Name)
 
 		// Handle branching
-		if opts.autoBranch && gitOps.IsRepository() {
+		if autoBranch && gitOps.IsRepository() {
 			feature, _ := reader.GetFeatureByID(nextTask.FeatureID)
 			if feature != nil {
 				branchName, err := gitOps.CreateFeatureBranch(feature.ID, feature.Name)
@@ -188,7 +193,7 @@ func runExecute(opts *runOptions) error {
 			injector.RemoveTask()
 
 			// Auto-commit
-			if opts.autoCommit && gitOps.HasUncommittedChanges() {
+			if autoCommit && gitOps.HasUncommittedChanges() {
 				if err := gitOps.StageAll(); err == nil {
 					if err := gitOps.CommitTask(nextTask.ID, nextTask.Name); err != nil {
 						logger.Warn("Failed to commit: %v", err)
@@ -207,8 +212,8 @@ func runExecute(opts *runOptions) error {
 			}
 		}
 
-		// Pause between tasks if not autonomous or pause flag is set
-		if (opts.pause || !opts.autonomous) && analysis.IsComplete {
+		// Pause between tasks if not autonomous
+		if !autonomous && analysis.IsComplete {
 			fmt.Println("\nPress Enter to continue or Ctrl+C to stop...")
 			bufio.NewReader(os.Stdin).ReadBytes('\n')
 		}
