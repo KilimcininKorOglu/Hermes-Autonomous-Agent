@@ -386,16 +386,18 @@ function Invoke-AICommand {
     
     switch ($Provider) {
         "claude" {
-            $result = $Content | claude -p --dangerously-skip-permissions $PromptText 2>&1
+            # Claude CLI: cat content | claude -p "prompt" --dangerously-skip-permissions
+            $result = $Content | claude -p "$PromptText" --dangerously-skip-permissions --output-format text 2>&1
         }
         "droid" {
-            $result = $Content | droid exec --skip-permissions-unsafe $PromptText 2>&1
+            # Droid CLI: echo content | droid exec --skip-permissions-unsafe "prompt"
+            $result = $Content | droid exec --skip-permissions-unsafe "$PromptText" 2>&1
         }
         "aider" {
             if (-not $InputFile) {
                 throw "Aider requires InputFile parameter"
             }
-            $result = aider --yes --no-auto-commits --message $PromptText $InputFile 2>&1
+            $result = aider --yes --no-auto-commits --message "$PromptText" $InputFile 2>&1
         }
     }
     
