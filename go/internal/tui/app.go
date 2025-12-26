@@ -103,6 +103,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Auto-refresh data
 		a.dashboard.Refresh()
 		a.tasks.Refresh()
+		a.logs.Refresh()
 		return a, tickCmd() // Schedule next tick
 
 	case tea.WindowSizeMsg:
