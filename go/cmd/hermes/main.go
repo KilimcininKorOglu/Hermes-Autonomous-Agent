@@ -30,6 +30,8 @@ func main() {
 	rootCmd.AddCommand(cmd.NewStatusCmd())
 	rootCmd.AddCommand(cmd.NewTuiCmd())
 	rootCmd.AddCommand(cmd.NewResetCmd())
+	rootCmd.AddCommand(cmd.NewTaskCmd())
+	rootCmd.AddCommand(cmd.NewLogCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
