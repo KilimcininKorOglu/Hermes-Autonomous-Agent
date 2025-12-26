@@ -195,21 +195,29 @@ function Invoke-AIWithTimeout {
         [int]$TimeoutSeconds = 1200
     )
     
+    # For droid, write prompt to temp file (prompts can be very long)
+    $tempPromptFile = $null
+    if ($Provider -eq "droid") {
+        $tempPromptFile = Join-Path $env:TEMP "hermes-prompt-$(Get-Random).md"
+        $PromptText | Set-Content -Path $tempPromptFile -Encoding UTF8
+    }
+    
     $job = Start-Job -ScriptBlock {
-        param($provider, $content, $prompt, $inputFile)
+        param($provider, $content, $prompt, $inputFile, $promptFile)
         
         switch ($provider) {
             "claude" {
                 $content | claude -p $prompt
             }
             "droid" {
-                $content | droid exec --auto low $prompt
+                # Use --file for long prompts
+                droid exec --auto medium --file $promptFile
             }
             "aider" {
                 aider --yes --no-auto-commits --message $prompt $inputFile
             }
         }
-    } -ArgumentList $Provider, $Content, $PromptText, $InputFile
+    } -ArgumentList $Provider, $Content, $PromptText, $InputFile, $tempPromptFile
     
     $completed = Wait-Job $job -Timeout $TimeoutSeconds
     
@@ -221,6 +229,11 @@ function Invoke-AIWithTimeout {
     
     $result = Receive-Job $job
     Remove-Job $job -Force
+    
+    # Cleanup temp prompt file
+    if ($tempPromptFile -and (Test-Path $tempPromptFile)) {
+        Remove-Item $tempPromptFile -Force -ErrorAction SilentlyContinue
+    }
     
     # Ensure result is a string (Receive-Job can return array)
     if ($result -is [array]) {
