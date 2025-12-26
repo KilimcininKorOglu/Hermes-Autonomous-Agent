@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-AI-powered autonomous application development loop system written in Go. Supports Claude, Droid, and Gemini CLIs with task-driven development, automatic branching, and circuit breaker protection.
+AI-powered autonomous application development system written in Go. Supports Claude, Droid, and Gemini CLIs with task-driven development, automatic branching, and circuit breaker protection.
 
 ## Documentation
 
