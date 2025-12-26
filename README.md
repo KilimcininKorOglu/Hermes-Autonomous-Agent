@@ -4,10 +4,12 @@ Autonomous AI development loop system written in Go. Supports Claude, Droid, and
 
 ## Documentation
 
-| Document                              | Description                          |
-|---------------------------------------|--------------------------------------|
-| [User Guide](docs/USER-GUIDE.md)      | Complete usage documentation         |
-| [Example Usage](docs/example-usage.md)| Step-by-step walkthrough             |
+| Document                                  | Description                          |
+|-------------------------------------------|--------------------------------------|
+| [User Guide](docs/USER-GUIDE.md)          | Complete usage documentation         |
+| [Example Usage](docs/example-usage.md)    | Step-by-step walkthrough             |
+| [Kullanım Kılavuzu](docs/USER-GUIDE.tr.md)| Türkçe kullanım dokümantasyonu       |
+| [Örnek Kullanım](docs/example-usage.tr.md)| Türkçe adım adım rehber              |
 
 ## Features
 
