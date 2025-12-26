@@ -1,5 +1,6 @@
 # Test/sample projects
 sample-project/
+go/sample-project/
 
 # hermes generated files
 .call_count
