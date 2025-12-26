@@ -206,24 +206,54 @@ function Invoke-AIWithTimeout {
     try {
         switch ($Provider) {
             "claude" {
-                Write-Host "[DEBUG] Creating claude job..." -ForegroundColor DarkGray
-                # Use job for claude (may need stdin)
-                $job = Start-Job -ScriptBlock {
-                    param($content, $prompt)
-                    $content | claude -p --dangerously-skip-permissions $prompt
-                } -ArgumentList $Content, $PromptText
+                # Write prompt to temp file and call claude directly (avoid Start-Job encoding issues)
+                $tempPromptFile = Join-Path $env:TEMP "hermes-claude-prompt-$(Get-Random).md"
+                $tempContentFile = Join-Path $env:TEMP "hermes-claude-content-$(Get-Random).txt"
+                $PromptText | Set-Content -Path $tempPromptFile -Encoding UTF8
+                if ($Content) {
+                    $Content | Set-Content -Path $tempContentFile -Encoding UTF8
+                }
+                Write-Host "[DEBUG] Prompt written to: $tempPromptFile" -ForegroundColor DarkGray
                 
-                Write-Host "[DEBUG] Waiting for claude job (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
-                $completed = Wait-Job $job -Timeout $TimeoutSeconds
-                if (-not $completed) {
-                    Write-Host "[DEBUG] Job timed out after $TimeoutSeconds seconds!" -ForegroundColor Red
-                    Stop-Job $job -ErrorAction SilentlyContinue
-                    Remove-Job $job -Force -ErrorAction SilentlyContinue
+                # Use Start-Process with timeout for claude
+                $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                $pinfo.FileName = "claude"
+                $pinfo.Arguments = "-p --dangerously-skip-permissions `"$tempPromptFile`""
+                $pinfo.RedirectStandardOutput = $true
+                $pinfo.RedirectStandardError = $true
+                $pinfo.RedirectStandardInput = $true
+                $pinfo.UseShellExecute = $false
+                $pinfo.CreateNoWindow = $true
+                
+                Write-Host "[DEBUG] Starting claude process..." -ForegroundColor DarkGray
+                $process = New-Object System.Diagnostics.Process
+                $process.StartInfo = $pinfo
+                $process.Start() | Out-Null
+                
+                # Write content to stdin if provided
+                if ($Content) {
+                    $process.StandardInput.Write($Content)
+                    $process.StandardInput.Close()
+                }
+                
+                Write-Host "[DEBUG] Waiting for claude process (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
+                $exited = $process.WaitForExit($TimeoutSeconds * 1000)
+                if (-not $exited) {
+                    Write-Host "[DEBUG] Process timed out!" -ForegroundColor Red
+                    $process.Kill()
                     throw "AI timeout after $TimeoutSeconds seconds"
                 }
-                Write-Host "[DEBUG] Job completed, receiving output..." -ForegroundColor DarkGray
-                $result = Receive-Job $job
-                Remove-Job $job -Force
+                
+                $result = $process.StandardOutput.ReadToEnd()
+                $stderr = $process.StandardError.ReadToEnd()
+                Write-Host "[DEBUG] Process exited with code: $($process.ExitCode)" -ForegroundColor DarkGray
+                if ($stderr) {
+                    Write-Warning "Claude stderr: $stderr"
+                }
+                
+                # Cleanup temp files
+                Remove-Item $tempPromptFile -Force -ErrorAction SilentlyContinue
+                Remove-Item $tempContentFile -Force -ErrorAction SilentlyContinue
             }
             "droid" {
                 # Write prompt to temp file and call droid directly
@@ -261,22 +291,38 @@ function Invoke-AIWithTimeout {
                 }
             }
             "aider" {
-                Write-Host "[DEBUG] Creating aider job..." -ForegroundColor DarkGray
-                $job = Start-Job -ScriptBlock {
-                    param($prompt, $inputFile)
-                    aider --yes --no-auto-commits --message $prompt $inputFile
-                } -ArgumentList $PromptText, $InputFile
+                if (-not $InputFile) {
+                    throw "Aider requires InputFile parameter"
+                }
                 
-                Write-Host "[DEBUG] Waiting for aider job (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
-                $completed = Wait-Job $job -Timeout $TimeoutSeconds
-                if (-not $completed) {
-                    Write-Host "[DEBUG] Job timed out!" -ForegroundColor Red
-                    Stop-Job $job -ErrorAction SilentlyContinue
-                    Remove-Job $job -Force -ErrorAction SilentlyContinue
+                # Use Start-Process with timeout for aider
+                $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                $pinfo.FileName = "aider"
+                $pinfo.Arguments = "--yes --no-auto-commits --message `"$PromptText`" `"$InputFile`""
+                $pinfo.RedirectStandardOutput = $true
+                $pinfo.RedirectStandardError = $true
+                $pinfo.UseShellExecute = $false
+                $pinfo.CreateNoWindow = $true
+                
+                Write-Host "[DEBUG] Starting aider process..." -ForegroundColor DarkGray
+                $process = New-Object System.Diagnostics.Process
+                $process.StartInfo = $pinfo
+                $process.Start() | Out-Null
+                
+                Write-Host "[DEBUG] Waiting for aider process (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
+                $exited = $process.WaitForExit($TimeoutSeconds * 1000)
+                if (-not $exited) {
+                    Write-Host "[DEBUG] Process timed out!" -ForegroundColor Red
+                    $process.Kill()
                     throw "AI timeout after $TimeoutSeconds seconds"
                 }
-                $result = Receive-Job $job
-                Remove-Job $job -Force
+                
+                $result = $process.StandardOutput.ReadToEnd()
+                $stderr = $process.StandardError.ReadToEnd()
+                Write-Host "[DEBUG] Process exited with code: $($process.ExitCode)" -ForegroundColor DarkGray
+                if ($stderr) {
+                    Write-Warning "Aider stderr: $stderr"
+                }
             }
         }
         
@@ -485,49 +531,67 @@ function Invoke-TaskExecution {
         [int]$TimeoutSeconds = 900
     )
     
-    $job = Start-Job -ScriptBlock {
-        param($content, $provider)
+    $result = $null
+    $tempPromptFile = $null
+    
+    try {
+        # Write prompt content to temp file
+        $tempPromptFile = Join-Path $env:TEMP "hermes-task-$(Get-Random).md"
+        $PromptContent | Set-Content -Path $tempPromptFile -Encoding UTF8
         
-        switch ($provider) {
+        $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+        $pinfo.RedirectStandardOutput = $true
+        $pinfo.RedirectStandardError = $true
+        $pinfo.UseShellExecute = $false
+        $pinfo.CreateNoWindow = $true
+        
+        switch ($Provider) {
             "claude" {
-                $content | claude --dangerously-skip-permissions 2>&1
+                $pinfo.FileName = "claude"
+                $pinfo.Arguments = "--dangerously-skip-permissions `"$tempPromptFile`""
             }
             "droid" {
-                $content | droid exec --skip-permissions-unsafe 2>&1
+                $pinfo.FileName = "droid"
+                $pinfo.Arguments = "exec --skip-permissions-unsafe --file `"$tempPromptFile`""
             }
             "aider" {
-                $tempFile = [System.IO.Path]::GetTempFileName()
-                $tempFile = $tempFile -replace '\.tmp$', '.md'
-                $content | Set-Content $tempFile -Encoding UTF8
-                try {
-                    aider --yes --no-auto-commits --message "Execute the task described in this file" $tempFile 2>&1
-                }
-                finally {
-                    Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
-                }
+                $pinfo.FileName = "aider"
+                $pinfo.Arguments = "--yes --no-auto-commits --message `"Execute the task described in this file`" `"$tempPromptFile`""
             }
         }
-    } -ArgumentList $PromptContent, $Provider
-    
-    $completed = Wait-Job $job -Timeout $TimeoutSeconds
-    
-    if (-not $completed) {
-        Stop-Job $job -ErrorAction SilentlyContinue
-        Remove-Job $job -Force -ErrorAction SilentlyContinue
+        
+        $process = New-Object System.Diagnostics.Process
+        $process.StartInfo = $pinfo
+        $process.Start() | Out-Null
+        
+        $exited = $process.WaitForExit($TimeoutSeconds * 1000)
+        
+        if (-not $exited) {
+            $process.Kill()
+            return @{
+                Success = $false
+                Error   = "Timeout after $TimeoutSeconds seconds"
+                Output  = $null
+            }
+        }
+        
+        $result = $process.StandardOutput.ReadToEnd()
+        $stderr = $process.StandardError.ReadToEnd()
+        
+        if ($stderr) {
+            Write-Warning "$Provider stderr: $stderr"
+        }
+        
         return @{
-            Success = $false
-            Error   = "Timeout after $TimeoutSeconds seconds"
-            Output  = $null
+            Success = $true
+            Output  = $result
+            Error   = $null
         }
     }
-    
-    $output = Receive-Job $job
-    Remove-Job $job -Force
-    
-    return @{
-        Success = $true
-        Output  = $output
-        Error   = $null
+    finally {
+        if ($tempPromptFile -and (Test-Path $tempPromptFile)) {
+            Remove-Item $tempPromptFile -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
