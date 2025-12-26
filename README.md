@@ -16,7 +16,8 @@ Autonomous AI development loop system for Windows PowerShell. Supports multiple 
 ### AI Integration
 
 - **Multi-AI CLI Support** - Works with Claude, Droid, and Aider CLIs
-- **Auto-Detection** - Automatically finds available AI CLI (priority: claude > droid > aider)
+- **Task-Based AI Selection** - Uses different AI for different tasks (planning=claude, coding=droid)
+- **Auto-Detection** - Automatically finds available AI CLI if not configured
 - **Provider Selection** - Override with `-AI` flag for all commands
 
 ### Task Management
@@ -70,11 +71,15 @@ cd hermes-claude-code
 hermes-setup my-project
 cd my-project
 
-# Create PRD and parse to tasks
-hermes-prd docs/PRD.md
+# Copy PRD and parse to tasks
+copy your-prd.md .hermes/docs/PRD.md
+hermes-prd .hermes/docs/PRD.md
 
-# Start Task Mode
+# Start Task Mode (uses droid for coding by default)
 hermes -TaskMode -AutoBranch -AutoCommit
+
+# Or run fully autonomous
+hermes -TaskMode -AutoBranch -AutoCommit -Autonomous
 ```
 
 ## Commands
@@ -91,38 +96,55 @@ hermes -TaskMode -AutoBranch -AutoCommit
 
 ## Supported AI Providers
 
-| Provider | Command  | Priority |
-|----------|----------|----------|
-| Claude   | `claude` | 1        |
-| Droid    | `droid`  | 2        |
-| Aider    | `aider`  | 3        |
+Hermes uses **task-based AI selection** by default:
+
+| Provider | Command  | Default For | Description        |
+|----------|----------|-------------|--------------------|
+| Claude   | `claude` | Planning    | PRD parsing, features |
+| Droid    | `droid`  | Coding      | Task execution     |
+| Aider    | `aider`  | -           | Alternative option |
+
+Configure in `.hermes/config.json`:
+
+```json
+{
+  "ai": {
+    "planning": "claude",
+    "coding": "droid"
+  }
+}
+```
+
+Override with `-AI` flag:
 
 ```powershell
-# Specify provider
-hermes -TaskMode -AI droid -AutoBranch -AutoCommit
-hermes-prd docs/PRD.md -AI claude
-hermes-add "feature" -AI aider
+hermes -TaskMode -AI claude -AutoBranch -AutoCommit
+hermes-prd .hermes/docs/PRD.md -AI droid
 ```
 
 ## Project Structure
 
 ```
 my-project/
-├── PROMPT.md           # AI instructions (auto-managed)
-├── tasks/              # Task files
-│   ├── 001-feature.md  # Feature with tasks
-│   ├── 002-feature.md
-│   ├── tasks-status.md # Status tracker
-│   └── run-state.md    # Resume checkpoint
-├── src/                # Source code
-├── docs/               # Documentation
-└── logs/               # Execution logs
+├── .gitignore              # Contains ".hermes/" to exclude from git
+├── .hermes/                # All Hermes files (gitignored)
+│   ├── config.json         # Project configuration
+│   ├── PROMPT.md           # AI prompt file (auto-managed)
+│   ├── tasks/              # Task files
+│   │   ├── 001-feature.md  # Feature with tasks
+│   │   ├── tasks-status.md # Status tracker
+│   │   └── run-state.md    # Resume checkpoint
+│   ├── logs/               # Execution logs
+│   └── docs/               # PRD and documentation
+├── src/                    # Source code (created by AI)
+├── tests/                  # Test files
+└── README.md
 ```
 
 ## Task Mode Workflow
 
 ```
-PRD.md -> hermes-prd -> tasks/*.md -> hermes -TaskMode -> Implementation
+.hermes/docs/PRD.md -> hermes-prd -> .hermes/tasks/*.md -> hermes -TaskMode -> Implementation
 ```
 
 ### Task File Format
@@ -184,3 +206,8 @@ Invoke-Pester -Path tests/unit/
 ## License
 
 MIT License - See [LICENSE](LICENSE)
+
+---
+
+**Version:** 1.1  
+**Last Updated:** 2025-12-26
