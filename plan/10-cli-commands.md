@@ -37,7 +37,7 @@ func main() {
     rootCmd := &cobra.Command{
         Use:     "hermes",
         Short:   "Hermes Autonomous Agent",
-        Long:    "Autonomous AI development loop for task-driven development",
+        Long:    "AI-powered autonomous application development for task-driven development",
         Version: version,
     }
     

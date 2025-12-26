@@ -260,7 +260,7 @@ const DefaultPromptTemplate = `# Project Instructions
 
 ## Overview
 
-This project uses Hermes for autonomous AI development.
+This project uses Hermes for AI-powered autonomous application development.
 
 ## Guidelines
 
