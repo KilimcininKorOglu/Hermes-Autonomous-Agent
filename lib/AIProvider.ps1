@@ -6,6 +6,32 @@
     Supports: claude, droid, aider
 #>
 
+# Helper function to write to both console and log
+function Write-AIStatus {
+    param(
+        [ValidateSet("INFO", "WARN", "ERROR", "SUCCESS", "DEBUG")]
+        [string]$Level = "INFO",
+        [string]$Message
+    )
+    
+    # Try Write-Log first (if Logger.ps1 is loaded)
+    if (Get-Command Write-Log -ErrorAction SilentlyContinue) {
+        Write-Log -Level $Level -Message $Message
+    }
+    else {
+        # Fallback to Write-Host
+        $color = switch ($Level) {
+            "INFO"    { "Cyan" }
+            "WARN"    { "Yellow" }
+            "ERROR"   { "Red" }
+            "SUCCESS" { "Green" }
+            "DEBUG"   { "DarkGray" }
+            default   { "White" }
+        }
+        Write-Host "[$Level] $Message" -ForegroundColor $color
+    }
+}
+
 # Configuration
 $script:Config = @{
     TimeoutSeconds     = 1200      # 20 minutes
@@ -111,23 +137,18 @@ function Test-PrdSize {
     $size = $content.Length
     $lineCount = ($content -split "`n").Count
     
-    Write-Host "[INFO] PRD size: $size characters, $lineCount lines" -ForegroundColor Cyan
+    Write-AIStatus -Level "INFO" -Message "PRD size: $size characters, $lineCount lines"
     
     if ($size -gt $script:SizeThresholds.MaxSize) {
-        Write-Warning "PRD is very large ($size chars). This may take 15-20 minutes."
-        Write-Warning "Consider breaking PRD into smaller feature documents."
-        Write-Host ""
-        Write-Host "Recommendations:" -ForegroundColor Yellow
-        Write-Host "  - Split by feature/module into separate files"
-        Write-Host "  - Run hermes-prd on each file separately"
-        Write-Host "  - Use -Timeout 1800 for extra time"
-        Write-Host ""
+        Write-AIStatus -Level "WARN" -Message "PRD is very large ($size chars). This may take 15-20 minutes."
+        Write-AIStatus -Level "WARN" -Message "Consider breaking PRD into smaller feature documents."
+        Write-AIStatus -Level "INFO" -Message "Recommendations: Split by feature/module, run hermes-prd separately, use -Timeout 1800"
     }
     elseif ($size -gt $script:SizeThresholds.LargeSize) {
-        Write-Warning "PRD is large ($size chars). This may take 10-15 minutes."
+        Write-AIStatus -Level "WARN" -Message "PRD is large ($size chars). This may take 10-15 minutes."
     }
     elseif ($size -gt $script:SizeThresholds.WarningSize) {
-        Write-Host "[INFO] PRD is medium size. Processing may take 5-10 minutes." -ForegroundColor Yellow
+        Write-AIStatus -Level "INFO" -Message "PRD is medium size. Processing may take 5-10 minutes."
     }
     
     return @{
@@ -239,10 +260,10 @@ function Invoke-AIWithTimeout {
     $process = $null
     $startTime = Get-Date
     
-    Write-Host "[DEBUG] Starting $Provider execution at $($startTime.ToString('HH:mm:ss'))..." -ForegroundColor DarkGray
-    Write-Host "[DEBUG] Timeout: $TimeoutSeconds seconds" -ForegroundColor DarkGray
-    Write-Host "[DEBUG] Prompt length: $($PromptText.Length) chars" -ForegroundColor DarkGray
-    Write-Host "[INFO] Press Ctrl+C to cancel..." -ForegroundColor Gray
+    Write-AIStatus -Level "DEBUG" -Message "Starting $Provider execution at $($startTime.ToString('HH:mm:ss'))..."
+    Write-AIStatus -Level "DEBUG" -Message "Timeout: $TimeoutSeconds seconds"
+    Write-AIStatus -Level "DEBUG" -Message "Prompt length: $($PromptText.Length) chars"
+    Write-AIStatus -Level "INFO" -Message "Press Ctrl+C to cancel..."
     
     try {
         switch ($Provider) {
@@ -256,7 +277,7 @@ function Invoke-AIWithTimeout {
                     $fullInput = $Content + "`n`n" + $PromptText
                 }
                 $fullInput | Set-Content -Path $tempInputFile -Encoding UTF8
-                Write-Host "[DEBUG] Input written to: $tempInputFile ($(($fullInput).Length) chars)" -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Input written to: $tempInputFile ($(($fullInput).Length) chars)"
                 
                 # Use Start-Process with timeout for claude
                 # Claude CLI: cat file | claude -p "prompt" OR claude -p "prompt" with stdin
@@ -269,7 +290,7 @@ function Invoke-AIWithTimeout {
                 $pinfo.UseShellExecute = $false
                 $pinfo.CreateNoWindow = $true
                 
-                Write-Host "[DEBUG] Starting claude process..." -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Starting claude process..."
                 $process = New-Object System.Diagnostics.Process
                 $process.StartInfo = $pinfo
                 $process.Start() | Out-Null
@@ -278,19 +299,19 @@ function Invoke-AIWithTimeout {
                 $process.StandardInput.Write($fullInput)
                 $process.StandardInput.Close()
                 
-                Write-Host "[DEBUG] Waiting for claude process (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Waiting for claude process (timeout: $TimeoutSeconds s)..."
                 $exited = Wait-ProcessWithCtrlC -Process $process -TimeoutSeconds $TimeoutSeconds
                 if (-not $exited) {
-                    Write-Host "[DEBUG] Process timed out!" -ForegroundColor Red
+                    Write-AIStatus -Level "ERROR" -Message "Process timed out!"
                     $process.Kill()
                     throw "AI timeout after $TimeoutSeconds seconds"
                 }
                 
                 $result = $process.StandardOutput.ReadToEnd()
                 $stderr = $process.StandardError.ReadToEnd()
-                Write-Host "[DEBUG] Process exited with code: $($process.ExitCode)" -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Process exited with code: $($process.ExitCode)"
                 if ($stderr) {
-                    Write-Warning "Claude stderr: $stderr"
+                    Write-AIStatus -Level "WARN" -Message "Claude stderr: $stderr"
                 }
                 
                 # Cleanup temp file
@@ -300,7 +321,7 @@ function Invoke-AIWithTimeout {
                 # Write prompt to temp file and call droid directly
                 $tempPromptFile = Join-Path $env:TEMP "hermes-prompt-$(Get-Random).md"
                 $PromptText | Set-Content -Path $tempPromptFile -Encoding UTF8
-                Write-Host "[DEBUG] Prompt written to: $tempPromptFile" -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Prompt written to: $tempPromptFile"
                 
                 # Use Start-Process with timeout for droid
                 $pinfo = New-Object System.Diagnostics.ProcessStartInfo
@@ -311,24 +332,24 @@ function Invoke-AIWithTimeout {
                 $pinfo.UseShellExecute = $false
                 $pinfo.CreateNoWindow = $true
                 
-                Write-Host "[DEBUG] Starting droid process..." -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Starting droid process..."
                 $process = New-Object System.Diagnostics.Process
                 $process.StartInfo = $pinfo
                 $process.Start() | Out-Null
                 
-                Write-Host "[DEBUG] Waiting for droid process (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Waiting for droid process (timeout: $TimeoutSeconds s)..."
                 $exited = Wait-ProcessWithCtrlC -Process $process -TimeoutSeconds $TimeoutSeconds
                 if (-not $exited) {
-                    Write-Host "[DEBUG] Process timed out!" -ForegroundColor Red
+                    Write-AIStatus -Level "ERROR" -Message "Process timed out!"
                     $process.Kill()
                     throw "AI timeout after $TimeoutSeconds seconds"
                 }
                 
                 $result = $process.StandardOutput.ReadToEnd()
                 $stderr = $process.StandardError.ReadToEnd()
-                Write-Host "[DEBUG] Process exited with code: $($process.ExitCode)" -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Process exited with code: $($process.ExitCode)"
                 if ($stderr) {
-                    Write-Warning "Droid stderr: $stderr"
+                    Write-AIStatus -Level "WARN" -Message "Droid stderr: $stderr"
                 }
             }
             "aider" {
@@ -345,38 +366,38 @@ function Invoke-AIWithTimeout {
                 $pinfo.UseShellExecute = $false
                 $pinfo.CreateNoWindow = $true
                 
-                Write-Host "[DEBUG] Starting aider process..." -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Starting aider process..."
                 $process = New-Object System.Diagnostics.Process
                 $process.StartInfo = $pinfo
                 $process.Start() | Out-Null
                 
-                Write-Host "[DEBUG] Waiting for aider process (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Waiting for aider process (timeout: $TimeoutSeconds s)..."
                 $exited = Wait-ProcessWithCtrlC -Process $process -TimeoutSeconds $TimeoutSeconds
                 if (-not $exited) {
-                    Write-Host "[DEBUG] Process timed out!" -ForegroundColor Red
+                    Write-AIStatus -Level "ERROR" -Message "Process timed out!"
                     $process.Kill()
                     throw "AI timeout after $TimeoutSeconds seconds"
                 }
                 
                 $result = $process.StandardOutput.ReadToEnd()
                 $stderr = $process.StandardError.ReadToEnd()
-                Write-Host "[DEBUG] Process exited with code: $($process.ExitCode)" -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Process exited with code: $($process.ExitCode)"
                 if ($stderr) {
-                    Write-Warning "Aider stderr: $stderr"
+                    Write-AIStatus -Level "WARN" -Message "Aider stderr: $stderr"
                 }
             }
         }
         
         $endTime = Get-Date
         $duration = ($endTime - $startTime).TotalSeconds
-        Write-Host "[DEBUG] $Provider completed in $([Math]::Round($duration, 1)) seconds" -ForegroundColor DarkGray
+        Write-AIStatus -Level "DEBUG" -Message "$Provider completed in $([Math]::Round($duration, 1)) seconds"
     }
     finally {
         # Kill process if still running (e.g., on Ctrl+C)
         if ($process -and -not $process.HasExited) {
             try {
                 $process.Kill()
-                Write-Host "[DEBUG] Process killed during cleanup" -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Process killed during cleanup"
             } catch { }
         }
         
@@ -451,7 +472,7 @@ function Test-ParsedOutput {
     )
     
     if ($null -eq $Files -or $Files.Count -eq 0) {
-        Write-Warning "No files parsed from output"
+        Write-AIStatus -Level "WARN" -Message "No files parsed from output"
         return $false
     }
     
@@ -468,12 +489,12 @@ function Test-ParsedOutput {
         
         # Check for required fields
         if ($file.Content -notmatch "Feature ID:" -and $file.FileName -notmatch "status") {
-            Write-Warning "File $($file.FileName) missing Feature ID"
+            Write-AIStatus -Level "WARN" -Message "File $($file.FileName) missing Feature ID"
         }
     }
     
     if (-not $hasFeatureFile) {
-        Write-Warning "No feature files found (expected 001-xxx.md format)"
+        Write-AIStatus -Level "WARN" -Message "No feature files found (expected 001-xxx.md format)"
         return $false
     }
     
@@ -506,7 +527,7 @@ function Invoke-AIWithRetry {
     
     for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
         try {
-            Write-Host "[INFO] Attempt $attempt/$MaxRetries..." -ForegroundColor Cyan
+            Write-AIStatus -Level "INFO" -Message "Attempt $attempt/$MaxRetries..."
             
             $result = Invoke-AIWithTimeout -Provider $Provider `
                 -PromptText $PromptText -Content $Content `
@@ -514,11 +535,10 @@ function Invoke-AIWithRetry {
             
             # Debug: log result length and preview
             $resultLen = if ($result) { $result.Length } else { 0 }
-            Write-Host "[DEBUG] AI output length: $resultLen chars" -ForegroundColor Gray
+            Write-AIStatus -Level "DEBUG" -Message "AI output length: $resultLen chars"
             if ($resultLen -gt 0 -and $resultLen -lt 2000) {
                 # Log short outputs for debugging
-                Write-Host "[DEBUG] Output preview:" -ForegroundColor Gray
-                Write-Host $result.Substring(0, [Math]::Min(500, $resultLen)) -ForegroundColor DarkGray
+                Write-AIStatus -Level "DEBUG" -Message "Output preview: $($result.Substring(0, [Math]::Min(500, $resultLen)))"
             }
             
             # Validate output
@@ -534,7 +554,7 @@ function Invoke-AIWithRetry {
                 throw "Invalid output format"
             }
             
-            Write-Host "[OK] AI completed successfully" -ForegroundColor Green
+            Write-AIStatus -Level "SUCCESS" -Message "AI completed successfully"
             return @{
                 Success  = $true
                 Files    = $files
@@ -543,10 +563,10 @@ function Invoke-AIWithRetry {
             }
         }
         catch {
-            Write-Warning "Attempt $attempt failed: $_"
+            Write-AIStatus -Level "WARN" -Message "Attempt $attempt failed: $_"
             
             if ($attempt -lt $MaxRetries) {
-                Write-Host "[INFO] Retrying in $retryDelay seconds..." -ForegroundColor Yellow
+                Write-AIStatus -Level "INFO" -Message "Retrying in $retryDelay seconds..."
                 Start-Sleep -Seconds $retryDelay
             }
             else {
@@ -628,7 +648,7 @@ function Invoke-TaskExecution {
         $stderr = $process.StandardError.ReadToEnd()
         
         if ($stderr) {
-            Write-Warning "$Provider stderr: $stderr"
+            Write-AIStatus -Level "WARN" -Message "$Provider stderr: $stderr"
         }
         
         return @{
