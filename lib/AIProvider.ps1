@@ -588,7 +588,7 @@ function Invoke-AIWithTimeout {
                 # Use Start-Process with timeout for droid
                 $pinfo = New-Object System.Diagnostics.ProcessStartInfo
                 $pinfo.FileName = "droid"
-                $pinfo.Arguments = "exec --auto medium --file `"$tempPromptFile`"$outputFormat"
+                $pinfo.Arguments = "exec --skip-permissions-unsafe --file `"$tempPromptFile`"$outputFormat"
                 $pinfo.RedirectStandardOutput = $true
                 $pinfo.RedirectStandardError = $true
                 $pinfo.UseShellExecute = $false
