@@ -14,9 +14,9 @@ $script:DefaultConfig = @{
         maxRetries = 10
     }
     taskMode = @{
-        autoBranch = $false
-        autoCommit = $false
-        autonomous = $false
+        autoBranch = $true
+        autoCommit = $true
+        autonomous = $true
         maxConsecutiveErrors = 5
     }
     loop = @{

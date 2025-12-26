@@ -14,8 +14,9 @@ Describe "ConfigManager" {
             $config.ai.timeout | Should Be 300
             $config.ai.prdTimeout | Should Be 1200
             $config.ai.maxRetries | Should Be 10
-            $config.taskMode.autoBranch | Should Be $false
-            $config.taskMode.autoCommit | Should Be $false
+            $config.taskMode.autoBranch | Should Be $true
+            $config.taskMode.autoCommit | Should Be $true
+            $config.taskMode.autonomous | Should Be $true
             $config.loop.maxCallsPerHour | Should Be 100
             $config.paths.tasksDir | Should Be ".hermes\tasks"
         }
