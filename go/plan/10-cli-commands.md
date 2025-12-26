@@ -207,12 +207,9 @@ func runExecute(opts *runOptions) error {
         injector.AddTask(nextTask)
         promptContent, _ := injector.Read()
         
-        // Execute AI
-        result, err := provider.Execute(ctx, &ai.ExecuteOptions{
-            Prompt:       promptContent,
-            Timeout:      opts.timeout,
-            StreamOutput: cfg.AI.StreamOutput,
-        })
+        // Execute AI using claude-code-sdk-go
+        executor := ai.NewTaskExecutor(provider, ".")
+        result, err := executor.ExecuteTask(ctx, nextTask, promptContent)
         
         if err != nil {
             logger.Error("AI execution failed: %v", err)

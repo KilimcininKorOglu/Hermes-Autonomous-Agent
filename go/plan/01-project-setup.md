@@ -18,19 +18,18 @@ go mod init github.com/user/hermes
 ```
 go/
 ├── cmd/
-│   ├── hermes/
-│   ├── hermes-prd/
-│   ├── hermes-add/
-│   └── hermes-setup/
+│   └── hermes/          # Single binary with subcommands
 ├── internal/
-│   ├── ai/
-│   ├── config/
-│   ├── task/
-│   ├── git/
-│   ├── circuit/
-│   ├── prompt/
-│   ├── analyzer/
-│   └── ui/
+│   ├── ai/              # AI provider (claude-code-sdk-go)
+│   ├── cmd/             # Cobra subcommands
+│   ├── config/          # Configuration
+│   ├── task/            # Task parsing
+│   ├── git/             # Git operations
+│   ├── circuit/         # Circuit breaker
+│   ├── prompt/          # Prompt injection
+│   ├── analyzer/        # Response analysis
+│   ├── ui/              # Console output
+│   └── tui/             # Terminal UI (bubbletea)
 ├── pkg/
 │   └── hermes/
 └── templates/
@@ -39,9 +38,21 @@ go/
 ### 1.3 Add Dependencies
 
 ```bash
-go get github.com/severity1/claude-code-sdk-go
+# AI Provider - Claude Code CLI SDK
+go get github.com/severity1/claude-code-sdk-go@v0.4.0
+
+# CLI Framework
 go get github.com/spf13/cobra
+
+# Configuration
 go get github.com/spf13/viper
+
+# TUI Framework
+go get github.com/charmbracelet/bubbletea
+go get github.com/charmbracelet/lipgloss
+go get github.com/charmbracelet/bubbles
+
+# Console colors (non-TUI mode)
 go get github.com/fatih/color
 ```
 
@@ -54,11 +65,16 @@ BINARY_NAME=hermes
 VERSION=$(shell git describe --tags --always --dirty)
 LDFLAGS=-ldflags "-X main.version=$(VERSION)"
 
+# Build single binary with all subcommands
 build:
 	go build $(LDFLAGS) -o bin/$(BINARY_NAME) ./cmd/hermes
-	go build $(LDFLAGS) -o bin/hermes-prd ./cmd/hermes-prd
-	go build $(LDFLAGS) -o bin/hermes-add ./cmd/hermes-add
-	go build $(LDFLAGS) -o bin/hermes-setup ./cmd/hermes-setup
+
+# Cross-platform builds
+build-all:
+	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o bin/$(BINARY_NAME)-windows-amd64.exe ./cmd/hermes
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o bin/$(BINARY_NAME)-linux-amd64 ./cmd/hermes
+	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o bin/$(BINARY_NAME)-darwin-amd64 ./cmd/hermes
+	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o bin/$(BINARY_NAME)-darwin-arm64 ./cmd/hermes
 
 test:
 	go test -v -race ./...
@@ -70,23 +86,46 @@ clean:
 	rm -rf bin/
 
 install: build
-	cp bin/* $(GOPATH)/bin/
+	cp bin/$(BINARY_NAME) $(GOPATH)/bin/
 ```
 
-### 1.5 Create Basic Main Files
+### 1.5 Create Basic Main File
 
-Each command gets a minimal main.go as placeholder:
+Single entry point with subcommands:
 
 ```go
 // cmd/hermes/main.go
 package main
 
-import "fmt"
+import (
+    "os"
+
+    "github.com/spf13/cobra"
+    "hermes/internal/cmd"
+)
 
 var version = "dev"
 
 func main() {
-    fmt.Println("Hermes Autonomous Agent", version)
+    rootCmd := &cobra.Command{
+        Use:     "hermes",
+        Short:   "Hermes Autonomous Agent",
+        Long:    "Autonomous AI development loop using Claude Code SDK",
+        Version: version,
+    }
+
+    // Add subcommands
+    rootCmd.AddCommand(cmd.NewRunCmd())
+    rootCmd.AddCommand(cmd.NewPrdCmd())
+    rootCmd.AddCommand(cmd.NewAddCmd())
+    rootCmd.AddCommand(cmd.NewInitCmd())
+    rootCmd.AddCommand(cmd.NewStatusCmd())
+    rootCmd.AddCommand(cmd.NewTuiCmd())
+    rootCmd.AddCommand(cmd.NewResetCmd())
+
+    if err := rootCmd.Execute(); err != nil {
+        os.Exit(1)
+    }
 }
 ```
 
@@ -97,10 +136,7 @@ func main() {
 | `go.mod` | Go module definition |
 | `go.sum` | Dependency checksums (auto-generated) |
 | `Makefile` | Build automation |
-| `cmd/hermes/main.go` | Main CLI entry |
-| `cmd/hermes-prd/main.go` | PRD parser entry |
-| `cmd/hermes-add/main.go` | Feature add entry |
-| `cmd/hermes-setup/main.go` | Setup entry |
+| `cmd/hermes/main.go` | Main CLI entry with subcommands |
 
 ## Acceptance Criteria
 
