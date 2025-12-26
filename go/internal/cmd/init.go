@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -41,6 +42,16 @@ func initExecute(projectPath string) error {
 
 	absPath, _ := filepath.Abs(projectPath)
 	fmt.Printf("Initializing Hermes in: %s\n\n", absPath)
+
+	// Initialize git if not already a git repo
+	gitDir := filepath.Join(projectPath, ".git")
+	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
+		if err := initGit(projectPath); err != nil {
+			fmt.Printf("  Warning: Could not init git: %v\n", err)
+		} else {
+			fmt.Println("  Initialized: git repository")
+		}
+	}
 
 	// Create directory structure
 	dirs := []string{
@@ -104,4 +115,10 @@ func appendToGitignore(path string) {
 	for _, entry := range entries {
 		f.WriteString(entry + "\n")
 	}
+}
+
+func initGit(projectPath string) error {
+	cmd := exec.Command("git", "init")
+	cmd.Dir = projectPath
+	return cmd.Run()
 }
