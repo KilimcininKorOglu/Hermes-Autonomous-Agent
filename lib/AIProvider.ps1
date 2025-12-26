@@ -197,22 +197,31 @@ function Invoke-AIWithTimeout {
     
     $result = $null
     $tempPromptFile = $null
+    $startTime = Get-Date
+    
+    Write-Host "[DEBUG] Starting $Provider execution at $($startTime.ToString('HH:mm:ss'))..." -ForegroundColor DarkGray
+    Write-Host "[DEBUG] Timeout: $TimeoutSeconds seconds" -ForegroundColor DarkGray
+    Write-Host "[DEBUG] Prompt length: $($PromptText.Length) chars" -ForegroundColor DarkGray
     
     try {
         switch ($Provider) {
             "claude" {
+                Write-Host "[DEBUG] Creating claude job..." -ForegroundColor DarkGray
                 # Use job for claude (may need stdin)
                 $job = Start-Job -ScriptBlock {
                     param($content, $prompt)
                     $content | claude -p --dangerously-skip-permissions $prompt
                 } -ArgumentList $Content, $PromptText
                 
+                Write-Host "[DEBUG] Waiting for claude job (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
                 $completed = Wait-Job $job -Timeout $TimeoutSeconds
                 if (-not $completed) {
+                    Write-Host "[DEBUG] Job timed out after $TimeoutSeconds seconds!" -ForegroundColor Red
                     Stop-Job $job -ErrorAction SilentlyContinue
                     Remove-Job $job -Force -ErrorAction SilentlyContinue
                     throw "AI timeout after $TimeoutSeconds seconds"
                 }
+                Write-Host "[DEBUG] Job completed, receiving output..." -ForegroundColor DarkGray
                 $result = Receive-Job $job
                 Remove-Job $job -Force
             }
@@ -220,6 +229,7 @@ function Invoke-AIWithTimeout {
                 # Write prompt to temp file and call droid directly
                 $tempPromptFile = Join-Path $env:TEMP "hermes-prompt-$(Get-Random).md"
                 $PromptText | Set-Content -Path $tempPromptFile -Encoding UTF8
+                Write-Host "[DEBUG] Prompt written to: $tempPromptFile" -ForegroundColor DarkGray
                 
                 # Use Start-Process with timeout for droid
                 $pinfo = New-Object System.Diagnostics.ProcessStartInfo
@@ -230,30 +240,37 @@ function Invoke-AIWithTimeout {
                 $pinfo.UseShellExecute = $false
                 $pinfo.CreateNoWindow = $true
                 
+                Write-Host "[DEBUG] Starting droid process..." -ForegroundColor DarkGray
                 $process = New-Object System.Diagnostics.Process
                 $process.StartInfo = $pinfo
                 $process.Start() | Out-Null
                 
+                Write-Host "[DEBUG] Waiting for droid process (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
                 $exited = $process.WaitForExit($TimeoutSeconds * 1000)
                 if (-not $exited) {
+                    Write-Host "[DEBUG] Process timed out!" -ForegroundColor Red
                     $process.Kill()
                     throw "AI timeout after $TimeoutSeconds seconds"
                 }
                 
                 $result = $process.StandardOutput.ReadToEnd()
                 $stderr = $process.StandardError.ReadToEnd()
+                Write-Host "[DEBUG] Process exited with code: $($process.ExitCode)" -ForegroundColor DarkGray
                 if ($stderr) {
                     Write-Warning "Droid stderr: $stderr"
                 }
             }
             "aider" {
+                Write-Host "[DEBUG] Creating aider job..." -ForegroundColor DarkGray
                 $job = Start-Job -ScriptBlock {
                     param($prompt, $inputFile)
                     aider --yes --no-auto-commits --message $prompt $inputFile
                 } -ArgumentList $PromptText, $InputFile
                 
+                Write-Host "[DEBUG] Waiting for aider job (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
                 $completed = Wait-Job $job -Timeout $TimeoutSeconds
                 if (-not $completed) {
+                    Write-Host "[DEBUG] Job timed out!" -ForegroundColor Red
                     Stop-Job $job -ErrorAction SilentlyContinue
                     Remove-Job $job -Force -ErrorAction SilentlyContinue
                     throw "AI timeout after $TimeoutSeconds seconds"
@@ -262,6 +279,10 @@ function Invoke-AIWithTimeout {
                 Remove-Job $job -Force
             }
         }
+        
+        $endTime = Get-Date
+        $duration = ($endTime - $startTime).TotalSeconds
+        Write-Host "[DEBUG] $Provider completed in $([Math]::Round($duration, 1)) seconds" -ForegroundColor DarkGray
     }
     finally {
         # Cleanup temp prompt file

@@ -231,7 +231,7 @@ function Write-Status {
         Logs a message with timestamp and level
     #>
     param(
-        [ValidateSet("INFO", "WARN", "ERROR", "SUCCESS", "LOOP")]
+        [ValidateSet("INFO", "WARN", "ERROR", "SUCCESS", "LOOP", "DEBUG")]
         [string]$Level,
         [string]$Message
     )
@@ -243,6 +243,7 @@ function Write-Status {
         "ERROR"   { "Red" }
         "SUCCESS" { "Green" }
         "LOOP"    { "Magenta" }
+        "DEBUG"   { "DarkGray" }
     }
     
     Write-Host "[$timestamp] [$Level] $Message" -ForegroundColor $color
@@ -620,9 +621,16 @@ function Invoke-AIExecution {
             $outputLength = if (Test-Path $outputFile) { (Get-Item $outputFile).Length } else { 0 }
             
             # Record result in circuit breaker (successful task = progress made)
+            Write-Status -Level "DEBUG" -Message "CircuitBreaker: taskSuccessful=$taskSuccessful, filesChanged=$filesChanged, hasErrors=$hasErrors"
             $circuitResult = Add-LoopResult -LoopNumber $LoopCount -FilesChanged $filesChanged -HasErrors $hasErrors -OutputLength $outputLength -HasProgress $taskSuccessful
             
-            if (-not $circuitResult) {
+            # Handle array output from Add-LoopResult (get last value which is the boolean)
+            if ($circuitResult -is [array]) {
+                $circuitResult = $circuitResult[-1]
+            }
+            Write-Status -Level "DEBUG" -Message "CircuitBreaker result: $circuitResult (type: $($circuitResult.GetType().Name))"
+            
+            if ($circuitResult -eq $false) {
                 Write-Status -Level "WARN" -Message "Circuit breaker opened - halting execution"
                 return 3
             }
@@ -968,7 +976,7 @@ function Show-TaskCompletionSummary {
     $bar = Get-ProgressBar -Percentage $progress.Percentage -Width 20
     
     Write-Host ""
-    Write-Host ([char]0x2501 * 50) -ForegroundColor Cyan
+    Write-Host ("=" * 50) -ForegroundColor Cyan
     Write-Host "$([char]0x2713) $($Task.TaskId): $($Task.Name) completed" -ForegroundColor Green -NoNewline
     if ($Duration) {
         Write-Host " ($Duration)" -ForegroundColor Gray
@@ -983,7 +991,7 @@ function Show-TaskCompletionSummary {
     if ($nextTask -and $nextTask.TaskId -ne $Task.TaskId) {
         Write-Host "  Next: $($nextTask.TaskId) - $($nextTask.Name)" -ForegroundColor Gray
     }
-    Write-Host ([char]0x2501 * 50) -ForegroundColor Cyan
+    Write-Host ("=" * 50) -ForegroundColor Cyan
     Write-Host ""
 }
 
@@ -1007,7 +1015,7 @@ function Show-FeatureCompletionSummary {
     $bar = Get-ProgressBar -Percentage $percentage -Width 20
     
     Write-Host ""
-    Write-Host ([char]0x2501 * 50) -ForegroundColor Green
+    Write-Host ("=" * 50) -ForegroundColor Green
     Write-Host "$([char]0x2713) $FeatureId`: $($feature.FeatureName) - COMPLETED & MERGED" -ForegroundColor Green
     Write-Host ""
     Write-Host "  Tasks: $($fp.Completed)/$($fp.Total) completed" -ForegroundColor White
@@ -1021,7 +1029,7 @@ function Show-FeatureCompletionSummary {
         Write-Host ""
         Write-Host "  Continuing automatically..." -ForegroundColor Cyan
     }
-    Write-Host ([char]0x2501 * 50) -ForegroundColor Green
+    Write-Host ("=" * 50) -ForegroundColor Green
     Write-Host ""
 }
 
@@ -1043,7 +1051,7 @@ function Show-FinalCompletionSummary {
     $completedFeatures = @($allFeatures | Where-Object { $_.Status -eq "COMPLETED" }).Count
     
     Write-Host ""
-    Write-Host ([char]0x2501 * 50) -ForegroundColor Green
+    Write-Host ("=" * 50) -ForegroundColor Green
     Write-Host "$([char]0x2713) ALL TASKS COMPLETED" -ForegroundColor Green
     Write-Host ""
     Write-Host "  Duration: $duration" -ForegroundColor White
@@ -1054,7 +1062,7 @@ function Show-FinalCompletionSummary {
     Write-Host "  Errors: $($script:Config.ErrorsRecovered) (recovered)" -ForegroundColor $(if ($script:Config.ErrorsRecovered -gt 0) { "Yellow" } else { "White" })
     Write-Host ""
     Write-Host "  Git: All branches merged to main" -ForegroundColor White
-    Write-Host ([char]0x2501 * 50) -ForegroundColor Green
+    Write-Host ("=" * 50) -ForegroundColor Green
     Write-Host ""
 }
 
@@ -1269,6 +1277,14 @@ function Start-TaskModeLoop {
         
         # Execute AI
         $execResult = Invoke-AIExecution -LoopCount $script:LoopCount
+        
+        # Debug: log execResult type and value
+        Write-Status -Level "DEBUG" -Message "Invoke-AIExecution returned: $execResult (type: $($execResult.GetType().Name))"
+        if ($execResult -is [array]) {
+            Write-Status -Level "DEBUG" -Message "execResult is array with $($execResult.Count) elements"
+            $execResult = $execResult[-1]
+            Write-Status -Level "DEBUG" -Message "Using last element: $execResult"
+        }
         
         if ($execResult -eq 0) {
             # Check if task completed
