@@ -62,10 +62,20 @@ hermes-go/
 │   ├── analyzer/
 │   │   ├── response.go          # Response analysis
 │   │   └── feature.go           # Feature analysis
-│   └── ui/
-│       ├── table.go             # Table formatting
-│       ├── logger.go            # Logging
-│       └── progress.go          # Progress display
+│   ├── ui/
+│   │   ├── table.go             # Table formatting
+│   │   ├── logger.go            # Logging
+│   │   └── progress.go          # Progress display
+│   └── tui/
+│       ├── app.go               # Main TUI app
+│       ├── styles.go            # Shared styles
+│       ├── layout.go            # Responsive layout
+│       ├── dashboard.go         # Dashboard screen
+│       ├── tasks.go             # Task list screen
+│       ├── task_detail.go       # Task detail screen
+│       ├── logs.go              # Log viewer screen
+│       ├── settings.go          # Settings screen
+│       └── help.go              # Help screen
 ├── pkg/
 │   └── hermes/
 │       └── hermes.go            # Public API (if needed)
@@ -84,7 +94,10 @@ hermes-go/
 | `github.com/severity1/claude-code-sdk-go` | Claude Code CLI SDK |
 | `github.com/spf13/cobra` | CLI framework |
 | `github.com/spf13/viper` | Configuration |
-| `github.com/fatih/color` | Colored output |
+| `github.com/charmbracelet/bubbletea` | TUI framework (Elm architecture) |
+| `github.com/charmbracelet/lipgloss` | TUI styling and layout |
+| `github.com/charmbracelet/bubbles` | TUI components (table, viewport, spinner) |
+| `github.com/fatih/color` | Colored output (non-TUI mode) |
 
 ## Benefits of Go Rewrite
 
@@ -110,6 +123,7 @@ hermes-go/
 | 09 | UI and logging | [09-ui-logging.md](09-ui-logging.md) |
 | 10 | CLI commands | [10-cli-commands.md](10-cli-commands.md) |
 | 11 | Testing | [11-testing.md](11-testing.md) |
+| 12 | TUI screens | [12-tui-screens.md](12-tui-screens.md) |
 
 ## Estimated Timeline
 
@@ -117,8 +131,9 @@ hermes-go/
 - **Phase 04-06**: Core logic (AI, git, circuit) - 2-3 days
 - **Phase 07-09**: Support (prompt, analysis, UI) - 1-2 days
 - **Phase 10-11**: CLI and testing - 2-3 days
+- **Phase 12**: TUI screens - 2-3 days
 
-Total: ~1-2 weeks for full implementation
+Total: ~2 weeks for full implementation
 
 ## Quick Start (After Implementation)
 
