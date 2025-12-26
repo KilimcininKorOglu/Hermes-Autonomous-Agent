@@ -1,19 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Talaria - Comprehensive Backup System
-:: Build script for Windows (equivalent to Makefile)
-
-:: Colors (Windows 10+)
-set "GREEN=[92m"
-set "YELLOW=[93m"
-set "RED=[91m"
-set "CYAN=[96m"
-set "NC=[0m"
+:: Hermes - Autonomous AI Development Loop
+:: Build script for Windows
 
 :: Variables
 set "BINARY_DIR=bin"
-set "CONFIG_FILE=configs\talaria.yaml"
+set "BINARY_NAME=hermes"
 
 :: Get version from git
 for /f "tokens=*" %%i in ('git describe --tags --always --dirty 2^>nul') do set "VERSION=%%i"
@@ -29,18 +22,12 @@ if "%COMMIT%"=="" set "COMMIT=unknown"
 :: LDFLAGS
 set "LDFLAGS=-ldflags "-X main.Version=%VERSION% -X main.BuildTime=%BUILD_TIME% -X main.Commit=%COMMIT%""
 
-:: Binary names
-set "SERVER_BINARY=talaria-server-windows-amd64.exe"
-set "CLIENT_BINARY=talaria-client-windows-amd64.exe"
-
 :: Parse command
 if "%1"=="" goto :build
 if "%1"=="help" goto :help
 if "%1"=="-h" goto :help
 if "%1"=="--help" goto :help
 if "%1"=="build" goto :build
-if "%1"=="build-server" goto :build-server
-if "%1"=="build-client" goto :build-client
 if "%1"=="build-linux" goto :build-linux
 if "%1"=="build-linux-arm64" goto :build-linux-arm64
 if "%1"=="build-windows" goto :build-windows
@@ -49,397 +36,274 @@ if "%1"=="build-darwin" goto :build-darwin
 if "%1"=="build-darwin-arm64" goto :build-darwin-arm64
 if "%1"=="build-all" goto :build-all
 if "%1"=="test" goto :test
-if "%1"=="test-unit" goto :test-unit
-if "%1"=="test-integration" goto :test-integration
-if "%1"=="test-cover" goto :test-cover
+if "%1"=="test-short" goto :test-short
 if "%1"=="lint" goto :lint
 if "%1"=="fmt" goto :fmt
 if "%1"=="vet" goto :vet
 if "%1"=="check" goto :check
 if "%1"=="clean" goto :clean
-if "%1"=="run-server" goto :run-server
-if "%1"=="run-client" goto :run-client
-if "%1"=="proto" goto :proto
+if "%1"=="run" goto :run
+if "%1"=="run-tui" goto :run-tui
 if "%1"=="deps" goto :deps
 if "%1"=="deps-update" goto :deps-update
-if "%1"=="generate" goto :generate
-if "%1"=="web-install" goto :web-install
-if "%1"=="web-build" goto :web-build
-if "%1"=="web-dev" goto :web-dev
-if "%1"=="docker-build" goto :docker-build
-if "%1"=="docker-push" goto :docker-push
+if "%1"=="install" goto :install
 
-echo %RED%Unknown command: %1%NC%
+echo Unknown command: %1
 echo Run 'build.bat help' for usage
 exit /b 1
 
 :: ==================== BUILD TARGETS ====================
 
 :build
-echo %GREEN%Building all binaries for Windows...%NC%
-call :build-server
-if errorlevel 1 exit /b 1
-call :build-client
-if errorlevel 1 exit /b 1
-echo %GREEN%All binaries built successfully%NC%
-goto :eof
-
-:build-server
-echo %CYAN%Building Talaria server...%NC%
+echo Building Hermes for Windows...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
-go build %LDFLAGS% -o "%BINARY_DIR%\%SERVER_BINARY%" .\cmd\talaria-server
+go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%.exe" .\cmd\hermes
 if errorlevel 1 (
-    echo %RED%Failed to build server%NC%
+    echo Build failed
     exit /b 1
 )
-echo   %GREEN%Created: %BINARY_DIR%\%SERVER_BINARY%%NC%
-goto :eof
-
-:build-client
-echo %CYAN%Building Talaria client...%NC%
-if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
-go build %LDFLAGS% -o "%BINARY_DIR%\%CLIENT_BINARY%" .\cmd\talaria-client
-if errorlevel 1 (
-    echo %RED%Failed to build client%NC%
-    exit /b 1
-)
-echo   %GREEN%Created: %BINARY_DIR%\%CLIENT_BINARY%%NC%
+echo Created: %BINARY_DIR%\%BINARY_NAME%.exe
 goto :eof
 
 :: ==================== CROSS-COMPILATION ====================
 
 :build-linux
-echo %GREEN%Building all binaries for Linux (amd64) with Zig...%NC%
+echo Building Hermes for Linux (amd64)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
 set GOOS=linux
 set GOARCH=amd64
-set CGO_ENABLED=1
-set CC=zig cc -target x86_64-linux-musl
-set CXX=zig c++ -target x86_64-linux-musl
-go build %LDFLAGS% -ldflags "-linkmode=external -extldflags=-static" -o "%BINARY_DIR%\talaria-server-linux-amd64" .\cmd\talaria-server
-go build %LDFLAGS% -ldflags "-linkmode=external -extldflags=-static" -o "%BINARY_DIR%\talaria-client-linux-amd64" .\cmd\talaria-client
+set CGO_ENABLED=0
+go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-linux-amd64" .\cmd\hermes
 set GOOS=
 set GOARCH=
 set CGO_ENABLED=
-set CC=
-set CXX=
-echo %GREEN%Linux (amd64) binaries built successfully%NC%
+echo Created: %BINARY_DIR%\%BINARY_NAME%-linux-amd64
 goto :eof
 
 :build-linux-arm64
-echo %GREEN%Building all binaries for Linux (arm64) with Zig...%NC%
+echo Building Hermes for Linux (arm64)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
 set GOOS=linux
 set GOARCH=arm64
-set CGO_ENABLED=1
-set CC=zig cc -target aarch64-linux-musl
-set CXX=zig c++ -target aarch64-linux-musl
-go build %LDFLAGS% -ldflags "-linkmode=external -extldflags=-static" -o "%BINARY_DIR%\talaria-server-linux-arm64" .\cmd\talaria-server
-go build %LDFLAGS% -ldflags "-linkmode=external -extldflags=-static" -o "%BINARY_DIR%\talaria-client-linux-arm64" .\cmd\talaria-client
+set CGO_ENABLED=0
+go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-linux-arm64" .\cmd\hermes
 set GOOS=
 set GOARCH=
 set CGO_ENABLED=
-set CC=
-set CXX=
-echo %GREEN%Linux (arm64) binaries built successfully%NC%
+echo Created: %BINARY_DIR%\%BINARY_NAME%-linux-arm64
 goto :eof
 
 :build-windows
-echo %GREEN%Building all binaries for Windows (amd64)...%NC%
+echo Building Hermes for Windows (amd64)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
 set GOOS=windows
 set GOARCH=amd64
-go build %LDFLAGS% -o "%BINARY_DIR%\talaria-server-windows-amd64.exe" .\cmd\talaria-server
-go build %LDFLAGS% -o "%BINARY_DIR%\talaria-client-windows-amd64.exe" .\cmd\talaria-client
+go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-windows-amd64.exe" .\cmd\hermes
 set GOOS=
 set GOARCH=
-echo %GREEN%Windows (amd64) binaries built successfully%NC%
+echo Created: %BINARY_DIR%\%BINARY_NAME%-windows-amd64.exe
 goto :eof
 
 :build-windows-arm64
-echo %GREEN%Building all binaries for Windows (arm64)...%NC%
+echo Building Hermes for Windows (arm64)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
 set GOOS=windows
 set GOARCH=arm64
-go build %LDFLAGS% -o "%BINARY_DIR%\talaria-server-windows-arm64.exe" .\cmd\talaria-server
-go build %LDFLAGS% -o "%BINARY_DIR%\talaria-client-windows-arm64.exe" .\cmd\talaria-client
+go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-windows-arm64.exe" .\cmd\hermes
 set GOOS=
 set GOARCH=
-echo %GREEN%Windows (arm64) binaries built successfully%NC%
+echo Created: %BINARY_DIR%\%BINARY_NAME%-windows-arm64.exe
 goto :eof
 
 :build-darwin
-echo %GREEN%Building all binaries for macOS (amd64)...%NC%
+echo Building Hermes for macOS (amd64)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
 set GOOS=darwin
 set GOARCH=amd64
 set CGO_ENABLED=0
-go build %LDFLAGS% -o "%BINARY_DIR%\talaria-server-darwin-amd64" .\cmd\talaria-server
-go build %LDFLAGS% -tags notray -o "%BINARY_DIR%\talaria-client-darwin-amd64" .\cmd\talaria-client
+go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-darwin-amd64" .\cmd\hermes
 set GOOS=
 set GOARCH=
 set CGO_ENABLED=
-echo %GREEN%macOS (amd64) binaries built successfully%NC%
+echo Created: %BINARY_DIR%\%BINARY_NAME%-darwin-amd64
 goto :eof
 
 :build-darwin-arm64
-echo %GREEN%Building all binaries for macOS (arm64/Apple Silicon)...%NC%
+echo Building Hermes for macOS (arm64/Apple Silicon)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
 set GOOS=darwin
 set GOARCH=arm64
 set CGO_ENABLED=0
-go build %LDFLAGS% -o "%BINARY_DIR%\talaria-server-darwin-arm64" .\cmd\talaria-server
-go build %LDFLAGS% -tags notray -o "%BINARY_DIR%\talaria-client-darwin-arm64" .\cmd\talaria-client
+go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-darwin-arm64" .\cmd\hermes
 set GOOS=
 set GOARCH=
 set CGO_ENABLED=
-echo %GREEN%macOS (arm64) binaries built successfully%NC%
+echo Created: %BINARY_DIR%\%BINARY_NAME%-darwin-arm64
 goto :eof
 
 :build-all
-echo %GREEN%Building for all platforms...%NC%
+echo Building for all platforms...
 call :build-linux
 call :build-linux-arm64
 call :build-windows
 call :build-windows-arm64
 call :build-darwin
 call :build-darwin-arm64
-echo %GREEN%All platform binaries built successfully%NC%
+echo All platform binaries built successfully
 goto :eof
 
 :: ==================== TEST TARGETS ====================
 
 :test
-call :test-unit
-echo %GREEN%All tests completed%NC%
-goto :eof
-
-:test-unit
-echo %CYAN%Running unit tests...%NC%
-go test -v -short -coverprofile=coverage.out ./...
+echo Running tests...
+go test -v -race -coverprofile=coverage.out ./...
 if errorlevel 1 (
-    echo %RED%Unit tests failed%NC%
+    echo Tests failed
     exit /b 1
 )
 go tool cover -html=coverage.out -o coverage.html
-echo %GREEN%Unit tests passed. Coverage report: coverage.html%NC%
+echo Tests passed. Coverage report: coverage.html
 goto :eof
 
-:test-integration
-echo %CYAN%Running integration tests...%NC%
-go test -v -tags=integration ./...
+:test-short
+echo Running short tests...
+go test -v -short ./...
 if errorlevel 1 (
-    echo %RED%Integration tests failed%NC%
+    echo Tests failed
     exit /b 1
 )
-echo %GREEN%Integration tests passed%NC%
-goto :eof
-
-:test-cover
-echo %CYAN%Running tests with coverage...%NC%
-go test -v -coverprofile=coverage.out -covermode=atomic ./...
-if errorlevel 1 (
-    echo %RED%Tests failed%NC%
-    exit /b 1
-)
-go tool cover -func=coverage.out
-echo %GREEN%Coverage report generated%NC%
+echo Short tests passed
 goto :eof
 
 :: ==================== CODE QUALITY ====================
 
 :lint
-echo %CYAN%Running linter...%NC%
+echo Running linter...
 golangci-lint run ./...
 if errorlevel 1 (
-    echo %RED%Linting failed%NC%
+    echo Linting failed
     exit /b 1
 )
-echo %GREEN%Linting passed%NC%
+echo Linting passed
 goto :eof
 
 :fmt
-echo %CYAN%Formatting code...%NC%
+echo Formatting code...
 gofmt -s -w .
 go mod tidy
-echo %GREEN%Code formatted%NC%
+echo Code formatted
 goto :eof
 
 :vet
-echo %CYAN%Running go vet...%NC%
+echo Running go vet...
 go vet ./...
 if errorlevel 1 (
-    echo %RED%go vet found issues%NC%
+    echo go vet found issues
     exit /b 1
 )
-echo %GREEN%go vet passed%NC%
+echo go vet passed
 goto :eof
 
 :check
-echo %CYAN%Running all checks...%NC%
+echo Running all checks...
 call :fmt
 call :vet
 call :lint
 call :test
-echo %GREEN%All checks passed%NC%
+echo All checks passed
 goto :eof
 
 :: ==================== CLEAN ====================
 
 :clean
-echo %CYAN%Cleaning build artifacts...%NC%
+echo Cleaning build artifacts...
 if exist "%BINARY_DIR%" rmdir /s /q "%BINARY_DIR%"
 if exist "coverage.out" del "coverage.out"
 if exist "coverage.html" del "coverage.html"
-echo %GREEN%Cleaned%NC%
+if exist "hermes.exe" del "hermes.exe"
+echo Cleaned
 goto :eof
 
 :: ==================== RUN TARGETS ====================
 
-:run-server
-call :build-server
+:run
+call :build
 if errorlevel 1 exit /b 1
-echo %GREEN%Starting Talaria server...%NC%
-"%BINARY_DIR%\%SERVER_BINARY%" -config "%CONFIG_FILE%"
+echo Starting Hermes...
+"%BINARY_DIR%\%BINARY_NAME%.exe" status
 goto :eof
 
-:run-client
-call :build-client
+:run-tui
+call :build
 if errorlevel 1 exit /b 1
-echo %GREEN%Starting Talaria client...%NC%
-"%BINARY_DIR%\%CLIENT_BINARY%"
-goto :eof
-
-:: ==================== PROTO ====================
-
-:proto
-echo %CYAN%Generating protobuf code...%NC%
-buf generate
-if errorlevel 1 (
-    echo %RED%Proto generation failed%NC%
-    exit /b 1
-)
-echo %GREEN%Proto files generated%NC%
+echo Starting Hermes TUI...
+"%BINARY_DIR%\%BINARY_NAME%.exe" tui
 goto :eof
 
 :: ==================== DEPENDENCIES ====================
 
 :deps
-echo %CYAN%Downloading dependencies...%NC%
+echo Downloading dependencies...
 go mod download
 go mod verify
-echo %GREEN%Dependencies downloaded%NC%
+echo Dependencies downloaded
 goto :eof
 
 :deps-update
-echo %CYAN%Updating dependencies...%NC%
+echo Updating dependencies...
 go get -u ./...
 go mod tidy
-echo %GREEN%Dependencies updated%NC%
+echo Dependencies updated
 goto :eof
 
-:: ==================== GENERATE ====================
+:: ==================== INSTALL ====================
 
-:generate
-echo %CYAN%Generating code...%NC%
-go generate ./...
-echo %GREEN%Code generated%NC%
-goto :eof
-
-:: ==================== WEB DASHBOARD ====================
-
-:web-install
-echo %CYAN%Installing web dashboard dependencies...%NC%
-cd web && npm install
-echo %GREEN%Web dependencies installed%NC%
-goto :eof
-
-:web-build
-echo %CYAN%Building web dashboard...%NC%
-cd web && npm run build
-echo %GREEN%Web dashboard built%NC%
-goto :eof
-
-:web-dev
-echo %CYAN%Starting web dashboard dev server...%NC%
-cd web && npm run dev
-goto :eof
-
-:: ==================== DOCKER ====================
-
-:docker-build
-echo %CYAN%Building Docker images...%NC%
-docker build -t talaria-server:%VERSION% -f deploy\docker\Dockerfile.server .
-docker build -t talaria-client:%VERSION% -f deploy\docker\Dockerfile.client .
-echo %GREEN%Docker images built%NC%
-goto :eof
-
-:docker-push
-echo %CYAN%Pushing Docker images...%NC%
-docker push talaria-server:%VERSION%
-docker push talaria-client:%VERSION%
-echo %GREEN%Docker images pushed%NC%
+:install
+call :build
+if errorlevel 1 exit /b 1
+echo Installing Hermes to GOPATH\bin...
+copy "%BINARY_DIR%\%BINARY_NAME%.exe" "%GOPATH%\bin\"
+echo Installed
 goto :eof
 
 :: ==================== HELP ====================
 
 :help
 echo.
-echo %GREEN%Talaria - Comprehensive Backup System%NC%
-echo %GREEN%=====================================%NC%
+echo Hermes - Autonomous AI Development Loop
+echo ========================================
 echo.
 echo Usage: build.bat [command]
 echo.
-echo %YELLOW%Build targets (Windows):%NC%
-echo   build              Build all binaries for Windows
-echo   build-server       Build server binary
-echo   build-client       Build client binary
+echo Build targets:
+echo   build              Build for Windows (default)
+echo   build-linux        Build for Linux (amd64)
+echo   build-linux-arm64  Build for Linux (arm64)
+echo   build-windows      Build for Windows (amd64)
+echo   build-windows-arm64 Build for Windows (arm64)
+echo   build-darwin       Build for macOS (amd64)
+echo   build-darwin-arm64 Build for macOS (arm64/Apple Silicon)
+echo   build-all          Build for all platforms
 echo.
-echo %YELLOW%Cross-compilation targets:%NC%
-echo   build-linux        Build all binaries for Linux (amd64)
-echo   build-linux-arm64  Build all binaries for Linux (arm64)
-echo   build-windows      Build all binaries for Windows (amd64)
-echo   build-windows-arm64 Build all binaries for Windows (arm64)
-echo   build-darwin       Build all binaries for macOS (amd64)
-echo   build-darwin-arm64 Build all binaries for macOS (arm64/Apple Silicon)
-echo   build-all          Build for all supported platforms
+echo Test targets:
+echo   test               Run all tests with coverage
+echo   test-short         Run short tests only
 echo.
-echo %YELLOW%Test targets:%NC%
-echo   test               Run all tests
-echo   test-unit          Run unit tests with coverage
-echo   test-integration   Run integration tests
-echo   test-cover         Run tests with coverage report
-echo.
-echo %YELLOW%Code quality:%NC%
+echo Code quality:
 echo   lint               Run golangci-lint
 echo   fmt                Format code and tidy modules
 echo   vet                Run go vet
 echo   check              Run fmt, vet, lint, and test
 echo.
-echo %YELLOW%Run targets:%NC%
-echo   run-server         Build and run server
-echo   run-client         Build and run client
+echo Run targets:
+echo   run                Build and show status
+echo   run-tui            Build and run TUI
 echo.
-echo %YELLOW%Protobuf:%NC%
-echo   proto              Generate protobuf code
-echo.
-echo %YELLOW%Web Dashboard:%NC%
-echo   web-install        Install web dependencies
-echo   web-build          Build web dashboard
-echo   web-dev            Start web dev server
-echo.
-echo %YELLOW%Docker:%NC%
-echo   docker-build       Build Docker images
-echo   docker-push        Push Docker images
-echo.
-echo %YELLOW%Other:%NC%
+echo Other:
 echo   deps               Download dependencies
 echo   deps-update        Update dependencies
-echo   generate           Run go generate
+echo   install            Install to GOPATH\bin
 echo   clean              Remove build artifacts
 echo   help               Show this help message
-echo.
-echo %CYAN%Binary naming: talaria-{component}-{os}-{arch}[.exe]%NC%
-echo Example: talaria-server-linux-amd64, talaria-client-windows-amd64.exe
 echo.
 goto :eof
