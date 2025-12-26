@@ -101,8 +101,14 @@ func (m *DashboardModel) progressView() string {
 		return sb.String()
 	}
 
-	// Progress bar
-	barWidth := 30
+	// Progress bar - dynamic width based on box width
+	barWidth := m.width/2 - 16 // Account for borders and padding
+	if barWidth < 10 {
+		barWidth = 10
+	}
+	if barWidth > 40 {
+		barWidth = 40
+	}
 	filled := int(m.progress.Percentage / 100 * float64(barWidth))
 	if filled > barWidth {
 		filled = barWidth

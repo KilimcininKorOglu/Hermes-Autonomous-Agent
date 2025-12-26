@@ -83,6 +83,15 @@ func (m *TasksModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *TasksModel) View() string {
 	var sb strings.Builder
 
+	// Calculate dynamic column widths
+	nameWidth := m.width - 50 // ID(6) + Status(12) + Priority(8) + Feature(6) + separators(~18)
+	if nameWidth < 20 {
+		nameWidth = 20
+	}
+	if nameWidth > 60 {
+		nameWidth = 60
+	}
+
 	// Filter bar
 	filterStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("241")).
@@ -101,8 +110,8 @@ func (m *TasksModel) View() string {
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderBottom(true)
 
-	header := fmt.Sprintf("%-6s | %-35s | %-12s | %-8s | %-6s",
-		"ID", "Name", "Status", "Priority", "Feature")
+	headerFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-6s", nameWidth)
+	header := fmt.Sprintf(headerFmt, "ID", "Name", "Status", "Priority", "Feature")
 	sb.WriteString(headerStyle.Render(header))
 	sb.WriteString("\n")
 
@@ -113,14 +122,32 @@ func (m *TasksModel) View() string {
 		return sb.String()
 	}
 
-	for i, t := range tasks {
+	// Calculate visible rows based on height
+	maxRows := m.height - 8 // Account for header, filter bar, footer
+	if maxRows < 5 {
+		maxRows = 5
+	}
+
+	// Scroll offset
+	startIdx := 0
+	if m.cursor >= maxRows {
+		startIdx = m.cursor - maxRows + 1
+	}
+	endIdx := startIdx + maxRows
+	if endIdx > len(tasks) {
+		endIdx = len(tasks)
+	}
+
+	rowFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-6s", nameWidth)
+
+	for i := startIdx; i < endIdx; i++ {
+		t := tasks[i]
 		name := t.Name
-		if len(name) > 35 {
-			name = name[:32] + "..."
+		if len(name) > nameWidth {
+			name = name[:nameWidth-3] + "..."
 		}
 
-		row := fmt.Sprintf("%-6s | %-35s | %-12s | %-8s | %-6s",
-			t.ID, name, t.Status, t.Priority, t.FeatureID)
+		row := fmt.Sprintf(rowFmt, t.ID, name, t.Status, t.Priority, t.FeatureID)
 
 		rowStyle := lipgloss.NewStyle()
 		if i == m.cursor {
@@ -145,8 +172,12 @@ func (m *TasksModel) View() string {
 		sb.WriteString("\n")
 	}
 
-	// Footer
-	sb.WriteString(fmt.Sprintf("\nShowing %d tasks", len(tasks)))
+	// Footer with scroll info
+	if len(tasks) > maxRows {
+		sb.WriteString(fmt.Sprintf("\nShowing %d-%d of %d tasks (j/k to scroll)", startIdx+1, endIdx, len(tasks)))
+	} else {
+		sb.WriteString(fmt.Sprintf("\nShowing %d tasks", len(tasks)))
+	}
 
 	return sb.String()
 }
