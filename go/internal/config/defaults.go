@@ -20,6 +20,7 @@ func DefaultConfig() *Config {
 		Loop: LoopConfig{
 			MaxCallsPerHour: 100,
 			TimeoutMinutes:  15,
+			ErrorDelay:      10,
 		},
 		Paths: PathsConfig{
 			HermesDir: ".hermes",

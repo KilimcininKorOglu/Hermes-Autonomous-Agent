@@ -19,6 +19,8 @@ type ExecuteOptions struct {
 	Tools        []string // Allowed tools: "Read", "Write", "Bash", etc.
 	MaxTurns     int
 	SystemPrompt string
+	Timeout      int  // Timeout in seconds
+	StreamOutput bool // Enable streaming
 }
 
 // ExecuteResult contains the result of AI execution

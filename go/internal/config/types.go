@@ -30,6 +30,7 @@ type TaskModeConfig struct {
 type LoopConfig struct {
 	MaxCallsPerHour int `json:"maxCallsPerHour" mapstructure:"maxCallsPerHour"`
 	TimeoutMinutes  int `json:"timeoutMinutes" mapstructure:"timeoutMinutes"`
+	ErrorDelay      int `json:"errorDelay" mapstructure:"errorDelay"`
 }
 
 // PathsConfig contains directory paths

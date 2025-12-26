@@ -1,0 +1,214 @@
+package cmd
+
+import (
+	"bufio"
+	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/spf13/cobra"
+	"hermes/internal/ai"
+	"hermes/internal/analyzer"
+	"hermes/internal/circuit"
+	"hermes/internal/config"
+	"hermes/internal/git"
+	"hermes/internal/prompt"
+	"hermes/internal/task"
+	"hermes/internal/ui"
+)
+
+type runOptions struct {
+	autoBranch bool
+	autoCommit bool
+	autonomous bool
+	timeout    int
+	debug      bool
+}
+
+// NewRunCmd creates the run subcommand
+func NewRunCmd() *cobra.Command {
+	opts := &runOptions{}
+
+	cmd := &cobra.Command{
+		Use:   "run",
+		Short: "Run task execution loop",
+		Long:  "Execute tasks from task files using Claude CLI",
+		Example: `  hermes run
+  hermes run --auto-branch --auto-commit
+  hermes run --autonomous`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runExecute(opts)
+		},
+	}
+
+	cmd.Flags().BoolVar(&opts.autoBranch, "auto-branch", false, "Create feature branches automatically")
+	cmd.Flags().BoolVar(&opts.autoCommit, "auto-commit", false, "Commit on task completion")
+	cmd.Flags().BoolVar(&opts.autonomous, "autonomous", false, "Run without pausing between tasks")
+	cmd.Flags().IntVar(&opts.timeout, "timeout", 300, "AI timeout in seconds")
+	cmd.Flags().BoolVar(&opts.debug, "debug", false, "Enable debug output")
+
+	return cmd
+}
+
+func runExecute(opts *runOptions) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Handle Ctrl+C
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-sigChan
+		fmt.Println("\nReceived interrupt, shutting down...")
+		cancel()
+	}()
+
+	// Load config
+	cfg, err := config.Load(".")
+	if err != nil {
+		cfg = config.DefaultConfig()
+	}
+
+	// Initialize logger
+	logger, err := ui.NewLogger(".", opts.debug)
+	if err != nil {
+		return err
+	}
+	defer logger.Close()
+
+	ui.PrintBanner()
+	ui.PrintHeader("Task Execution Loop")
+
+	// Initialize components
+	reader := task.NewReader(".")
+	breaker := circuit.New(".")
+	gitOps := git.New(".")
+	injector := prompt.NewInjector(".")
+	respAnalyzer := analyzer.NewResponseAnalyzer()
+
+	// Initialize circuit breaker
+	if err := breaker.Initialize(); err != nil {
+		return err
+	}
+
+	// Check for tasks
+	if !reader.HasTasks() {
+		return fmt.Errorf("no tasks found, run 'hermes prd <file>' first")
+	}
+
+	// Get provider
+	provider := ai.NewClaudeProvider()
+	logger.Info("Using AI provider: %s", provider.Name())
+
+	loopNumber := 0
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		loopNumber++
+		ui.PrintLoopHeader(loopNumber)
+
+		// Check circuit breaker
+		canExecute, err := breaker.CanExecute()
+		if err != nil {
+			return err
+		}
+		if !canExecute {
+			breaker.PrintHaltMessage()
+			return nil
+		}
+
+		// Get next task
+		nextTask, err := reader.GetNextTask()
+		if err != nil {
+			return err
+		}
+		if nextTask == nil {
+			logger.Success("All tasks completed!")
+			return nil
+		}
+
+		ui.PrintTaskHeader(nextTask)
+		logger.Info("Working on task: %s - %s", nextTask.ID, nextTask.Name)
+
+		// Handle branching
+		if opts.autoBranch && gitOps.IsRepository() {
+			feature, _ := reader.GetFeatureByID(nextTask.FeatureID)
+			if feature != nil {
+				branchName, err := gitOps.CreateFeatureBranch(feature.ID, feature.Name)
+				if err == nil {
+					logger.Info("On branch: %s", branchName)
+				}
+			}
+		}
+
+		// Inject task into prompt
+		if err := injector.AddTask(nextTask); err != nil {
+			logger.Warn("Failed to inject task: %v", err)
+		}
+		promptContent, _ := injector.Read()
+
+		// Execute AI
+		executor := ai.NewTaskExecutor(provider, ".")
+		result, err := executor.ExecuteTask(ctx, nextTask, promptContent)
+
+		if err != nil {
+			logger.Error("AI execution failed: %v", err)
+			breaker.AddLoopResult(false, true, loopNumber)
+
+			// Wait before retry
+			time.Sleep(time.Duration(cfg.Loop.ErrorDelay) * time.Second)
+			continue
+		}
+
+		// Analyze response
+		analysis := respAnalyzer.Analyze(result.Output)
+		logger.Debug("Analysis: progress=%v complete=%v confidence=%.2f",
+			analysis.HasProgress, analysis.IsComplete, analysis.Confidence)
+
+		// Update circuit breaker
+		breaker.AddLoopResult(analysis.HasProgress, false, loopNumber)
+
+		// Update task status if complete
+		if analysis.IsComplete {
+			statusUpdater := task.NewStatusUpdater(".")
+			if err := statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusCompleted); err != nil {
+				logger.Warn("Failed to update task status: %v", err)
+			}
+
+			// Remove task from prompt
+			injector.RemoveTask()
+
+			// Auto-commit
+			if opts.autoCommit && gitOps.HasUncommittedChanges() {
+				if err := gitOps.StageAll(); err == nil {
+					if err := gitOps.CommitTask(nextTask.ID, nextTask.Name); err != nil {
+						logger.Warn("Failed to commit: %v", err)
+					} else {
+						logger.Success("Committed task %s", nextTask.ID)
+					}
+				}
+			}
+
+			logger.Success("Task %s completed", nextTask.ID)
+
+			// Show progress
+			if progress, err := reader.GetProgress(); err == nil {
+				bar := ui.FormatProgressBar(progress.Percentage, 30)
+				fmt.Printf("\nProgress: %s\n", bar)
+			}
+		}
+
+		// Pause between tasks if not autonomous
+		if !opts.autonomous && analysis.IsComplete {
+			fmt.Println("\nPress Enter to continue or Ctrl+C to stop...")
+			bufio.NewReader(os.Stdin).ReadBytes('\n')
+		}
+	}
+}
