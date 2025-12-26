@@ -33,10 +33,7 @@ hermes-claude-code/
 ```
 hermes-go/
 ├── cmd/
-│   ├── hermes/main.go           # Main CLI entry point
-│   ├── hermes-prd/main.go       # PRD parser command
-│   ├── hermes-add/main.go       # Feature add command
-│   └── hermes-setup/main.go     # Project setup command
+│   └── hermes/main.go           # Single CLI with subcommands
 ├── internal/
 │   ├── ai/
 │   │   ├── provider.go          # AI provider interface
@@ -138,18 +135,27 @@ Total: ~2 weeks for full implementation
 ## Quick Start (After Implementation)
 
 ```bash
-# Build all binaries
+# Build
 cd go && make build
 
 # Install globally
 make install
 
 # Initialize project
-hermes-setup my-project
+hermes setup my-project
 
 # Parse PRD
-hermes-prd docs/PRD.md
+hermes prd docs/PRD.md
+
+# Add feature
+hermes add "user authentication"
 
 # Run task mode
-hermes --task-mode --auto-branch --auto-commit
+hermes run --auto-branch --auto-commit
+
+# Show status
+hermes status
+
+# Launch TUI
+hermes tui
 ```
