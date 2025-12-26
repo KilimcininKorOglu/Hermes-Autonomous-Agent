@@ -31,28 +31,48 @@ func (p *GeminiProvider) IsAvailable() bool {
 
 // geminiJSONResponse represents the JSON response from gemini CLI
 type geminiJSONResponse struct {
-	Response struct {
-		Text string `json:"text"`
-	} `json:"response"`
-	Usage struct {
-		InputTokens  int `json:"inputTokens"`
-		OutputTokens int `json:"outputTokens"`
-	} `json:"usage"`
+	Response string `json:"response"`
+	Stats    struct {
+		Models map[string]struct {
+			Tokens struct {
+				Prompt     int `json:"prompt"`
+				Candidates int `json:"candidates"`
+				Total      int `json:"total"`
+			} `json:"tokens"`
+		} `json:"models"`
+	} `json:"stats"`
 	Error *struct {
+		Type    string `json:"type"`
 		Message string `json:"message"`
+		Code    int    `json:"code,omitempty"`
 	} `json:"error,omitempty"`
 }
 
 // geminiStreamEvent represents a streaming event from gemini
+// Types: init, message, tool_use, tool_result, error, result
 type geminiStreamEvent struct {
-	Type      string  `json:"type"`
-	Text      string  `json:"text,omitempty"`
-	ToolName  string  `json:"toolName,omitempty"`
-	ToolID    string  `json:"toolId,omitempty"`
-	Cost      float64 `json:"cost,omitempty"`
-	Duration  float64 `json:"duration,omitempty"`
-	Model     string  `json:"model,omitempty"`
-	IsPartial bool    `json:"isPartial,omitempty"`
+	Type      string `json:"type"`
+	Timestamp string `json:"timestamp,omitempty"`
+	SessionID string `json:"session_id,omitempty"`
+	Model     string `json:"model,omitempty"`
+	// For message events
+	Role    string `json:"role,omitempty"`
+	Content string `json:"content,omitempty"`
+	Delta   bool   `json:"delta,omitempty"`
+	// For tool events
+	ToolName   string                 `json:"tool_name,omitempty"`
+	ToolID     string                 `json:"tool_id,omitempty"`
+	Parameters map[string]interface{} `json:"parameters,omitempty"`
+	Status     string                 `json:"status,omitempty"`
+	Output     string                 `json:"output,omitempty"`
+	// For result events
+	Stats struct {
+		TotalTokens  int `json:"total_tokens,omitempty"`
+		InputTokens  int `json:"input_tokens,omitempty"`
+		OutputTokens int `json:"output_tokens,omitempty"`
+		DurationMs   int `json:"duration_ms,omitempty"`
+		ToolCalls    int `json:"tool_calls,omitempty"`
+	} `json:"stats,omitempty"`
 }
 
 // Execute runs a prompt and returns the result
@@ -73,11 +93,11 @@ func (p *GeminiProvider) Execute(ctx context.Context, opts *ExecuteOptions) (*Ex
 	tmpFile.Close()
 
 	// Build command - use headless mode with JSON output
-	// gemini -p "prompt" --output-format json --sandbox none
+	// gemini -p "prompt" --output-format json --yolo (auto-approve)
 	args := []string{
 		"-p", fmt.Sprintf("Read %s and follow the instructions.", tmpFile.Name()),
 		"--output-format", "json",
-		"--sandbox", "none", // Disable sandbox for file operations
+		"--yolo", // Auto-approve all actions
 	}
 
 	cmd := exec.CommandContext(ctx, "gemini", args...)
@@ -118,10 +138,17 @@ func (p *GeminiProvider) Execute(ctx context.Context, opts *ExecuteOptions) (*Ex
 		}, nil
 	}
 
+	// Calculate total tokens from all models
+	var totalIn, totalOut int
+	for _, model := range resp.Stats.Models {
+		totalIn += model.Tokens.Prompt
+		totalOut += model.Tokens.Candidates
+	}
+
 	return &ExecuteResult{
-		Output:    resp.Response.Text,
-		TokensIn:  resp.Usage.InputTokens,
-		TokensOut: resp.Usage.OutputTokens,
+		Output:    resp.Response,
+		TokensIn:  totalIn,
+		TokensOut: totalOut,
 		Success:   true,
 		Duration:  time.Since(start).Seconds(),
 	}, nil
@@ -153,7 +180,7 @@ func (p *GeminiProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptions
 		args := []string{
 			"-p", fmt.Sprintf("Read %s and follow the instructions.", tmpFile.Name()),
 			"--output-format", "stream-json",
-			"--sandbox", "none",
+			"--yolo",
 		}
 
 		cmd := exec.CommandContext(ctx, "gemini", args...)
@@ -187,38 +214,38 @@ func (p *GeminiProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptions
 			}
 
 			switch gEvent.Type {
-			case "system":
+			case "init":
 				events <- StreamEvent{
 					Type:  "system",
 					Model: gEvent.Model,
 				}
-			case "text", "content":
-				events <- StreamEvent{
-					Type: "assistant",
-					Text: gEvent.Text,
+			case "message":
+				if gEvent.Role == "assistant" && gEvent.Content != "" {
+					events <- StreamEvent{
+						Type: "assistant",
+						Text: gEvent.Content,
+					}
 				}
-			case "tool_use", "toolCall":
+			case "tool_use":
 				events <- StreamEvent{
 					Type:     "tool_use",
 					ToolName: gEvent.ToolName,
 					ToolID:   gEvent.ToolID,
 				}
-			case "tool_result", "toolResult":
+			case "tool_result":
 				events <- StreamEvent{
 					Type:     "tool_result",
 					ToolName: gEvent.ToolName,
 				}
-			case "result", "done", "complete":
+			case "result":
 				events <- StreamEvent{
 					Type:     "result",
-					Text:     gEvent.Text,
-					Cost:     gEvent.Cost,
-					Duration: gEvent.Duration,
+					Duration: float64(gEvent.Stats.DurationMs) / 1000,
 				}
 			case "error":
 				events <- StreamEvent{
 					Type: "error",
-					Text: gEvent.Text,
+					Text: gEvent.Content,
 				}
 			}
 		}
