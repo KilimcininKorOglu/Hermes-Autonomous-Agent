@@ -37,6 +37,7 @@ func NewRunCmd() *cobra.Command {
 	cmd.Flags().Bool("autonomous", true, "Run without pausing (overrides config)")
 	cmd.Flags().Int("timeout", 0, "AI timeout in seconds (0 = use config)")
 	cmd.Flags().Bool("debug", false, "Enable debug output")
+	cmd.Flags().String("ai", "", "AI provider: claude, droid, auto (default: from config or auto)")
 
 	return cmd
 }
@@ -106,8 +107,32 @@ func runExecute(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no tasks found, run 'hermes prd <file>' first")
 	}
 
-	// Get provider
-	provider := ai.NewClaudeProvider()
+	// Get AI provider
+	aiFlag, _ := cmd.Flags().GetString("ai")
+	var provider ai.Provider
+
+	if aiFlag != "" && aiFlag != "auto" {
+		provider = ai.GetProvider(aiFlag)
+		if provider == nil {
+			return fmt.Errorf("unknown AI provider: %s", aiFlag)
+		}
+		if !provider.IsAvailable() {
+			return fmt.Errorf("AI provider %s is not available (not installed)", aiFlag)
+		}
+	} else {
+		// Use config or auto-detect
+		if cfg.AI.Coding != "" && cfg.AI.Coding != "auto" {
+			provider = ai.GetProvider(cfg.AI.Coding)
+		}
+		if provider == nil || !provider.IsAvailable() {
+			provider = ai.AutoDetectProvider()
+		}
+	}
+
+	if provider == nil {
+		return fmt.Errorf("no AI provider available (install claude or droid)")
+	}
+
 	logger.Info("Using AI provider: %s", provider.Name())
 
 	loopNumber := 0

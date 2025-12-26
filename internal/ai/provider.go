@@ -50,16 +50,38 @@ func GetProvider(name string) Provider {
 	switch name {
 	case "claude":
 		return NewClaudeProvider()
+	case "droid":
+		return NewDroidProvider()
 	default:
 		return nil
 	}
 }
 
-// AutoDetectProvider finds an available provider
+// AutoDetectProvider finds an available provider (priority: claude > droid)
 func AutoDetectProvider() Provider {
 	claude := NewClaudeProvider()
 	if claude.IsAvailable() {
 		return claude
 	}
+
+	droid := NewDroidProvider()
+	if droid.IsAvailable() {
+		return droid
+	}
+
 	return nil
+}
+
+// GetAvailableProviders returns a list of available provider names
+func GetAvailableProviders() []string {
+	var providers []string
+
+	if NewClaudeProvider().IsAvailable() {
+		providers = append(providers, "claude")
+	}
+	if NewDroidProvider().IsAvailable() {
+		providers = append(providers, "droid")
+	}
+
+	return providers
 }
