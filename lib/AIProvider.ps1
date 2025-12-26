@@ -206,19 +206,22 @@ function Invoke-AIWithTimeout {
     try {
         switch ($Provider) {
             "claude" {
-                # Write prompt to temp file and call claude directly (avoid Start-Job encoding issues)
-                $tempPromptFile = Join-Path $env:TEMP "hermes-claude-prompt-$(Get-Random).md"
-                $tempContentFile = Join-Path $env:TEMP "hermes-claude-content-$(Get-Random).txt"
-                $PromptText | Set-Content -Path $tempPromptFile -Encoding UTF8
+                # Write combined prompt+content to temp file for claude
+                $tempInputFile = Join-Path $env:TEMP "hermes-claude-input-$(Get-Random).md"
+                
+                # Combine prompt and content into single input
+                $fullInput = $PromptText
                 if ($Content) {
-                    $Content | Set-Content -Path $tempContentFile -Encoding UTF8
+                    $fullInput = $Content + "`n`n" + $PromptText
                 }
-                Write-Host "[DEBUG] Prompt written to: $tempPromptFile" -ForegroundColor DarkGray
+                $fullInput | Set-Content -Path $tempInputFile -Encoding UTF8
+                Write-Host "[DEBUG] Input written to: $tempInputFile ($(($fullInput).Length) chars)" -ForegroundColor DarkGray
                 
                 # Use Start-Process with timeout for claude
+                # Claude CLI: cat file | claude -p "prompt" OR claude -p "prompt" with stdin
                 $pinfo = New-Object System.Diagnostics.ProcessStartInfo
                 $pinfo.FileName = "claude"
-                $pinfo.Arguments = "-p --dangerously-skip-permissions `"$tempPromptFile`""
+                $pinfo.Arguments = "-p --dangerously-skip-permissions"
                 $pinfo.RedirectStandardOutput = $true
                 $pinfo.RedirectStandardError = $true
                 $pinfo.RedirectStandardInput = $true
@@ -230,11 +233,9 @@ function Invoke-AIWithTimeout {
                 $process.StartInfo = $pinfo
                 $process.Start() | Out-Null
                 
-                # Write content to stdin if provided
-                if ($Content) {
-                    $process.StandardInput.Write($Content)
-                    $process.StandardInput.Close()
-                }
+                # Write full input to stdin
+                $process.StandardInput.Write($fullInput)
+                $process.StandardInput.Close()
                 
                 Write-Host "[DEBUG] Waiting for claude process (timeout: $TimeoutSeconds s)..." -ForegroundColor DarkGray
                 $exited = $process.WaitForExit($TimeoutSeconds * 1000)
@@ -251,9 +252,8 @@ function Invoke-AIWithTimeout {
                     Write-Warning "Claude stderr: $stderr"
                 }
                 
-                # Cleanup temp files
-                Remove-Item $tempPromptFile -Force -ErrorAction SilentlyContinue
-                Remove-Item $tempContentFile -Force -ErrorAction SilentlyContinue
+                # Cleanup temp file
+                Remove-Item $tempInputFile -Force -ErrorAction SilentlyContinue
             }
             "droid" {
                 # Write prompt to temp file and call droid directly
