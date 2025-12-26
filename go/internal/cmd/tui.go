@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
+	"hermes/internal/tui"
 )
 
 // NewTuiCmd creates the tui subcommand
@@ -21,8 +23,16 @@ func NewTuiCmd() *cobra.Command {
 }
 
 func tuiExecute() error {
-	// TUI will be implemented in Phase 12
-	fmt.Println("TUI is not implemented yet.")
-	fmt.Println("Use 'hermes status' to view tasks or 'hermes run' to execute.")
+	app, err := tui.NewApp(".")
+	if err != nil {
+		return fmt.Errorf("failed to initialize TUI: %w", err)
+	}
+
+	p := tea.NewProgram(app, tea.WithAltScreen())
+
+	if _, err := p.Run(); err != nil {
+		return fmt.Errorf("TUI error: %w", err)
+	}
+
 	return nil
 }
