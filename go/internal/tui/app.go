@@ -1,12 +1,17 @@
 package tui
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"hermes/internal/ai"
+	"hermes/internal/analyzer"
 	"hermes/internal/circuit"
 	"hermes/internal/config"
+	"hermes/internal/prompt"
 	"hermes/internal/task"
 )
 
@@ -32,6 +37,13 @@ const (
 	ScreenHelp
 )
 
+// runResultMsg is sent when a task execution completes
+type runResultMsg struct {
+	taskID  string
+	success bool
+	err     error
+}
+
 // App is the main TUI model
 type App struct {
 	screen     Screen
@@ -42,8 +54,10 @@ type App struct {
 	config     *config.Config
 	taskReader *task.Reader
 	breaker    *circuit.Breaker
-	running    bool // Is run loop active?
+	running    bool   // Is run loop active?
 	runStatus  string
+	runCancel  context.CancelFunc
+	loopCount  int
 
 	// Sub-models
 	dashboard *DashboardModel
@@ -106,15 +120,35 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "?":
 			a.screen = ScreenHelp
 		case "R":
-			// Start run (capital R)
-			if !a.running {
-				a.running = true
-				a.runStatus = "Starting..."
-			}
-		case "r":
-			// Manual refresh
+			// Manual refresh (Shift+R)
 			a.dashboard.Refresh()
 			a.tasks.Refresh()
+		case "r":
+			// Start run
+			if !a.running {
+				a.running = true
+				a.loopCount = 0
+				a.runStatus = "Starting..."
+				return a, a.startRun()
+			}
+		case "s":
+			// Stop run
+			if a.running && a.runCancel != nil {
+				a.runCancel()
+				a.running = false
+				a.runStatus = ""
+			}
+		}
+
+	case runResultMsg:
+		if msg.err != nil {
+			a.runStatus = fmt.Sprintf("Error: %v", msg.err)
+		} else if msg.success {
+			a.runStatus = fmt.Sprintf("Completed: %s", msg.taskID)
+		}
+		// Continue to next task
+		if a.running {
+			return a, a.startRun()
 		}
 	}
 
@@ -177,9 +211,9 @@ func (a App) footerView() string {
 		Foreground(lipgloss.Color("241")).
 		Width(a.width)
 
-	help := "[1]Dashboard [2]Tasks [3]Logs [?]Help [r]Refresh [R]Run [q]Quit"
+	help := "[1]Dashboard [2]Tasks [3]Logs [?]Help [r]Run [R]Refresh [q]Quit"
 	if a.running {
-		help = "[RUNNING] " + a.runStatus + " | [q]Stop"
+		help = "[RUNNING] " + a.runStatus + " | [s]Stop [q]Quit"
 	}
 	return style.Render(help)
 }
@@ -198,10 +232,11 @@ Navigation:
   ?         This help screen
 
 Actions:
-  R         Start task execution (Shift+R)
-  r         Manual refresh
+  r         Start task execution
+  s         Stop execution
+  R         Manual refresh (Shift+R)
   j/k       Move up/down (in lists)
-  q         Quit / Stop running
+  q         Quit
 
 Dashboard:
   Shows progress, circuit breaker status, and current task
@@ -220,4 +255,64 @@ func (a App) logsView() string {
 		Padding(1, 2)
 
 	return style.Render("Logs viewer - Coming soon\n\nPress 1-4 to switch screens")
+}
+
+// startRun starts executing the next task
+func (a *App) startRun() tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithCancel(context.Background())
+		a.runCancel = cancel
+
+		// Check circuit breaker
+		canExecute, _ := a.breaker.CanExecute()
+		if !canExecute {
+			a.running = false
+			return runResultMsg{err: fmt.Errorf("circuit breaker open")}
+		}
+
+		// Get next task
+		nextTask, err := a.taskReader.GetNextTask()
+		if err != nil {
+			return runResultMsg{err: err}
+		}
+		if nextTask == nil {
+			a.running = false
+			return runResultMsg{err: fmt.Errorf("all tasks completed")}
+		}
+
+		a.loopCount++
+		a.runStatus = fmt.Sprintf("Loop #%d: %s", a.loopCount, nextTask.ID)
+
+		// Inject task into prompt
+		injector := prompt.NewInjector(a.basePath)
+		injector.AddTask(nextTask)
+		promptContent, _ := injector.Read()
+
+		// Execute AI
+		provider := ai.NewClaudeProvider()
+		executor := ai.NewTaskExecutor(provider, a.basePath)
+		result, err := executor.ExecuteTask(ctx, nextTask, promptContent)
+
+		if err != nil {
+			a.breaker.AddLoopResult(false, true, a.loopCount)
+			return runResultMsg{taskID: nextTask.ID, err: err}
+		}
+
+		// Analyze response
+		respAnalyzer := analyzer.NewResponseAnalyzer()
+		analysis := respAnalyzer.Analyze(result.Output)
+
+		// Update circuit breaker
+		a.breaker.AddLoopResult(analysis.HasProgress, false, a.loopCount)
+
+		// Update task status if complete
+		if analysis.IsComplete {
+			statusUpdater := task.NewStatusUpdater(a.basePath)
+			statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusCompleted)
+			injector.RemoveTask()
+			return runResultMsg{taskID: nextTask.ID, success: true}
+		}
+
+		return runResultMsg{taskID: nextTask.ID, success: false}
+	}
 }
