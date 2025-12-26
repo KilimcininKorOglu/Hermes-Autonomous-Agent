@@ -244,7 +244,7 @@ func (a App) footerView() string {
 		Foreground(lipgloss.Color("241")).
 		Width(a.width)
 
-	help := "[1]Dashboard [2]Tasks [3]Logs [?]Help [r]Run [R]Refresh [q]Quit"
+	help := "[1]Dashboard [2]Tasks [3]Logs [?]Help [r]Run [Shift+R]Refresh [q]Quit"
 	if a.running {
 		help = "[RUNNING] " + a.runStatus + " | [s]Stop [q]Quit"
 	}
@@ -268,7 +268,7 @@ Navigation:
 Actions:
   r           Start task execution
   s           Stop execution
-  R           Manual refresh (Shift+R)
+  Shift+R     Manual refresh
   Enter       Open task detail (from Tasks)
   j/k         Move up/down
   q           Quit
@@ -282,7 +282,8 @@ Tasks:
   Enter       View task details
 
 Logs:
-  g/G         Go to top/bottom
+  g           Go to top
+  Shift+G     Go to bottom
   f           Toggle auto-scroll
 
 Press any key to return...

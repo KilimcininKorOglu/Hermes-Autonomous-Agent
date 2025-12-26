@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestAppendToGitignore(t *testing.T) {
+func TestCreateGitignore(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "hermes-cmd-test-*")
 	if err != nil {
 		t.Fatal(err)
@@ -17,7 +17,7 @@ func TestAppendToGitignore(t *testing.T) {
 	gitignorePath := filepath.Join(tmpDir, ".gitignore")
 
 	// Test creating new .gitignore
-	appendToGitignore(gitignorePath)
+	createGitignore(gitignorePath)
 
 	content, err := os.ReadFile(gitignorePath)
 	if err != nil {
@@ -27,8 +27,42 @@ func TestAppendToGitignore(t *testing.T) {
 	if !strings.Contains(string(content), "# Hermes") {
 		t.Error("expected .gitignore to contain '# Hermes'")
 	}
-	if !strings.Contains(string(content), ".hermes/logs/") {
-		t.Error("expected .gitignore to contain '.hermes/logs/'")
+	if !strings.Contains(string(content), ".hermes/") {
+		t.Error("expected .gitignore to contain '.hermes/'")
+	}
+	if !strings.Contains(string(content), "node_modules/") {
+		t.Error("expected .gitignore to contain 'node_modules/'")
+	}
+	if !strings.Contains(string(content), ".env") {
+		t.Error("expected .gitignore to contain '.env'")
+	}
+}
+
+func TestCreateGitignoreAppend(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "hermes-cmd-test-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	gitignorePath := filepath.Join(tmpDir, ".gitignore")
+
+	// Create existing .gitignore
+	os.WriteFile(gitignorePath, []byte("existing content\n"), 0644)
+
+	// Test appending to existing .gitignore
+	createGitignore(gitignorePath)
+
+	content, err := os.ReadFile(gitignorePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(string(content), "existing content") {
+		t.Error("expected .gitignore to contain original content")
+	}
+	if !strings.Contains(string(content), "# Hermes") {
+		t.Error("expected .gitignore to contain '# Hermes'")
 	}
 }
 

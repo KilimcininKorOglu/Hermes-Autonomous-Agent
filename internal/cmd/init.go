@@ -86,9 +86,16 @@ func initExecute(projectPath string) error {
 	}
 	fmt.Println("  Created: .hermes/PROMPT.md")
 
-	// Update .gitignore
-	appendToGitignore(filepath.Join(projectPath, ".gitignore"))
-	fmt.Println("  Updated: .gitignore")
+	// Create/update .gitignore
+	createGitignore(filepath.Join(projectPath, ".gitignore"))
+	fmt.Println("  Created: .gitignore")
+
+	// Create initial commit
+	if err := initialCommit(projectPath); err != nil {
+		fmt.Printf("  Warning: Could not create initial commit: %v\n", err)
+	} else {
+		fmt.Println("  Created: initial commit on main branch")
+	}
 
 	fmt.Println("\nHermes initialized successfully!")
 	fmt.Println("\nNext steps:")
@@ -99,25 +106,92 @@ func initExecute(projectPath string) error {
 	return nil
 }
 
-func appendToGitignore(path string) {
-	entries := []string{
-		"\n# Hermes",
-		".hermes/",
-	}
-
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
+func createGitignore(path string) {
+	// Check if file exists and has content
+	if info, err := os.Stat(path); err == nil && info.Size() > 0 {
+		// Append to existing
+		f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			return
+		}
+		defer f.Close()
+		f.WriteString("\n# Hermes\n.hermes/\n")
 		return
 	}
-	defer f.Close()
 
-	for _, entry := range entries {
-		f.WriteString(entry + "\n")
-	}
+	// Create comprehensive .gitignore
+	content := `# Hermes
+.hermes/
+
+# Dependencies
+node_modules/
+vendor/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Build outputs
+dist/
+build/
+out/
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Testing
+coverage/
+.coverage
+.nyc_output/
+
+# Misc
+*.tmp
+*.temp
+.cache/
+`
+
+	os.WriteFile(path, []byte(content), 0644)
 }
 
 func initGit(projectPath string) error {
 	cmd := exec.Command("git", "init")
 	cmd.Dir = projectPath
 	return cmd.Run()
+}
+
+func initialCommit(projectPath string) error {
+	// Add all files
+	addCmd := exec.Command("git", "add", ".")
+	addCmd.Dir = projectPath
+	if err := addCmd.Run(); err != nil {
+		return err
+	}
+
+	// Create initial commit
+	commitCmd := exec.Command("git", "commit", "-m", "chore: Initialize project with Hermes")
+	commitCmd.Dir = projectPath
+	return commitCmd.Run()
 }

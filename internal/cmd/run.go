@@ -169,6 +169,12 @@ func runExecute(cmd *cobra.Command, args []string) error {
 		ui.PrintTaskHeader(nextTask)
 		logger.Info("Working on task: %s - %s", nextTask.ID, nextTask.Name)
 
+		// Set task status to IN_PROGRESS before starting
+		statusUpdater := task.NewStatusUpdater(".")
+		if err := statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusInProgress); err != nil {
+			logger.Warn("Failed to set task IN_PROGRESS: %v", err)
+		}
+
 		// Handle branching
 		if autoBranch && gitOps.IsRepository() {
 			feature, _ := reader.GetFeatureByID(nextTask.FeatureID)
@@ -209,15 +215,15 @@ func runExecute(cmd *cobra.Command, args []string) error {
 
 		// Update task status if complete
 		if analysis.IsComplete {
-			statusUpdater := task.NewStatusUpdater(".")
+			// Remove task from prompt
+			injector.RemoveTask()
+
+			// Set task status to COMPLETED before commit
 			if err := statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusCompleted); err != nil {
 				logger.Warn("Failed to update task status: %v", err)
 			}
 
-			// Remove task from prompt
-			injector.RemoveTask()
-
-			// Auto-commit
+			// Auto-commit (includes the status update)
 			if autoCommit && gitOps.HasUncommittedChanges() {
 				if err := gitOps.StageAll(); err == nil {
 					if err := gitOps.CommitTask(nextTask.ID, nextTask.Name); err != nil {

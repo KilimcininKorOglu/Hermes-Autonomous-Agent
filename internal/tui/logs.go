@@ -48,11 +48,22 @@ func (m *LogsModel) Refresh() {
 		m.lines = append(m.lines, scanner.Text())
 	}
 
+	if len(m.lines) == 0 {
+		m.lines = []string{"Log file is empty.", "", "Logs will appear here when you run tasks."}
+		return
+	}
+
 	// Auto-scroll to bottom
-	if m.autoScroll && len(m.lines) > 0 {
-		maxScroll := len(m.lines) - m.height + 10
+	if m.autoScroll {
+		visibleLines := m.height - 6
+		if visibleLines < 5 {
+			visibleLines = 5
+		}
+		maxScroll := len(m.lines) - visibleLines
 		if maxScroll > 0 {
 			m.scroll = maxScroll
+		} else {
+			m.scroll = 0
 		}
 	}
 }
@@ -172,7 +183,7 @@ func (m *LogsModel) View() string {
 	// Footer
 	footerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 	scrollInfo := fmt.Sprintf("Line %d-%d of %d", startIdx+1, endIdx, len(m.lines))
-	sb.WriteString(footerStyle.Render(fmt.Sprintf("%s | [j/k] Scroll [g/G] Top/Bottom [f] Auto-scroll", scrollInfo)))
+	sb.WriteString(footerStyle.Render(fmt.Sprintf("%s | [j/k] Scroll [g] Top [Shift+G] Bottom [f] Auto-scroll", scrollInfo)))
 
 	return sb.String()
 }
