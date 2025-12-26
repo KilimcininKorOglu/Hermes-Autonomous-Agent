@@ -102,8 +102,7 @@ func initExecute(projectPath string) error {
 func appendToGitignore(path string) {
 	entries := []string{
 		"\n# Hermes",
-		".hermes/logs/",
-		".hermes/circuit-*.json",
+		".hermes/",
 	}
 
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
