@@ -502,84 +502,45 @@ function Invoke-AIExecution {
         # Read prompt content
         $promptContent = Get-Content $script:Config.PromptFile -Raw
         
-        # Start AI execution as a background job
-        $job = Start-Job -ScriptBlock {
-            param($content, $provider)
-            
-            switch ($provider) {
-                "claude" {
-                    $content | claude --dangerously-skip-permissions 2>&1
-                }
-                "droid" {
-                    $content | droid exec --skip-permissions-unsafe 2>&1
-                }
-                "aider" {
-                    $tempFile = [System.IO.Path]::GetTempFileName()
-                    $tempFile = $tempFile -replace '\.tmp$', '.md'
-                    $content | Set-Content $tempFile -Encoding UTF8
-                    try {
-                        aider --yes --no-auto-commits --message "Execute the task described in this file" $tempFile 2>&1
-                    }
-                    finally {
-                        Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
-                    }
-                }
-            }
-        } -ArgumentList $promptContent, $provider
-        
-        $progressCounter = 0
-        $indicators = @("|", "/", "-", "\")
-        
-        # Monitor progress
-        while ($job.State -eq 'Running') {
-            $progressCounter++
-            $indicator = $indicators[$progressCounter % 4]
-            $elapsedSeconds = $progressCounter * 5
-            
-            # Update progress file for monitor
-            @{
-                status = "executing"
-                provider = $provider
-                indicator = $indicator
-                elapsed_seconds = $elapsedSeconds
-                timestamp = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-            } | ConvertTo-Json | Set-Content $script:Config.ProgressFile -Encoding UTF8
-            
-            if ($script:Config.VerboseProgress) {
-                Write-Host "`r[$indicator] $provider working... ($elapsedSeconds`s elapsed)" -ForegroundColor Cyan -NoNewline
-            }
-            
-            Start-Sleep -Seconds 5
-            
-            # Check timeout
-            if ($elapsedSeconds -ge $timeoutSeconds) {
-                Stop-Job $job -ErrorAction SilentlyContinue
-                Remove-Job $job -Force -ErrorAction SilentlyContinue
-                
-                Write-Host ""
-                Write-Status -Level "ERROR" -Message "Execution timed out after $($script:Config.AITimeoutMinutes) minutes"
-                return 1
+        # Check if streaming is enabled (only for claude)
+        $streamOutput = $false
+        if ($provider -eq "claude") {
+            $streamConfig = Get-ConfigValue -Key "ai.streamOutput"
+            $streamOutput = ($streamConfig -eq $true) -or ($streamConfig -eq "true")
+            if ($streamOutput) {
+                Write-Status -Level "INFO" -Message "Streaming output enabled"
             }
         }
         
-        if ($script:Config.VerboseProgress) {
-            Write-Host ""
+        # Update progress file
+        @{
+            status = "executing"
+            provider = $provider
+            streaming = $streamOutput
+            timestamp = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+        } | ConvertTo-Json | Set-Content $script:Config.ProgressFile -Encoding UTF8
+        
+        # Use AIProvider's Invoke-TaskExecution for consistent behavior
+        $execParams = @{
+            Provider = $provider
+            PromptContent = $promptContent
+            TimeoutSeconds = $timeoutSeconds
+        }
+        if ($streamOutput) {
+            $execParams.StreamOutput = $true
         }
         
-        # Get results
-        $output = Receive-Job $job
-        $jobState = $job.State
-        Remove-Job $job -Force -ErrorAction SilentlyContinue
+        $execResult = Invoke-TaskExecution @execParams
         
         # Write output to file
-        if ($output) {
-            $output | Out-File $outputFile -Encoding UTF8
+        if ($execResult.Output) {
+            $execResult.Output | Out-File $outputFile -Encoding UTF8
         }
         else {
             "No output received from $provider" | Out-File $outputFile -Encoding UTF8
         }
         
-        if ($jobState -eq 'Completed') {
+        if ($execResult.Success) {
             # Update progress file
             @{
                 status = "completed"
@@ -644,21 +605,34 @@ function Invoke-AIExecution {
             return 0
         }
         else {
-            # Job failed
+            # Execution failed
             @{
                 status = "failed"
                 provider = $provider
+                error = $execResult.Error
                 timestamp = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
             } | ConvertTo-Json | Set-Content $script:Config.ProgressFile -Encoding UTF8
             
             # Check if failure is due to API limit
-            $outputContent = if ($output) { $output -join "`n" } else { "" }
+            $outputContent = if ($execResult.Output) { $execResult.Output } else { "" }
             if ($outputContent -match "(?i)(5.*hour.*limit|limit.*reached.*try.*back|usage.*limit.*reached)") {
                 Write-Status -Level "ERROR" -Message "API usage limit reached"
                 return 2
             }
             
-            Write-Status -Level "ERROR" -Message "$provider execution failed, check: $outputFile"
+            # Check for timeout
+            if ($execResult.Error -match "(?i)timeout") {
+                Write-Status -Level "ERROR" -Message "Execution timed out after $($script:Config.AITimeoutMinutes) minutes"
+                return 1
+            }
+            
+            # Check for user cancellation
+            if ($execResult.Error -match "(?i)cancel") {
+                Write-Status -Level "WARN" -Message "Execution cancelled by user"
+                return 1
+            }
+            
+            Write-Status -Level "ERROR" -Message "$provider execution failed: $($execResult.Error)"
             return 1
         }
     }
