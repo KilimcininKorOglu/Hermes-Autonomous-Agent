@@ -501,10 +501,10 @@ function Invoke-AIExecution {
             
             switch ($provider) {
                 "claude" {
-                    $content | claude 2>&1
+                    $content | claude --dangerously-skip-permissions 2>&1
                 }
                 "droid" {
-                    $content | droid exec --auto low 2>&1
+                    $content | droid exec --skip-permissions-unsafe 2>&1
                 }
                 "aider" {
                     $tempFile = [System.IO.Path]::GetTempFileName()
