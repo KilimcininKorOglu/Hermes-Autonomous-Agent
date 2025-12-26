@@ -31,13 +31,22 @@ func (p *GeminiProvider) IsAvailable() bool {
 
 // geminiJSONResponse represents the JSON response from gemini CLI
 type geminiJSONResponse struct {
-	Response string `json:"response"`
-	Stats    struct {
+	SessionID string `json:"session_id"`
+	Response  string `json:"response"`
+	Stats     struct {
 		Models map[string]struct {
+			API struct {
+				TotalRequests  int `json:"totalRequests"`
+				TotalErrors    int `json:"totalErrors"`
+				TotalLatencyMs int `json:"totalLatencyMs"`
+			} `json:"api"`
 			Tokens struct {
+				Input      int `json:"input"`
 				Prompt     int `json:"prompt"`
 				Candidates int `json:"candidates"`
 				Total      int `json:"total"`
+				Cached     int `json:"cached"`
+				Thoughts   int `json:"thoughts"`
 			} `json:"tokens"`
 		} `json:"models"`
 	} `json:"stats"`
@@ -141,7 +150,7 @@ func (p *GeminiProvider) Execute(ctx context.Context, opts *ExecuteOptions) (*Ex
 	// Calculate total tokens from all models
 	var totalIn, totalOut int
 	for _, model := range resp.Stats.Models {
-		totalIn += model.Tokens.Prompt
+		totalIn += model.Tokens.Input
 		totalOut += model.Tokens.Candidates
 	}
 
