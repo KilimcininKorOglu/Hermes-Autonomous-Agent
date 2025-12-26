@@ -383,7 +383,7 @@ function Backup-Prompt {
     }
     
     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-    $backupPath = Join-Path $BasePath ".Hermes" "prompt_backup_$timestamp.md"
+    $backupPath = Join-Path $BasePath ".hermes" "prompt_backup_$timestamp.md"
     
     $backupDir = Split-Path $backupPath -Parent
     if (-not (Test-Path $backupDir)) {

@@ -126,7 +126,7 @@ if (-not (Test-AIProvider -Provider $script:ResolvedAIProvider)) {
 $script:Config = @{
     PromptFile = $Prompt
     LogDir = Get-ConfigValue -Key "paths.logsDir" -Override $(if ($PSBoundParameters.ContainsKey('LogDir')) { $LogDir } else { $null })
-    DocsDir = "docs\generated"
+    DocsDir = ".hermes\docs\generated"
     StatusFile = ".hermes\status.json"
     ProgressFile = ".hermes\progress.json"
     AIProvider = $script:ResolvedAIProvider
