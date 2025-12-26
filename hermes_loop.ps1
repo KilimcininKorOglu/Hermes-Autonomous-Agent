@@ -123,6 +123,12 @@ if (-not (Test-AIProvider -Provider $script:ResolvedAIProvider)) {
 }
 
 # Configuration (merge CLI params with config file values)
+# Get timeout from config (ai.timeout for task mode, loop.timeoutMinutes for loop mode)
+$configTimeout = Get-ConfigValue -Key "ai.timeout"
+if (-not $configTimeout) { $configTimeout = Get-ConfigValue -Key "loop.timeoutMinutes" }
+if (-not $configTimeout) { $configTimeout = 300 }
+$configTimeoutMinutes = [Math]::Ceiling($configTimeout / 60)
+
 $script:Config = @{
     PromptFile = $Prompt
     LogDir = Get-ConfigValue -Key "paths.logsDir" -Override $(if ($PSBoundParameters.ContainsKey('LogDir')) { $LogDir } else { $null })
@@ -130,8 +136,8 @@ $script:Config = @{
     StatusFile = ".hermes\status.json"
     ProgressFile = ".hermes\progress.json"
     AIProvider = $script:ResolvedAIProvider
-    AITimeoutMinutes = Get-ConfigValue -Key "loop.timeoutMinutes" -Override $(if ($Timeout -ne 15) { $Timeout } else { $null })
-    MaxCallsPerHour = Get-ConfigValue -Key "loop.maxCallsPerHour" -Override $(if ($Calls -ne 100) { $Calls } else { $null })
+    AITimeoutMinutes = if ($PSBoundParameters.ContainsKey('Timeout')) { $Timeout } else { $configTimeoutMinutes }
+    MaxCallsPerHour = Get-ConfigValue -Key "loop.maxCallsPerHour" -Override $(if ($PSBoundParameters.ContainsKey('Calls')) { $Calls } else { $null })
     VerboseProgress = $VerboseProgress
     CallCountFile = ".hermes\.call_count"
     TimestampFile = ".hermes\.last_reset"
@@ -140,17 +146,17 @@ $script:Config = @{
     MaxConsecutiveDoneSignals = 2
     # Task Mode Config
     TaskMode = $TaskMode
-    TasksDir = Get-ConfigValue -Key "paths.tasksDir" -Override $(if ($TasksDir -ne ".hermes\tasks") { $TasksDir } else { $null })
-    AutoBranch = if ($AutoBranch) { $true } else { Get-ConfigValue -Key "taskMode.autoBranch" }
-    AutoCommit = if ($AutoCommit) { $true } else { Get-ConfigValue -Key "taskMode.autoCommit" }
+    TasksDir = Get-ConfigValue -Key "paths.tasksDir" -Override $(if ($PSBoundParameters.ContainsKey('TasksDir')) { $TasksDir } else { $null })
+    AutoBranch = if ($PSBoundParameters.ContainsKey('AutoBranch')) { $AutoBranch } else { Get-ConfigValue -Key "taskMode.autoBranch" }
+    AutoCommit = if ($PSBoundParameters.ContainsKey('AutoCommit')) { $AutoCommit } else { Get-ConfigValue -Key "taskMode.autoCommit" }
     StartFromTask = $StartFrom
     # Task State
     CurrentTask = $null
     CurrentFeature = $null
     CurrentBranch = ""
     # Autonomous Mode
-    Autonomous = if ($Autonomous) { $true } else { Get-ConfigValue -Key "taskMode.autonomous" }
-    MaxConsecutiveErrors = Get-ConfigValue -Key "taskMode.maxConsecutiveErrors" -Override $(if ($MaxConsecutiveErrors -ne 5) { $MaxConsecutiveErrors } else { $null })
+    Autonomous = if ($PSBoundParameters.ContainsKey('Autonomous')) { $Autonomous } else { Get-ConfigValue -Key "taskMode.autonomous" }
+    MaxConsecutiveErrors = Get-ConfigValue -Key "taskMode.maxConsecutiveErrors" -Override $(if ($PSBoundParameters.ContainsKey('MaxConsecutiveErrors')) { $MaxConsecutiveErrors } else { $null })
     ConsecutiveErrors = 0
     StartTime = $null
     ErrorsRecovered = 0
