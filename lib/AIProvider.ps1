@@ -268,22 +268,40 @@ function Invoke-AIWithTimeout {
     try {
         switch ($Provider) {
             "claude" {
-                # Write combined prompt+content to temp file for claude
-                $tempInputFile = Join-Path $env:TEMP "hermes-claude-input-$(Get-Random).md"
+                # Claude CLI usage (from https://code.claude.com/docs/en/quickstart):
+                # - Interactive: claude (starts REPL)
+                # - One-shot: claude "task" 
+                # - Headless: claude -p "prompt" --output-format text
+                # - Piped: cat content | claude -p "analyze this"
                 
-                # Combine prompt and content into single input
-                $fullInput = $PromptText
+                # Strategy: Use stdin for content, -p for prompt instruction
+                # If no content, just use -p with prompt
+                # If content exists, pipe it via stdin with a processing instruction
+                
+                $stdinContent = $null
+                $promptArg = $PromptText
+                
                 if ($Content) {
-                    $fullInput = $Content + "`n`n" + $PromptText
+                    # When we have content, pipe it via stdin and adjust prompt
+                    $stdinContent = $Content
+                    # Prompt tells Claude what to do with the piped content
+                    $promptArg = "Process the following input according to these instructions:`n`n$PromptText"
                 }
-                $fullInput | Set-Content -Path $tempInputFile -Encoding UTF8
-                Write-AIStatus -Level "DEBUG" -Message "Input written to: $tempInputFile ($(($fullInput).Length) chars)"
+                
+                Write-AIStatus -Level "DEBUG" -Message "Prompt length: $($promptArg.Length) chars"
+                if ($stdinContent) {
+                    Write-AIStatus -Level "DEBUG" -Message "Content length: $($stdinContent.Length) chars (via stdin)"
+                }
+                
+                # Escape prompt for command line - use temp file for long/complex prompts
+                $tempPromptFile = Join-Path $env:TEMP "hermes-claude-prompt-$(Get-Random).txt"
+                $promptArg | Set-Content -Path $tempPromptFile -Encoding UTF8
+                $escapedPrompt = (Get-Content $tempPromptFile -Raw) -replace '"', '\"'
                 
                 # Use Start-Process with timeout for claude
-                # Claude CLI: cat file | claude -p "prompt" OR claude -p "prompt" with stdin
                 $pinfo = New-Object System.Diagnostics.ProcessStartInfo
                 $pinfo.FileName = "claude"
-                $pinfo.Arguments = "-p --dangerously-skip-permissions"
+                $pinfo.Arguments = "-p `"$escapedPrompt`" --dangerously-skip-permissions --output-format text"
                 $pinfo.RedirectStandardOutput = $true
                 $pinfo.RedirectStandardError = $true
                 $pinfo.RedirectStandardInput = $true
@@ -295,8 +313,10 @@ function Invoke-AIWithTimeout {
                 $process.StartInfo = $pinfo
                 $process.Start() | Out-Null
                 
-                # Write full input to stdin
-                $process.StandardInput.Write($fullInput)
+                # Write content to stdin if we have it (like: cat content | claude -p "prompt")
+                if ($stdinContent) {
+                    $process.StandardInput.Write($stdinContent)
+                }
                 $process.StandardInput.Close()
                 
                 Write-AIStatus -Level "DEBUG" -Message "Waiting for claude process (timeout: $TimeoutSeconds s)..."
@@ -304,6 +324,7 @@ function Invoke-AIWithTimeout {
                 if (-not $exited) {
                     Write-AIStatus -Level "ERROR" -Message "Process timed out!"
                     $process.Kill()
+                    Remove-Item $tempPromptFile -Force -ErrorAction SilentlyContinue
                     throw "AI timeout after $TimeoutSeconds seconds"
                 }
                 
@@ -315,7 +336,7 @@ function Invoke-AIWithTimeout {
                 }
                 
                 # Cleanup temp file
-                Remove-Item $tempInputFile -Force -ErrorAction SilentlyContinue
+                Remove-Item $tempPromptFile -Force -ErrorAction SilentlyContinue
             }
             "droid" {
                 # Write prompt to temp file and call droid directly
