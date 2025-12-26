@@ -51,14 +51,16 @@ hermes-claude-code/
 ├── setup.ps1               # Project creation
 ├── lib/                    # PowerShell modules
 │   ├── AIProvider.ps1      # AI CLI abstraction
-│   ├── TaskReader.ps1      # Task file reading
-│   ├── TaskStatusUpdater.ps1 # Status updates
-│   ├── GitBranchManager.ps1  # Git operations
-│   ├── TableFormatter.ps1  # ASCII table formatting
 │   ├── CircuitBreaker.ps1  # Stagnation detection
-│   ├── ResponseAnalyzer.ps1 # AI response analysis
+│   ├── ConfigManager.ps1   # Configuration management
+│   ├── FeatureAnalyzer.ps1 # Feature analysis
+│   ├── GitBranchManager.ps1  # Git operations
+│   ├── Logger.ps1          # Logging system
 │   ├── PromptInjector.ps1  # PROMPT.md management
-│   └── FeatureAnalyzer.ps1 # Feature analysis
+│   ├── ResponseAnalyzer.ps1 # AI response analysis
+│   ├── TableFormatter.ps1  # ASCII table formatting
+│   ├── TaskReader.ps1      # Task file reading
+│   └── TaskStatusUpdater.ps1 # Status updates
 ├── templates/              # Project templates
 └── tests/unit/             # Pester tests
 ```
@@ -138,29 +140,36 @@ hermes -Monitor
 ### Working with Task Mode
 
 ```powershell
+# Copy PRD to .hermes/docs/
+copy docs/PRD.md .hermes/docs/PRD.md
+
 # Create tasks from PRD
-hermes-prd docs/PRD.md
+hermes-prd .hermes/docs/PRD.md
 
 # Start task mode
 hermes -TaskMode -AutoBranch -AutoCommit
 
-# Run in autonomous mode
-hermes -TaskMode -Autonomous
+# Run in autonomous mode (no pauses between tasks)
+hermes -TaskMode -AutoBranch -AutoCommit -Autonomous
 ```
 
 ### Project Structure
 
 ```
 my-project/
-├── PROMPT.md           # Main instructions
-├── tasks/              # Task files (Task Mode)
-│   ├── 001-feature.md  # Feature files
-│   ├── tasks-status.md # Status tracking
-│   └── run-state.md    # Resume checkpoint
-├── src/                # Source code
-├── docs/               # Documentation
-├── logs/               # Log files
-└── status.json         # Live status
+├── .gitignore          # Contains ".hermes/" to exclude from git
+├── .hermes/            # All Hermes files (gitignored)
+│   ├── config.json     # Project configuration
+│   ├── PROMPT.md       # AI prompt file
+│   ├── tasks/          # Task files (001-xxx.md format)
+│   ├── logs/           # Execution logs
+│   ├── docs/           # PRD and documentation
+│   ├── status.json     # Current status
+│   ├── progress.json   # Progress tracking
+│   └── .circuit_breaker_state
+├── src/                # Project code (created by AI, git tracked)
+├── tests/              # Test files
+└── README.md           # Project readme
 ```
 
 ---
@@ -228,7 +237,7 @@ Task Mode is a development mode that works with structured task files. Each feat
 ### Workflow
 
 ```
-PRD.md -> hermes-prd -> tasks/*.md -> hermes -TaskMode -> Automatic Implementation
+.hermes/docs/PRD.md -> hermes-prd -> .hermes/tasks/*.md -> hermes -TaskMode -> Implementation
 ```
 
 ### Task File Format
@@ -349,16 +358,16 @@ hermes-prd <prd-file> [-AI <provider>] [-DryRun] [-Force] [-Clean]
 
 ### Parameters
 
-| Parameter     | Description                              |
-|---------------|------------------------------------------|
-| `<prd-file>`  | PRD markdown file                        |
-| `-AI`         | AI provider (default: auto)              |
-| `-DryRun`     | Preview without creating files           |
-| `-OutputDir`  | Output directory (default: tasks)        |
-| `-Timeout`    | AI timeout in seconds (default: 1200)    |
-| `-MaxRetries` | Retry count (default: 10)                |
-| `-Force`      | Overwrite NOT_STARTED features           |
-| `-Clean`      | Delete all existing tasks, start fresh   |
+| Parameter     | Description                                   |
+|---------------|-----------------------------------------------|
+| `<prd-file>`  | PRD markdown file                             |
+| `-AI`         | AI provider (default: from config or claude)  |
+| `-DryRun`     | Preview without creating files                |
+| `-OutputDir`  | Output directory (default: .hermes/tasks)     |
+| `-Timeout`    | AI timeout in seconds (default: 1200)         |
+| `-MaxRetries` | Retry count (default: 10)                     |
+| `-Force`      | Overwrite NOT_STARTED features                |
+| `-Clean`      | Delete all existing tasks, start fresh        |
 
 ### Incremental Mode
 
@@ -366,14 +375,14 @@ By default, `hermes-prd` runs in incremental mode:
 
 ```powershell
 # First run - creates all features
-hermes-prd docs/PRD.md
+hermes-prd .hermes/docs/PRD.md
 
 # PRD updated, new features added
-hermes-prd docs/PRD.md
+hermes-prd .hermes/docs/PRD.md
 # Only adds NEW features, preserves existing progress
 
 # Clean start
-hermes-prd docs/PRD.md -Clean
+hermes-prd .hermes/docs/PRD.md -Clean
 ```
 
 ### Incremental Mode Behavior
@@ -388,20 +397,26 @@ hermes-prd docs/PRD.md -Clean
 ### Example Output
 
 ```
-[INFO] Reading PRD: docs/PRD.md
-[INFO] PRD size: 45000 characters, 800 lines
-[INFO] Using AI: claude
+[INFO] Reading PRD: .hermes/docs/PRD.md
+[INFO] PRD size: 5946 characters, 264 lines
+[INFO] Using AI: claude (timeout: 1200s, retries: 10)
+[INFO] Parsing PRD with claude...
+
 [INFO] Attempt 1/10...
+[DEBUG] Starting claude execution at 14:36:39...
+[DEBUG] claude completed in 166.5 seconds
 [OK] AI completed successfully
 
-[OK] Created: tasks/001-user-authentication.md (F001, T001-T004)
-[OK] Created: tasks/002-dashboard.md (F002, T005-T008)
-[OK] Created: tasks/tasks-status.md
+[OK] Created: 001-user-authentication.md (F001, T001-T007)
+[OK] Created: 002-product-catalog.md (F002, T008-T014)
+[OK] Created: tasks-status.md
 
+[SUCCESS] Created 2 features with 14 tasks
 Summary:
-  Features: 2
-  Tasks: 8
-  Estimated: 12 days
+  New Features: 2
+  New Tasks: 14
+  Estimated: 0 days
+  Attempts: 1
 
 Next: Run 'hermes -TaskMode -AutoBranch -AutoCommit' to start
 ```
@@ -434,14 +449,14 @@ hermes-add "email verification" -DryRun
 
 ### Parameters
 
-| Parameter    | Description                        |
-|--------------|------------------------------------|
-| `<feature>`  | Feature description or @file-path  |
-| `-AI`        | AI provider (default: auto)        |
-| `-DryRun`    | Preview without creating files     |
-| `-Priority`  | Priority: P1, P2, P3, P4           |
-| `-OutputDir` | Output directory (default: tasks)  |
-| `-Timeout`   | AI timeout in seconds (default: 300) |
+| Parameter    | Description                                  |
+|--------------|----------------------------------------------|
+| `<feature>`  | Feature description or @file-path            |
+| `-AI`        | AI provider (default: from config or claude) |
+| `-DryRun`    | Preview without creating files               |
+| `-Priority`  | Priority: P1, P2, P3, P4                     |
+| `-OutputDir` | Output directory (default: .hermes/tasks)    |
+| `-Timeout`   | AI timeout in seconds (default: 300)         |
 
 ### Example Output
 
@@ -450,7 +465,7 @@ hermes-add "email verification" -DryRun
 [INFO] Source: inline description
 [INFO] Next Feature ID: F003
 [INFO] Next Task ID: T012
-[INFO] Using AI: claude
+[INFO] Using AI: claude (planning task)
 [INFO] Analyzing feature with claude...
 
 ==================================================
@@ -458,7 +473,7 @@ hermes-add "email verification" -DryRun
 ==================================================
 
   Feature ID: F003
-  File:       tasks/003-email-verification.md
+  File:       .hermes/tasks/003-email-verification.md
   Name:       Email Verification
   Priority:   P2 - High
   Tasks:      4 (T012-T015)
@@ -481,9 +496,29 @@ Next: Run 'hermes -TaskMode -AutoBranch -AutoCommit' to implement
 | Droid    | `droid`  | Factory Droid CLI  |
 | Aider    | `aider`  | Aider AI CLI       |
 
+### Task-Based AI Selection
+
+Hermes uses different AI providers for different task types:
+
+| Task Type | Default AI | Description                          |
+|-----------|------------|--------------------------------------|
+| Planning  | `claude`   | PRD parsing, feature addition        |
+| Coding    | `droid`    | Task execution, code implementation  |
+
+This is configured in `.hermes/config.json`:
+
+```json
+{
+  "ai": {
+    "planning": "claude",
+    "coding": "droid"
+  }
+}
+```
+
 ### Auto Detection
 
-Hermes automatically detects available AI CLIs. Priority order:
+If no config exists, Hermes automatically detects available AI CLIs. Priority order:
 
 1. `claude` (highest)
 2. `droid`
@@ -492,14 +527,14 @@ Hermes automatically detects available AI CLIs. Priority order:
 ### Provider Selection
 
 ```powershell
-# Auto detection (default)
+# Uses task-based selection (planning=claude, coding=droid)
 hermes -TaskMode
-hermes-prd docs/PRD.md
+hermes-prd .hermes/docs/PRD.md
 hermes-add "feature"
 
-# Specific provider
-hermes -TaskMode -AI droid
-hermes-prd docs/PRD.md -AI claude
+# Override with specific provider
+hermes -TaskMode -AI claude
+hermes-prd .hermes/docs/PRD.md -AI droid
 hermes-add "feature" -AI aider
 ```
 
@@ -565,6 +600,29 @@ Manages Git branch and commit operations.
 | `Get-CurrentBranch`    | Get current branch name      |
 | `Test-BranchExists`    | Check if branch exists       |
 
+### ConfigManager.ps1
+
+Configuration management for global and project settings.
+
+| Function               | Description                      |
+|------------------------|----------------------------------|
+| `Get-HermesConfig`     | Get merged configuration         |
+| `Get-ConfigValue`      | Get specific config value        |
+| `Set-ConfigValue`      | Set config value                 |
+| `Get-AIForTask`        | Get AI provider for task type    |
+| `Initialize-ProjectConfig` | Create project config        |
+
+### Logger.ps1
+
+Logging system for session tracking.
+
+| Function            | Description                    |
+|---------------------|--------------------------------|
+| `Initialize-Logger` | Start logging session          |
+| `Write-Log`         | Write log entry                |
+| `Write-LogSection`  | Write section header           |
+| `Close-Logger`      | End logging session            |
+
 ### CircuitBreaker.ps1
 
 Stagnation detection and protection.
@@ -621,30 +679,49 @@ Feature analysis and file creation.
 
 ## 10. Configuration
 
-### hermes_loop.ps1 Configuration
+### Project Configuration (.hermes/config.json)
 
-```powershell
-$script:Config = @{
-    AIProvider = "claude"        # Resolved AI provider
-    AITimeoutMinutes = 15        # Timeout duration
-    MaxCallsPerHour = 100        # Hourly API limit
-    MaxConsecutiveErrors = 5     # Error threshold
-    TasksDir = "tasks"           # Task directory
-    LogDir = "logs"              # Log directory
-    StatusFile = "status.json"   # Status file
+```json
+{
+  "ai": {
+    "planning": "claude",
+    "coding": "droid",
+    "timeout": 300,
+    "prdTimeout": 1200,
+    "maxRetries": 10
+  },
+  "taskMode": {
+    "autoBranch": false,
+    "autoCommit": false,
+    "autonomous": false,
+    "maxConsecutiveErrors": 5
+  },
+  "loop": {
+    "maxCallsPerHour": 100,
+    "timeoutMinutes": 15
+  },
+  "paths": {
+    "hermesDir": ".hermes",
+    "tasksDir": ".hermes/tasks",
+    "logsDir": ".hermes/logs",
+    "docsDir": ".hermes/docs"
+  }
 }
 ```
 
 ### Project Control Files
 
-| File                     | Purpose                          |
-|--------------------------|----------------------------------|
-| `PROMPT.md`              | Instructions fed to AI each loop |
-| `tasks/*.md`             | Feature and task definitions     |
-| `tasks/run-state.md`     | Resume checkpoint                |
-| `tasks/tasks-status.md`  | Status tracking                  |
-| `status.json`            | Live loop status                 |
-| `.circuit_breaker_state` | Circuit breaker state            |
+| File                              | Purpose                          |
+|-----------------------------------|----------------------------------|
+| `.hermes/config.json`             | Project configuration            |
+| `.hermes/PROMPT.md`               | Instructions fed to AI each loop |
+| `.hermes/tasks/*.md`              | Feature and task definitions     |
+| `.hermes/tasks/run-state.md`      | Resume checkpoint                |
+| `.hermes/tasks/tasks-status.md`   | Status tracking                  |
+| `.hermes/status.json`             | Live loop status                 |
+| `.hermes/progress.json`           | Progress tracking                |
+| `.hermes/.circuit_breaker_state`  | Circuit breaker state            |
+| `.hermes/logs/`                   | AI output and session logs       |
 
 ### PROMPT.md Status Block
 
@@ -709,13 +786,13 @@ CIRCUIT BREAKER OPENED - Execution halted
 1. Review recent logs:
 
    ```powershell
-   Get-Content logs\hermes.log -Tail 20
+   Get-Content .hermes\logs\hermes-loop-*.log -Tail 20
    ```
 
 2. Check AI output:
 
    ```powershell
-   Get-ChildItem logs\*_output_*.log | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+   Get-ChildItem .hermes\logs\*_output_*.log | Sort-Object LastWriteTime -Descending | Select-Object -First 1
    ```
 
 3. Fix the issue and reset:
@@ -733,7 +810,7 @@ Task not found: T005
 **Solution:**
 
 - Ensure task ID is typed correctly
-- Check that `tasks/` directory exists
+- Check that `.hermes/tasks/` directory exists
 - List existing tasks with `hermes -TaskStatus`
 
 ### Resume Not Working
@@ -742,7 +819,7 @@ Resume mechanism depends on `run-state.md`:
 
 ```powershell
 # Check run-state.md
-Get-Content tasks/run-state.md
+Get-Content .hermes/tasks/run-state.md
 
 # Manually start from specific task
 hermes -TaskMode -StartFrom T005
@@ -782,5 +859,5 @@ Invoke-Pester -Path tests/unit/ -PassThru
 
 ---
 
-**Version:** 1.0  
-**Last Updated:** 2025-12-25
+**Version:** 1.1  
+**Last Updated:** 2025-12-26
