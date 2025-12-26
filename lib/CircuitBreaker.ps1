@@ -149,7 +149,9 @@ function Add-LoopResult {
         
         [bool]$HasErrors = $false,
         
-        [int]$OutputLength = 0
+        [int]$OutputLength = 0,
+        
+        [bool]$HasProgress = $false
     )
     
     Initialize-CircuitBreaker
@@ -162,8 +164,8 @@ function Add-LoopResult {
     $lastProgressLoop = [int]$stateData.last_progress_loop
     $totalOpens = [int]$stateData.total_opens
     
-    # Detect progress
-    $hasProgress = $FilesChanged -gt 0
+    # Detect progress (explicit HasProgress flag OR files changed)
+    $hasProgress = $HasProgress -or ($FilesChanged -gt 0)
     if ($hasProgress) {
         $consecutiveNoProgress = 0
         $lastProgressLoop = $LoopNumber

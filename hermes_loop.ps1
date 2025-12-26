@@ -603,18 +603,24 @@ function Invoke-AIExecution {
                 # Ignore git errors
             }
             
-            # Check for errors in output
+            # Check for errors in output (but not if task completed successfully)
             $hasErrors = $false
             $outputContent = Get-Content $outputFile -Raw -ErrorAction SilentlyContinue
-            if ($outputContent -match "(?i)(error|exception|failed)") {
+            
+            # Get analysis result to check if task was successful
+            $analysisData = Get-AnalysisResult
+            $taskSuccessful = $analysisData -and $analysisData.analysis -and $analysisData.analysis.exit_signal
+            
+            # Only flag errors if task didn't complete successfully
+            if (-not $taskSuccessful -and $outputContent -match "(?i)\b(error|exception|failed)\b") {
                 $hasErrors = $true
                 Write-Status -Level "WARN" -Message "Errors detected in output, check: $outputFile"
             }
             
             $outputLength = if (Test-Path $outputFile) { (Get-Item $outputFile).Length } else { 0 }
             
-            # Record result in circuit breaker
-            $circuitResult = Add-LoopResult -LoopNumber $LoopCount -FilesChanged $filesChanged -HasErrors $hasErrors -OutputLength $outputLength
+            # Record result in circuit breaker (successful task = progress made)
+            $circuitResult = Add-LoopResult -LoopNumber $LoopCount -FilesChanged $filesChanged -HasErrors $hasErrors -OutputLength $outputLength -HasProgress $taskSuccessful
             
             if (-not $circuitResult) {
                 Write-Status -Level "WARN" -Message "Circuit breaker opened - halting execution"
