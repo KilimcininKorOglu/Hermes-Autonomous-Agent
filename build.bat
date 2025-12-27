@@ -307,3 +307,4 @@ echo   clean              Remove build artifacts
 echo   help               Show this help message
 echo.
 goto :eof
+
