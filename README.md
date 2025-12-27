@@ -13,6 +13,7 @@ AI-powered autonomous application development system written in Go. Supports Cla
 
 ## Features
 
+- **Idea to PRD** - Generate detailed PRD from a simple idea description
 - **Multi-AI Support** - Claude, Droid, and Gemini CLI providers with auto-detection
 - **PRD Parser** - Convert PRD documents to structured task files
 - **Task Execution Loop** - Autonomous task execution with progress tracking
@@ -59,8 +60,10 @@ make build         # Linux/macOS
 hermes init my-project
 cd my-project
 
-# Add PRD and parse to tasks
-cp your-prd.md .hermes/docs/PRD.md
+# Generate PRD from idea (new in v1.1.0)
+hermes idea "e-commerce platform with user auth and payments"
+
+# Or use existing PRD
 hermes prd .hermes/docs/PRD.md
 
 # Check status
@@ -72,17 +75,28 @@ hermes run --auto-branch --auto-commit
 
 ## Commands
 
-| Command              | Description              |
-|----------------------|--------------------------|
-| `hermes init [name]` | Initialize project       |
-| `hermes prd <file>`  | Parse PRD to task files  |
-| `hermes add <feat>`  | Add single feature       |
-| `hermes run`         | Execute task loop        |
-| `hermes status`      | Show task status table   |
-| `hermes task <id>`   | Show task details        |
-| `hermes log`         | View execution logs      |
-| `hermes tui`         | Launch interactive TUI   |
-| `hermes reset`       | Reset circuit breaker    |
+| Command              | Description                      |
+|----------------------|----------------------------------|
+| `hermes init [name]` | Initialize project               |
+| `hermes idea <desc>` | Generate PRD from idea (v1.1.0)  |
+| `hermes prd <file>`  | Parse PRD to task files          |
+| `hermes add <feat>`  | Add single feature               |
+| `hermes run`         | Execute task loop                |
+| `hermes status`      | Show task status table           |
+| `hermes task <id>`   | Show task details                |
+| `hermes log`         | View execution logs              |
+| `hermes tui`         | Launch interactive TUI           |
+| `hermes reset`       | Reset circuit breaker            |
+
+## Idea Command Options
+
+```bash
+hermes idea "e-commerce site"                    # Generate PRD in English
+hermes idea "blog platform" --language tr        # Generate PRD in Turkish
+hermes idea "CRM system" --interactive           # Ask additional questions
+hermes idea "task manager" --dry-run             # Preview without saving
+hermes idea "chat app" -o custom-prd.md          # Custom output path
+```
 
 ## Run Options
 
