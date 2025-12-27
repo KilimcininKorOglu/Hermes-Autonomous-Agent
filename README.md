@@ -21,6 +21,7 @@ AI-powered autonomous application development system written in Go. Supports Cla
 - **PRD Parser** - Convert PRD documents to structured task files
 - **Task Execution Loop** - Autonomous task execution with progress tracking
 - **Auto Git Operations** - Feature branches and conventional commits
+- **Auto Git Tagging** - Automatic version tags when features complete (v1.2.0)
 - **Circuit Breaker** - Stagnation detection and recovery
 - **Interactive TUI** - Dashboard, task list, and log viewer
 - **Resume Support** - Continue from where you left off
@@ -63,7 +64,7 @@ make build         # Linux/macOS
 hermes init my-project
 cd my-project
 
-# Generate PRD from idea (new in v1.1.0)
+# Generate PRD from idea
 hermes idea "e-commerce platform with user auth and payments"
 
 # Or use existing PRD
@@ -81,7 +82,7 @@ hermes run --auto-branch --auto-commit
 | Command              | Description                      |
 |----------------------|----------------------------------|
 | `hermes init [name]` | Initialize project               |
-| `hermes idea <desc>` | Generate PRD from idea (v1.1.0)  |
+| `hermes idea <desc>` | Generate PRD from idea           |
 | `hermes prd <file>`  | Parse PRD to task files          |
 | `hermes add <feat>`  | Add single feature               |
 | `hermes run`         | Execute task loop                |
@@ -140,18 +141,91 @@ my-project/
 
 ```markdown
 # Feature 1: User Authentication
+
 **Feature ID:** F001
+**Priority:** P1 - CRITICAL
+**Target Version:** v1.0.0
+**Estimated Duration:** 1-2 weeks
 **Status:** NOT_STARTED
 
+## Overview
+
+User authentication system with secure login, registration, and session management.
+
+## Goals
+
+- Enable secure user authentication
+- Support multiple auth methods
+- Implement session management
+
+## Tasks
+
 ### T001: Database Schema
+
 **Status:** NOT_STARTED
 **Priority:** P1
-**Files to Touch:** db/migrations/001_users.sql
-**Dependencies:** None
-**Success Criteria:**
-- Migration runs successfully
-- Rollback works
+**Estimated Effort:** 1 day
+
+#### Description
+
+Create database schema for users table with proper indexes and constraints.
+
+#### Technical Details
+
+Use PostgreSQL with UUID primary keys. Add indexes on email and username.
+
+#### Files to Touch
+
+- `db/migrations/001_users.sql` (new)
+- `db/migrations/002_sessions.sql` (new)
+
+#### Dependencies
+
+- None
+
+#### Success Criteria
+
+- [ ] Migration runs successfully
+- [ ] Rollback works
+- [ ] Indexes created
+
+## Performance Targets
+
+- Login response time: < 200ms
+- Session validation: < 50ms
+
+## Risk Assessment
+
+| Risk              | Probability | Impact | Mitigation           |
+|-------------------|-------------|--------|----------------------|
+| SQL injection     | Low         | High   | Use parameterized queries |
 ```
+
+### Task Status Types
+
+| Status       | Description                     |
+|--------------|--------------------------------|
+| NOT_STARTED  | Task not yet begun             |
+| IN_PROGRESS  | Currently being worked on      |
+| COMPLETED    | Successfully finished          |
+| BLOCKED      | Cannot proceed                 |
+| AT_RISK      | May not meet deadline          |
+| PAUSED       | Temporarily suspended          |
+
+## Auto Git Tagging
+
+When all tasks in a feature are completed and the feature has a `Target Version`, Hermes automatically creates a git tag.
+
+```bash
+# Example: Feature F001 with Target Version v1.0.0 completes
+# Hermes creates:
+git tag -a v1.0.0 -m "Release v1.0.0: F001 - User Authentication"
+```
+
+Tags are only created if:
+- All tasks in the feature have `COMPLETED` status
+- Feature has `**Target Version:**` field set
+- Tag doesn't already exist
 
 ## Configuration
 
