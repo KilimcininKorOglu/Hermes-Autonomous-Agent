@@ -52,6 +52,10 @@ type Task struct {
 	Dependencies     []string `json:"dependencies"`
 	SuccessCriteria  []string `json:"successCriteria"`
 	FeatureID        string   `json:"featureId"`
+	// Parallel execution fields
+	DependsOn      []string `json:"dependsOn"`      // Explicit task dependencies (task IDs)
+	Parallelizable bool     `json:"parallelizable"` // Can run in parallel (default: true)
+	ExclusiveFiles []string `json:"exclusiveFiles"` // Files only this task should modify
 }
 
 // Progress represents overall task progress

@@ -28,5 +28,16 @@ func DefaultConfig() *Config {
 			LogsDir:   ".hermes/logs",
 			DocsDir:   ".hermes/docs",
 		},
+		Parallel: ParallelConfig{
+			Enabled:            false,
+			MaxWorkers:         3,
+			Strategy:           "branch-per-task",
+			ConflictResolution: "ai-assisted",
+			IsolatedWorkspaces: true,
+			MergeStrategy:      "sequential",
+			MaxCostPerHour:     0, // 0 means no limit
+			FailureStrategy:    "continue",
+			MaxRetries:         2,
+		},
 	}
 }

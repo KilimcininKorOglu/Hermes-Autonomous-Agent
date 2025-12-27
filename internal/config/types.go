@@ -6,6 +6,7 @@ type Config struct {
 	TaskMode TaskModeConfig `json:"taskMode" mapstructure:"taskMode"`
 	Loop     LoopConfig     `json:"loop" mapstructure:"loop"`
 	Paths    PathsConfig    `json:"paths" mapstructure:"paths"`
+	Parallel ParallelConfig `json:"parallel" mapstructure:"parallel"`
 }
 
 // AIConfig contains AI provider settings
@@ -39,4 +40,17 @@ type PathsConfig struct {
 	TasksDir  string `json:"tasksDir" mapstructure:"tasksDir"`
 	LogsDir   string `json:"logsDir" mapstructure:"logsDir"`
 	DocsDir   string `json:"docsDir" mapstructure:"docsDir"`
+}
+
+// ParallelConfig contains parallel execution settings
+type ParallelConfig struct {
+	Enabled            bool    `json:"enabled" mapstructure:"enabled"`
+	MaxWorkers         int     `json:"maxWorkers" mapstructure:"maxWorkers"`
+	Strategy           string  `json:"strategy" mapstructure:"strategy"`
+	ConflictResolution string  `json:"conflictResolution" mapstructure:"conflictResolution"`
+	IsolatedWorkspaces bool    `json:"isolatedWorkspaces" mapstructure:"isolatedWorkspaces"`
+	MergeStrategy      string  `json:"mergeStrategy" mapstructure:"mergeStrategy"`
+	MaxCostPerHour     float64 `json:"maxCostPerHour" mapstructure:"maxCostPerHour"`
+	FailureStrategy    string  `json:"failureStrategy" mapstructure:"failureStrategy"`
+	MaxRetries         int     `json:"maxRetries" mapstructure:"maxRetries"`
 }
