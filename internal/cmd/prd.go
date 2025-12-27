@@ -59,6 +59,14 @@ func prdExecute(prdFile string, opts *prdOptions) error {
 		cfg = config.DefaultConfig()
 	}
 
+	// Initialize logger
+	logger, err := ui.NewLogger(".", opts.debug)
+	if err != nil {
+		fmt.Printf("Warning: Failed to initialize logger: %v\n", err)
+	} else {
+		defer logger.Close()
+	}
+
 	// Read PRD file
 	prdContent, err := os.ReadFile(prdFile)
 	if err != nil {
@@ -66,6 +74,9 @@ func prdExecute(prdFile string, opts *prdOptions) error {
 	}
 
 	fmt.Printf("PRD file: %s (%d chars)\n", prdFile, len(prdContent))
+	if logger != nil {
+		logger.Info("PRD parsing started: %s (%d chars)", prdFile, len(prdContent))
+	}
 
 	// Get provider from config
 	var provider ai.Provider
@@ -79,11 +90,15 @@ func prdExecute(prdFile string, opts *prdOptions) error {
 		return fmt.Errorf("no AI provider available")
 	}
 	fmt.Printf("Using AI: %s\n\n", provider.Name())
+	if logger != nil {
+		logger.Info("Using AI provider: %s", provider.Name())
+	}
 
 	// Build prompt
 	prompt := buildPrdPrompt(string(prdContent))
 
 	// Execute with retry
+	startTime := time.Now()
 	result, err := ai.ExecuteWithRetry(ctx, provider, &ai.ExecuteOptions{
 		Prompt:       prompt,
 		Timeout:      opts.timeout,
@@ -93,8 +108,17 @@ func prdExecute(prdFile string, opts *prdOptions) error {
 		Delay:      10 * time.Second,
 	})
 
+	duration := time.Since(startTime)
+
 	if err != nil {
+		if logger != nil {
+			logger.Error("PRD parsing failed: %v", err)
+		}
 		return fmt.Errorf("failed to parse PRD: %w", err)
+	}
+
+	if logger != nil {
+		logger.Success("PRD parsed successfully in %v", duration.Round(time.Second))
 	}
 
 	if opts.dryRun {
@@ -104,7 +128,18 @@ func prdExecute(prdFile string, opts *prdOptions) error {
 	}
 
 	// Write task files
-	return writeTaskFiles(result.Output)
+	if err := writeTaskFiles(result.Output); err != nil {
+		if logger != nil {
+			logger.Error("Failed to write task files: %v", err)
+		}
+		return err
+	}
+
+	if logger != nil {
+		logger.Success("Task files created successfully")
+	}
+
+	return nil
 }
 
 func buildPrdPrompt(prdContent string) string {
