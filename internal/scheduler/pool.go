@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"hermes/internal/ai"
+	"hermes/internal/isolation"
 	"hermes/internal/task"
 )
 
@@ -26,29 +27,51 @@ type TaskResult struct {
 
 // WorkerPool manages multiple AI agent instances for parallel execution
 type WorkerPool struct {
-	workers   int
-	taskQueue chan *task.Task
-	results   chan *TaskResult
-	ctx       context.Context
-	cancel    context.CancelFunc
-	wg        sync.WaitGroup
-	provider  ai.Provider
-	workDir   string
-	mu        sync.Mutex
-	running   int
+	workers        int
+	taskQueue      chan *task.Task
+	results        chan *TaskResult
+	ctx            context.Context
+	cancel         context.CancelFunc
+	wg             sync.WaitGroup
+	provider       ai.Provider
+	workDir        string
+	mu             sync.Mutex
+	running        int
+	useIsolation   bool
+	workspaces     map[string]*isolation.Workspace
+	logger         *ParallelLogger
+}
+
+// WorkerPoolConfig contains configuration for the worker pool
+type WorkerPoolConfig struct {
+	Workers      int
+	UseIsolation bool
+	Logger       *ParallelLogger
 }
 
 // NewWorkerPool creates a new worker pool
 func NewWorkerPool(ctx context.Context, workers int, provider ai.Provider, workDir string) *WorkerPool {
+	return NewWorkerPoolWithConfig(ctx, provider, workDir, WorkerPoolConfig{
+		Workers:      workers,
+		UseIsolation: false,
+		Logger:       nil,
+	})
+}
+
+// NewWorkerPoolWithConfig creates a new worker pool with configuration
+func NewWorkerPoolWithConfig(ctx context.Context, provider ai.Provider, workDir string, cfg WorkerPoolConfig) *WorkerPool {
 	ctx, cancel := context.WithCancel(ctx)
 	return &WorkerPool{
-		workers:   workers,
-		taskQueue: make(chan *task.Task, workers*2),
-		results:   make(chan *TaskResult, workers*2),
-		ctx:       ctx,
-		cancel:    cancel,
-		provider:  provider,
-		workDir:   workDir,
+		workers:      cfg.Workers,
+		taskQueue:    make(chan *task.Task, cfg.Workers*2),
+		results:      make(chan *TaskResult, cfg.Workers*2),
+		ctx:          ctx,
+		cancel:       cancel,
+		provider:     provider,
+		workDir:      workDir,
+		useIsolation: cfg.UseIsolation,
+		workspaces:   make(map[string]*isolation.Workspace),
+		logger:       cfg.Logger,
 	}
 }
 
@@ -112,11 +135,35 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task) *TaskResult {
 		TaskID:    t.ID,
 		TaskName:  t.Name,
 		StartTime: startTime,
-		WorkerID:  workerID,
+		WorkerID:  workerID + 1, // 1-indexed for display
 	}
 
-	// Create task executor
-	executor := ai.NewTaskExecutor(p.provider, p.workDir)
+	// Log task start
+	if p.logger != nil {
+		p.logger.TaskStart(workerID+1, t.ID, t.Name)
+	}
+
+	// Setup isolated workspace if enabled
+	workDir := p.workDir
+	var workspace *isolation.Workspace
+	if p.useIsolation {
+		workspace = isolation.NewWorkspace(t.ID, p.workDir)
+		if err := workspace.Setup(); err != nil {
+			// Fall back to shared workspace
+			if p.logger != nil {
+				p.logger.Worker(workerID+1, "Failed to create isolated workspace, using shared: %v", err)
+			}
+		} else {
+			workDir = workspace.GetWorkPath()
+			result.Branch = workspace.GetBranch()
+			p.mu.Lock()
+			p.workspaces[t.ID] = workspace
+			p.mu.Unlock()
+		}
+	}
+
+	// Create task executor with appropriate work directory
+	executor := ai.NewTaskExecutor(p.provider, workDir)
 
 	// Build prompt content from task
 	promptContent := p.buildPromptContent(t)
@@ -130,11 +177,29 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task) *TaskResult {
 	if err != nil {
 		result.Success = false
 		result.Error = err
+		if p.logger != nil {
+			p.logger.TaskFailed(workerID+1, t.ID, err)
+		}
 		return result
 	}
 
 	result.Success = true
 	result.Output = execResult.Output
+
+	// Log task completion
+	if p.logger != nil {
+		p.logger.TaskComplete(workerID+1, t.ID, result.Duration)
+	}
+
+	// Commit changes in isolated workspace
+	if workspace != nil && workspace.HasUncommittedChanges() {
+		commitMsg := fmt.Sprintf("Complete task %s: %s", t.ID, t.Name)
+		if err := workspace.CommitChanges(commitMsg); err != nil {
+			if p.logger != nil {
+				p.logger.Worker(workerID+1, "Failed to commit changes: %v", err)
+			}
+		}
+	}
 
 	return result
 }

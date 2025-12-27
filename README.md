@@ -116,6 +116,65 @@ hermes run --auto-commit            # Commit on completion
 hermes run --autonomous=false       # Pause between tasks
 ```
 
+## Parallel Execution (v2.0)
+
+Execute multiple independent tasks simultaneously with AI agents:
+
+```bash
+# Enable parallel execution
+hermes run --parallel
+
+# Specify number of workers
+hermes run --parallel --workers 3
+
+# Preview execution plan (dry run)
+hermes run --dry-run
+
+# Combine with other options
+hermes run --parallel --workers 5 --auto-commit
+```
+
+### Key Features
+
+- **Dependency Graph** - Automatically respects task dependencies
+- **Worker Pool** - Multiple AI agents working in parallel
+- **Isolated Workspaces** - Git worktree-based isolation per task
+- **Conflict Detection** - Detects file-level and semantic conflicts
+- **AI-Assisted Merge** - LLM-powered conflict resolution
+- **Rollback Support** - Automatic snapshot and recovery
+
+### Configuration
+
+Add to `.hermes/config.json`:
+
+```json
+{
+  "parallel": {
+    "enabled": false,
+    "maxWorkers": 3,
+    "strategy": "branch-per-task",
+    "conflictResolution": "ai-assisted",
+    "isolatedWorkspaces": true,
+    "mergeStrategy": "sequential",
+    "maxCostPerHour": 0,
+    "failureStrategy": "continue",
+    "maxRetries": 2
+  }
+}
+```
+
+| Option              | Default            | Description                        |
+|---------------------|--------------------|------------------------------------|
+| enabled             | false              | Enable parallel by default         |
+| maxWorkers          | 3                  | Maximum parallel AI agents         |
+| strategy            | "branch-per-task"  | Branching strategy                 |
+| conflictResolution  | "ai-assisted"      | Conflict resolution method         |
+| isolatedWorkspaces  | true               | Use git worktrees                  |
+| mergeStrategy       | "sequential"       | How to merge results               |
+| maxCostPerHour      | 0                  | Cost limit (0 = unlimited)         |
+| failureStrategy     | "continue"         | fail-fast or continue              |
+| maxRetries          | 2                  | Retry failed tasks                 |
+
 ## AI Providers
 
 | Provider | Priority | Command  |
