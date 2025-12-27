@@ -84,12 +84,13 @@ func (m *TasksModel) View() string {
 	var sb strings.Builder
 
 	// Calculate dynamic column widths
-	nameWidth := m.width - 50 // ID(6) + Status(12) + Priority(8) + Feature(6) + separators(~18)
+	// ID(6) + Status(12) + Priority(8) + Effort(10) + Feature(6) + separators(~24)
+	nameWidth := m.width - 66
 	if nameWidth < 20 {
 		nameWidth = 20
 	}
-	if nameWidth > 60 {
-		nameWidth = 60
+	if nameWidth > 50 {
+		nameWidth = 50
 	}
 
 	// Filter bar
@@ -110,8 +111,8 @@ func (m *TasksModel) View() string {
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderBottom(true)
 
-	headerFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-6s", nameWidth)
-	header := fmt.Sprintf(headerFmt, "ID", "Name", "Status", "Priority", "Feature")
+	headerFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
+	header := fmt.Sprintf(headerFmt, "ID", "Name", "Status", "Priority", "Effort", "Feature")
 	sb.WriteString(headerStyle.Render(header))
 	sb.WriteString("\n")
 
@@ -138,7 +139,7 @@ func (m *TasksModel) View() string {
 		endIdx = len(tasks)
 	}
 
-	rowFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-6s", nameWidth)
+	rowFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
 
 	for i := startIdx; i < endIdx; i++ {
 		t := tasks[i]
@@ -147,7 +148,15 @@ func (m *TasksModel) View() string {
 			name = name[:nameWidth-3] + "..."
 		}
 
-		row := fmt.Sprintf(rowFmt, t.ID, name, t.Status, t.Priority, t.FeatureID)
+		effort := t.EstimatedEffort
+		if effort == "" {
+			effort = "-"
+		}
+		if len(effort) > 10 {
+			effort = effort[:7] + "..."
+		}
+
+		row := fmt.Sprintf(rowFmt, t.ID, name, t.Status, t.Priority, effort, t.FeatureID)
 
 		rowStyle := lipgloss.NewStyle()
 		if i == m.cursor {
@@ -163,6 +172,10 @@ func (m *TasksModel) View() string {
 				rowStyle = rowStyle.Foreground(lipgloss.Color("226"))
 			case task.StatusBlocked:
 				rowStyle = rowStyle.Foreground(lipgloss.Color("196"))
+			case task.StatusAtRisk:
+				rowStyle = rowStyle.Foreground(lipgloss.Color("208"))
+			case task.StatusPaused:
+				rowStyle = rowStyle.Foreground(lipgloss.Color("141"))
 			case task.StatusNotStarted:
 				rowStyle = rowStyle.Foreground(lipgloss.Color("241"))
 			}

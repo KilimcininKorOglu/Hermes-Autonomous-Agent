@@ -1,6 +1,9 @@
 package git
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // StageAll stages all changes
 func (g *Git) StageAll() error {
@@ -63,4 +66,60 @@ func (g *Git) AmendCommit() error {
 // GetLog returns recent commit log
 func (g *Git) GetLog(count int) (string, error) {
 	return g.run("log", fmt.Sprintf("-%d", count), "--oneline")
+}
+
+// CreateTag creates a git tag
+func (g *Git) CreateTag(tag, message string) error {
+	_, err := g.run("tag", "-a", tag, "-m", message)
+	return err
+}
+
+// CreateLightweightTag creates a lightweight tag without message
+func (g *Git) CreateLightweightTag(tag string) error {
+	_, err := g.run("tag", tag)
+	return err
+}
+
+// TagExists checks if a tag exists
+func (g *Git) TagExists(tag string) bool {
+	_, err := g.run("rev-parse", "--verify", fmt.Sprintf("refs/tags/%s", tag))
+	return err == nil
+}
+
+// DeleteTag deletes a tag
+func (g *Git) DeleteTag(tag string) error {
+	_, err := g.run("tag", "-d", tag)
+	return err
+}
+
+// ListTags returns all tags
+func (g *Git) ListTags() ([]string, error) {
+	output, err := g.run("tag", "-l")
+	if err != nil {
+		return nil, err
+	}
+	if output == "" {
+		return nil, nil
+	}
+	return strings.Split(output, "\n"), nil
+}
+
+// CreateFeatureTag creates a tag for a completed feature with version
+func (g *Git) CreateFeatureTag(featureID, featureName, version string) error {
+	if version == "" {
+		return nil
+	}
+
+	// Normalize version (add v prefix if missing)
+	if version[0] != 'v' {
+		version = "v" + version
+	}
+
+	// Check if tag already exists
+	if g.TagExists(version) {
+		return nil
+	}
+
+	message := fmt.Sprintf("Release %s: %s - %s", version, featureID, featureName)
+	return g.CreateTag(version, message)
 }

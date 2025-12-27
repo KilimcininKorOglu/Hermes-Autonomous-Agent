@@ -122,6 +122,28 @@ func (r *Reader) GetFeatureByID(id string) (*Feature, error) {
 	return nil, nil
 }
 
+// IsFeatureComplete checks if all tasks in a feature are completed
+func (r *Reader) IsFeatureComplete(featureID string) (bool, error) {
+	feature, err := r.GetFeatureByID(featureID)
+	if err != nil {
+		return false, err
+	}
+	if feature == nil {
+		return false, nil
+	}
+
+	if len(feature.Tasks) == 0 {
+		return false, nil
+	}
+
+	for _, t := range feature.Tasks {
+		if t.Status != StatusCompleted {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
 // GetTasksByStatus returns all tasks with the given status
 func (r *Reader) GetTasksByStatus(status Status) ([]Task, error) {
 	tasks, err := r.GetAllTasks()

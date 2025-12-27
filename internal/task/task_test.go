@@ -7,35 +7,122 @@ import (
 )
 
 const testFeatureContent = `# Feature 1: User Authentication
+
 **Feature ID:** F001
+**Priority:** P1 - CRITICAL
+**Target Version:** v1.0.0
+**Estimated Duration:** 2-3 weeks
 **Status:** IN_PROGRESS
 
+## Overview
+
+This feature implements user authentication for the application.
+It includes login, password hashing, and JWT token management.
+
+## Goals
+
+- Enable secure user authentication
+- Implement industry-standard password hashing
+- Provide stateless session management with JWT
+
+## Tasks
+
 ### T001: Create login endpoint
+
 **Status:** COMPLETED
 **Priority:** P1
-**Files to Touch:** api/auth.go, handlers/login.go
-**Dependencies:** None
-**Success Criteria:**
+**Estimated Effort:** 2 days
+
+#### Description
+
+Create the login endpoint that accepts user credentials and returns a JWT token.
+
+#### Technical Details
+
+Use Go standard library for HTTP handling. Follow REST conventions.
+
+#### Files to Touch
+
+- api/auth.go
+- handlers/login.go
+
+#### Dependencies
+
+- None
+
+#### Success Criteria
+
 - Endpoint accepts POST /api/login
 - Returns JWT token on success
 
+---
+
 ### T002: Add password hashing
+
 **Status:** NOT_STARTED
 **Priority:** P1
-**Files to Touch:** utils/crypto.go
-**Dependencies:** T001
-**Success Criteria:**
+**Estimated Effort:** 1 day
+
+#### Description
+
+Implement secure password hashing using bcrypt algorithm.
+
+#### Technical Details
+
+Use golang.org/x/crypto/bcrypt package with cost factor of 12.
+
+#### Files to Touch
+
+- utils/crypto.go
+
+#### Dependencies
+
+- T001
+
+#### Success Criteria
+
 - Use bcrypt for hashing
 - Hash stored in database
 
+---
+
 ### T003: Implement JWT tokens
+
 **Status:** BLOCKED
 **Priority:** P2
-**Files to Touch:** auth/jwt.go
-**Dependencies:** T001, T002
-**Success Criteria:**
+**Estimated Effort:** 1.5 days
+
+#### Description
+
+Generate and verify JWT tokens for session management.
+
+#### Technical Details
+
+Use github.com/golang-jwt/jwt/v5 for token operations.
+
+#### Files to Touch
+
+- auth/jwt.go
+
+#### Dependencies
+
+- T001, T002
+
+#### Success Criteria
+
 - Generate valid JWT
 - Verify JWT signature
+
+## Performance Targets
+
+- Login response time: < 200ms
+- Token verification: < 10ms
+
+## Risk Assessment
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Brute force attacks | Medium | High | Rate limiting |
 `
 
 func setupTestDir(t *testing.T) string {
@@ -73,6 +160,24 @@ func TestParseFeature(t *testing.T) {
 	if feature.Status != StatusInProgress {
 		t.Errorf("expected Status = IN_PROGRESS, got %s", feature.Status)
 	}
+	if feature.Priority != PriorityP1 {
+		t.Errorf("expected Priority = P1, got %s", feature.Priority)
+	}
+	if feature.TargetVersion != "v1.0.0" {
+		t.Errorf("expected TargetVersion = v1.0.0, got %s", feature.TargetVersion)
+	}
+	if feature.EstimatedDuration != "2-3 weeks" {
+		t.Errorf("expected EstimatedDuration = '2-3 weeks', got %s", feature.EstimatedDuration)
+	}
+	if feature.Overview == "" {
+		t.Error("expected Overview to be populated")
+	}
+	if len(feature.Goals) != 3 {
+		t.Errorf("expected 3 goals, got %d", len(feature.Goals))
+	}
+	if feature.PerformanceTarget == "" {
+		t.Error("expected PerformanceTarget to be populated")
+	}
 	if len(feature.Tasks) != 3 {
 		t.Errorf("expected 3 tasks, got %d", len(feature.Tasks))
 	}
@@ -94,6 +199,15 @@ func TestParseTasks(t *testing.T) {
 	}
 	if task1.Priority != PriorityP1 {
 		t.Errorf("expected Priority = P1, got %s", task1.Priority)
+	}
+	if task1.EstimatedEffort != "2 days" {
+		t.Errorf("expected EstimatedEffort = '2 days', got %s", task1.EstimatedEffort)
+	}
+	if task1.Description == "" {
+		t.Error("expected Description to be populated")
+	}
+	if task1.TechnicalDetails == "" {
+		t.Error("expected TechnicalDetails to be populated")
 	}
 	if len(task1.FilesToTouch) != 2 {
 		t.Errorf("expected 2 files, got %d", len(task1.FilesToTouch))

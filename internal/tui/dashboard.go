@@ -12,12 +12,13 @@ import (
 
 // DashboardModel is the dashboard screen model
 type DashboardModel struct {
-	basePath   string
-	width      int
-	height     int
-	progress   *task.Progress
-	breaker    *circuit.BreakerState
-	currentTask *task.Task
+	basePath       string
+	width          int
+	height         int
+	progress       *task.Progress
+	breaker        *circuit.BreakerState
+	currentTask    *task.Task
+	currentFeature *task.Feature
 }
 
 // NewDashboardModel creates a new dashboard model
@@ -38,6 +39,9 @@ func (m *DashboardModel) Refresh() {
 	m.breaker, _ = breaker.GetState()
 
 	m.currentTask, _ = reader.GetNextTask()
+	if m.currentTask != nil {
+		m.currentFeature, _ = reader.GetFeatureByID(m.currentTask.FeatureID)
+	}
 }
 
 // SetSize updates the size
@@ -162,8 +166,10 @@ func (m *DashboardModel) circuitView() string {
 
 func (m *DashboardModel) currentTaskView() string {
 	var sb strings.Builder
+	boldStyle := lipgloss.NewStyle().Bold(true)
+	labelStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 
-	sb.WriteString(lipgloss.NewStyle().Bold(true).Render("Current Task"))
+	sb.WriteString(boldStyle.Render("Current Task"))
 	sb.WriteString("\n\n")
 
 	if m.currentTask == nil {
@@ -172,15 +178,69 @@ func (m *DashboardModel) currentTaskView() string {
 	}
 
 	t := m.currentTask
-	sb.WriteString(fmt.Sprintf("ID:       %s\n", t.ID))
-	sb.WriteString(fmt.Sprintf("Name:     %s\n", t.Name))
-	sb.WriteString(fmt.Sprintf("Feature:  %s\n", t.FeatureID))
-	sb.WriteString(fmt.Sprintf("Priority: %s\n", t.Priority))
-	sb.WriteString(fmt.Sprintf("Status:   %s\n", t.Status))
 
+	// Task ID and Name
+	sb.WriteString(labelStyle.Render("ID:       "))
+	sb.WriteString(fmt.Sprintf("%s\n", t.ID))
+	sb.WriteString(labelStyle.Render("Name:     "))
+	sb.WriteString(fmt.Sprintf("%s\n", t.Name))
+	sb.WriteString(labelStyle.Render("Feature:  "))
+	sb.WriteString(t.FeatureID)
+	if m.currentFeature != nil && m.currentFeature.TargetVersion != "" {
+		sb.WriteString(fmt.Sprintf(" (%s)", m.currentFeature.TargetVersion))
+	}
+	sb.WriteString("\n")
+
+	// Priority with color
+	sb.WriteString(labelStyle.Render("Priority: "))
+	priorityStyle := lipgloss.NewStyle()
+	switch t.Priority {
+	case task.PriorityP1:
+		priorityStyle = priorityStyle.Foreground(lipgloss.Color("196"))
+	case task.PriorityP2:
+		priorityStyle = priorityStyle.Foreground(lipgloss.Color("226"))
+	case task.PriorityP3:
+		priorityStyle = priorityStyle.Foreground(lipgloss.Color("86"))
+	case task.PriorityP4:
+		priorityStyle = priorityStyle.Foreground(lipgloss.Color("241"))
+	}
+	sb.WriteString(priorityStyle.Render(string(t.Priority)))
+	sb.WriteString("\n")
+
+	// Estimated Effort
+	if t.EstimatedEffort != "" {
+		sb.WriteString(labelStyle.Render("Effort:   "))
+		sb.WriteString(fmt.Sprintf("%s\n", t.EstimatedEffort))
+	}
+
+	// Status
+	sb.WriteString(labelStyle.Render("Status:   "))
+	sb.WriteString(fmt.Sprintf("%s\n", t.Status))
+
+	// Description (truncated)
+	if t.Description != "" {
+		sb.WriteString("\n")
+		sb.WriteString(boldStyle.Render("Description"))
+		sb.WriteString("\n")
+		desc := t.Description
+		if len(desc) > 200 {
+			desc = desc[:197] + "..."
+		}
+		sb.WriteString(desc)
+		sb.WriteString("\n")
+	}
+
+	// Files to Touch
 	if len(t.FilesToTouch) > 0 {
-		sb.WriteString("\nFiles to Touch:\n")
-		for _, f := range t.FilesToTouch {
+		sb.WriteString("\n")
+		sb.WriteString(boldStyle.Render("Files to Touch"))
+		sb.WriteString("\n")
+		maxFiles := 5
+		for i, f := range t.FilesToTouch {
+			if i >= maxFiles {
+				sb.WriteString(fmt.Sprintf("  ... and %d more\n", len(t.FilesToTouch)-maxFiles))
+				break
+			}
 			sb.WriteString(fmt.Sprintf("  - %s\n", f))
 		}
 	}

@@ -107,6 +107,20 @@ func (i *Injector) generateTaskSection(t *task.Task) string {
 		sb.WriteString(fmt.Sprintf("**Priority:** %s\n\n", t.Priority))
 	}
 
+	if t.EstimatedEffort != "" {
+		sb.WriteString(fmt.Sprintf("**Estimated Effort:** %s\n\n", t.EstimatedEffort))
+	}
+
+	if t.Description != "" {
+		sb.WriteString("### Description\n\n")
+		sb.WriteString(t.Description + "\n\n")
+	}
+
+	if t.TechnicalDetails != "" {
+		sb.WriteString("### Technical Details\n\n")
+		sb.WriteString(t.TechnicalDetails + "\n\n")
+	}
+
 	if len(t.FilesToTouch) > 0 {
 		sb.WriteString("**Files to Touch:**\n")
 		for _, f := range t.FilesToTouch {
@@ -126,24 +140,28 @@ func (i *Injector) generateTaskSection(t *task.Task) string {
 	if len(t.SuccessCriteria) > 0 {
 		sb.WriteString("**Success Criteria:**\n")
 		for _, c := range t.SuccessCriteria {
-			sb.WriteString(fmt.Sprintf("- %s\n", c))
+			sb.WriteString(fmt.Sprintf("- [ ] %s\n", c))
 		}
 		sb.WriteString("\n")
 	}
 
-	sb.WriteString("**Instructions:**\n")
-	sb.WriteString("1. Implement the task requirements\n")
-	sb.WriteString("2. Run tests to verify\n")
-	sb.WriteString("3. Output status block when complete\n\n")
+	sb.WriteString("### Instructions\n\n")
+	sb.WriteString("1. Review the task description and technical details\n")
+	sb.WriteString("2. Implement all requirements following project conventions\n")
+	sb.WriteString("3. Create or update files as specified\n")
+	sb.WriteString("4. Write tests for new functionality\n")
+	sb.WriteString("5. Verify all success criteria are met\n")
+	sb.WriteString("6. Output status block when complete\n\n")
 
-	sb.WriteString("**Status Block (output at end):**\n")
+	sb.WriteString("### Completion Status Block\n\n")
+	sb.WriteString("When task is complete, output this block:\n\n")
 	sb.WriteString("```\n")
 	sb.WriteString("---HERMES_STATUS---\n")
 	sb.WriteString("STATUS: COMPLETE\n")
 	sb.WriteString("EXIT_SIGNAL: true\n")
 	sb.WriteString("RECOMMENDATION: Move to next task\n")
 	sb.WriteString("---END_HERMES_STATUS---\n")
-	sb.WriteString("```\n")
+	sb.WriteString("```\n\n")
 
 	sb.WriteString(TaskSectionEnd)
 

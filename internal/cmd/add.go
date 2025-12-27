@@ -98,27 +98,98 @@ func addExecute(featureDesc string, opts *addOptions) error {
 }
 
 func buildAddPrompt(desc string, featureID, taskID int) string {
-	return fmt.Sprintf(`Create a feature file for: %s
+	return fmt.Sprintf(`Create a comprehensive feature file for: %s
 
 Use Feature ID: F%03d
 Start Task IDs from: T%03d
 
-Format:
+Create the feature file with this EXACT format:
+
 # Feature %d: <Feature Name based on description>
+
 **Feature ID:** F%03d
+**Priority:** P2 - HIGH
+**Target Version:** v1.0.0
+**Estimated Duration:** 1-2 weeks
 **Status:** NOT_STARTED
 
-### T%03d: Task Name
-**Status:** NOT_STARTED
-**Priority:** P1
-**Files to Touch:** file1, file2
-**Dependencies:** None
-**Success Criteria:**
-- Criterion 1
-- Criterion 2
+## Overview
 
-Create 3-5 tasks to implement this feature.
-Output only the markdown content, no additional explanation.`, desc, featureID, taskID, featureID, featureID, taskID)
+[Write 2-3 paragraphs describing the feature, its purpose, user value, and how it integrates with the system]
+
+## Goals
+
+- [Specific, measurable goal 1]
+- [Specific, measurable goal 2]
+- [Specific, measurable goal 3]
+
+## Success Criteria
+
+- [ ] All tasks completed (T%03d-T%03d)
+- [ ] All tests passing
+- [ ] Documentation updated
+
+## Tasks
+
+### T%03d: <First Task Name>
+
+**Status:** NOT_STARTED
+**Priority:** P2
+**Estimated Effort:** 1 day
+
+#### Description
+
+[Clear description of what this task accomplishes]
+
+#### Technical Details
+
+[Implementation notes, patterns to follow, architectural decisions]
+
+#### Files to Touch
+
+- `+"`path/to/file.go`"+` (new)
+- `+"`path/to/existing.go`"+` (update)
+
+#### Dependencies
+
+- None
+
+#### Success Criteria
+
+- [ ] [Specific deliverable 1]
+- [ ] [Specific deliverable 2]
+- [ ] Unit tests passing
+
+---
+
+[Continue with more tasks...]
+
+## Performance Targets
+
+- Response time: < 100ms
+- Memory usage: minimal overhead
+
+## Risk Assessment
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| [Potential risk] | Low | Medium | [How to mitigate] |
+
+## Notes
+
+[Any additional context or considerations]
+
+---
+
+RULES:
+1. Create 3-5 tasks, each 0.5-2 days of work
+2. Tasks must be atomic and testable
+3. Include realistic effort estimates
+4. Set proper dependencies between tasks
+5. Success criteria must be specific and measurable
+6. Analyze the project structure to suggest correct file paths
+
+Output only the markdown content, no additional explanation.`, desc, featureID, taskID, featureID, featureID, taskID, taskID+4, taskID)
 }
 
 func writeFeatureFile(output string, featureID int, desc string) error {

@@ -236,6 +236,23 @@ func runExecute(cmd *cobra.Command, args []string) error {
 
 			logger.Success("Task %s completed", nextTask.ID)
 
+			// Check if feature is complete and create tag
+			if featureComplete, _ := reader.IsFeatureComplete(nextTask.FeatureID); featureComplete {
+				feature, _ := reader.GetFeatureByID(nextTask.FeatureID)
+				if feature != nil {
+					logger.Success("Feature %s completed: %s", feature.ID, feature.Name)
+
+					// Create git tag if TargetVersion is set
+					if feature.TargetVersion != "" && gitOps.IsRepository() {
+						if err := gitOps.CreateFeatureTag(feature.ID, feature.Name, feature.TargetVersion); err != nil {
+							logger.Warn("Failed to create tag: %v", err)
+						} else {
+							logger.Success("Created tag: %s", feature.TargetVersion)
+						}
+					}
+				}
+			}
+
 			// Show progress
 			if progress, err := reader.GetProgress(); err == nil {
 				bar := ui.FormatProgressBar(progress.Percentage, 30)

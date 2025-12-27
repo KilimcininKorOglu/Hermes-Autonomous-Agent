@@ -8,38 +8,50 @@ const (
 	StatusInProgress Status = "IN_PROGRESS"
 	StatusCompleted  Status = "COMPLETED"
 	StatusBlocked    Status = "BLOCKED"
+	StatusAtRisk     Status = "AT_RISK"
+	StatusPaused     Status = "PAUSED"
 )
 
 // Priority represents task priority
 type Priority string
 
 const (
-	PriorityP1 Priority = "P1"
-	PriorityP2 Priority = "P2"
-	PriorityP3 Priority = "P3"
-	PriorityP4 Priority = "P4"
+	PriorityP1 Priority = "P1" // Critical
+	PriorityP2 Priority = "P2" // High
+	PriorityP3 Priority = "P3" // Medium
+	PriorityP4 Priority = "P4" // Low
 )
 
 // Feature represents a feature with its tasks
 type Feature struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Status      Status `json:"status"`
-	Description string `json:"description"`
-	Tasks       []Task `json:"tasks"`
-	FilePath    string `json:"filePath"`
+	ID                string   `json:"id"`
+	Name              string   `json:"name"`
+	Status            Status   `json:"status"`
+	Priority          Priority `json:"priority"`
+	Description       string   `json:"description"`
+	Overview          string   `json:"overview"`
+	Goals             []string `json:"goals"`
+	TargetVersion     string   `json:"targetVersion"`
+	EstimatedDuration string   `json:"estimatedDuration"`
+	PerformanceTarget string   `json:"performanceTarget"`
+	RiskAssessment    string   `json:"riskAssessment"`
+	Tasks             []Task   `json:"tasks"`
+	FilePath          string   `json:"filePath"`
 }
 
 // Task represents a single task within a feature
 type Task struct {
-	ID              string   `json:"id"`
-	Name            string   `json:"name"`
-	Status          Status   `json:"status"`
-	Priority        Priority `json:"priority"`
-	FilesToTouch    []string `json:"filesToTouch"`
-	Dependencies    []string `json:"dependencies"`
-	SuccessCriteria []string `json:"successCriteria"`
-	FeatureID       string   `json:"featureId"`
+	ID               string   `json:"id"`
+	Name             string   `json:"name"`
+	Status           Status   `json:"status"`
+	Priority         Priority `json:"priority"`
+	EstimatedEffort  string   `json:"estimatedEffort"`
+	Description      string   `json:"description"`
+	TechnicalDetails string   `json:"technicalDetails"`
+	FilesToTouch     []string `json:"filesToTouch"`
+	Dependencies     []string `json:"dependencies"`
+	SuccessCriteria  []string `json:"successCriteria"`
+	FeatureID        string   `json:"featureId"`
 }
 
 // Progress represents overall task progress

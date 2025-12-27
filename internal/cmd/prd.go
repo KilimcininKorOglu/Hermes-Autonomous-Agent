@@ -99,24 +99,97 @@ func prdExecute(prdFile string, opts *prdOptions) error {
 }
 
 func buildPrdPrompt(prdContent string) string {
-	return fmt.Sprintf(`Parse this PRD into task files.
+	return fmt.Sprintf(`Parse this PRD into comprehensive task files.
 
-For each feature, create a markdown file with this format:
+For each feature, create a markdown file with this EXACT format:
 
 # Feature N: Feature Name
+
 **Feature ID:** FXXX
+**Priority:** P[1-4] - [CRITICAL/HIGH/MEDIUM/LOW]
+**Target Version:** vX.Y.Z
+**Estimated Duration:** X-Y weeks
 **Status:** NOT_STARTED
+
+## Overview
+
+[2-3 paragraph detailed description of the feature, its purpose, and how it fits into the overall system]
+
+## Goals
+
+- [Specific, measurable goal 1]
+- [Specific, measurable goal 2]
+- [Specific, measurable goal 3]
+
+## Success Criteria
+
+- [ ] All tasks completed
+- [ ] All tests passing
+- [ ] [Feature-specific criterion]
+
+## Tasks
 
 ### TXXX: Task Name
+
 **Status:** NOT_STARTED
-**Priority:** P1
-**Files to Touch:** file1, file2
-**Dependencies:** None
-**Success Criteria:**
-- Criterion 1
-- Criterion 2
+**Priority:** P[1-4]
+**Estimated Effort:** X days
+
+#### Description
+
+[Clear, detailed description of what this task accomplishes]
+
+#### Technical Details
+
+[Implementation notes, architecture decisions, code patterns to follow]
+
+#### Files to Touch
+
+- ` + "`path/to/file.go`" + ` (new)
+- ` + "`path/to/existing.go`" + ` (update)
+
+#### Dependencies
+
+- TYYY (if depends on another task)
+- None (if no dependencies)
+
+#### Success Criteria
+
+- [ ] [Specific deliverable 1]
+- [ ] [Specific deliverable 2]
+- [ ] [Specific deliverable 3]
+- [ ] Unit tests passing
 
 ---
+
+[Repeat ### TXXX for each task in the feature]
+
+## Performance Targets
+
+- [Response time: < Xms]
+- [Throughput: X requests/second]
+- [Memory usage: < XMB]
+
+## Risk Assessment
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| [Risk 1] | Low/Medium/High | Low/Medium/High | [Mitigation strategy] |
+
+## Notes
+
+[Any additional context, references, or considerations]
+
+---
+
+IMPORTANT RULES:
+1. Create 3-6 tasks per feature, each task should be 0.5-3 days of work
+2. Tasks should be atomic and independently testable
+3. Use realistic effort estimates based on complexity
+4. Include proper dependencies between tasks
+5. Success criteria must be specific and measurable
+6. Technical details should guide implementation
+7. Priority levels: P1=Critical, P2=High, P3=Medium, P4=Low
 
 PRD Content:
 

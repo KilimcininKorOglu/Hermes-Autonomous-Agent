@@ -89,14 +89,16 @@ func (m *TaskDetailModel) View() string {
 		Width(m.width - 4)
 
 	var info strings.Builder
-	
+	boldStyle := lipgloss.NewStyle().Bold(true)
+	sectionStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("86"))
+
 	// Name
-	info.WriteString(lipgloss.NewStyle().Bold(true).Render("Name: "))
+	info.WriteString(boldStyle.Render("Name: "))
 	info.WriteString(t.Name)
 	info.WriteString("\n\n")
 
 	// Status with color
-	info.WriteString(lipgloss.NewStyle().Bold(true).Render("Status: "))
+	info.WriteString(boldStyle.Render("Status: "))
 	statusStyle := lipgloss.NewStyle()
 	switch t.Status {
 	case task.StatusCompleted:
@@ -105,14 +107,18 @@ func (m *TaskDetailModel) View() string {
 		statusStyle = statusStyle.Foreground(lipgloss.Color("226"))
 	case task.StatusBlocked:
 		statusStyle = statusStyle.Foreground(lipgloss.Color("196"))
+	case task.StatusAtRisk:
+		statusStyle = statusStyle.Foreground(lipgloss.Color("208"))
+	case task.StatusPaused:
+		statusStyle = statusStyle.Foreground(lipgloss.Color("141"))
 	case task.StatusNotStarted:
 		statusStyle = statusStyle.Foreground(lipgloss.Color("241"))
 	}
 	info.WriteString(statusStyle.Render(string(t.Status)))
 	info.WriteString("\n\n")
 
-	// Priority
-	info.WriteString(lipgloss.NewStyle().Bold(true).Render("Priority: "))
+	// Priority and Effort on same line
+	info.WriteString(boldStyle.Render("Priority: "))
 	priorityStyle := lipgloss.NewStyle()
 	switch t.Priority {
 	case task.PriorityP1:
@@ -121,21 +127,47 @@ func (m *TaskDetailModel) View() string {
 		priorityStyle = priorityStyle.Foreground(lipgloss.Color("226"))
 	case task.PriorityP3:
 		priorityStyle = priorityStyle.Foreground(lipgloss.Color("86"))
+	case task.PriorityP4:
+		priorityStyle = priorityStyle.Foreground(lipgloss.Color("241"))
 	}
 	info.WriteString(priorityStyle.Render(string(t.Priority)))
+	if t.EstimatedEffort != "" {
+		info.WriteString("  |  ")
+		info.WriteString(boldStyle.Render("Effort: "))
+		info.WriteString(t.EstimatedEffort)
+	}
 	info.WriteString("\n\n")
 
 	// Feature
-	info.WriteString(lipgloss.NewStyle().Bold(true).Render("Feature: "))
+	info.WriteString(boldStyle.Render("Feature: "))
 	info.WriteString(t.FeatureID)
 	if m.feature != nil {
 		info.WriteString(fmt.Sprintf(" - %s", m.feature.Name))
+		if m.feature.TargetVersion != "" {
+			info.WriteString(fmt.Sprintf(" (%s)", m.feature.TargetVersion))
+		}
 	}
 	info.WriteString("\n\n")
 
+	// Description
+	if t.Description != "" {
+		info.WriteString(sectionStyle.Render("Description"))
+		info.WriteString("\n")
+		info.WriteString(t.Description)
+		info.WriteString("\n\n")
+	}
+
+	// Technical Details
+	if t.TechnicalDetails != "" {
+		info.WriteString(sectionStyle.Render("Technical Details"))
+		info.WriteString("\n")
+		info.WriteString(t.TechnicalDetails)
+		info.WriteString("\n\n")
+	}
+
 	// Files to Touch
 	if len(t.FilesToTouch) > 0 {
-		info.WriteString(lipgloss.NewStyle().Bold(true).Render("Files to Touch:"))
+		info.WriteString(sectionStyle.Render("Files to Touch"))
 		info.WriteString("\n")
 		for _, f := range t.FilesToTouch {
 			info.WriteString(fmt.Sprintf("  - %s\n", f))
@@ -145,7 +177,7 @@ func (m *TaskDetailModel) View() string {
 
 	// Dependencies
 	if len(t.Dependencies) > 0 {
-		info.WriteString(lipgloss.NewStyle().Bold(true).Render("Dependencies:"))
+		info.WriteString(sectionStyle.Render("Dependencies"))
 		info.WriteString("\n")
 		for _, d := range t.Dependencies {
 			info.WriteString(fmt.Sprintf("  - %s\n", d))
@@ -155,10 +187,10 @@ func (m *TaskDetailModel) View() string {
 
 	// Success Criteria
 	if len(t.SuccessCriteria) > 0 {
-		info.WriteString(lipgloss.NewStyle().Bold(true).Render("Success Criteria:"))
+		info.WriteString(sectionStyle.Render("Success Criteria"))
 		info.WriteString("\n")
 		for _, c := range t.SuccessCriteria {
-			info.WriteString(fmt.Sprintf("  - %s\n", c))
+			info.WriteString(fmt.Sprintf("  [ ] %s\n", c))
 		}
 	}
 
