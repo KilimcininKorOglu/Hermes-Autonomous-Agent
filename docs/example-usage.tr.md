@@ -43,9 +43,56 @@ Sonraki adımlar:
 
 ---
 
-## Adım 2: PRD Belgesi Oluştur
+## Adım 2: Fikirden PRD Üret (v1.1.0)
 
-`.hermes/docs/PRD.md` dosyasını gereksinimlerinizle oluşturun:
+PRD'yi manuel yazmak yerine, basit bir fikirden üretebilirsiniz:
+
+```bash
+hermes idea "kullanıcı doğrulama, ürün kataloğu ve alışveriş sepeti ile e-ticaret REST API"
+```
+
+**Çıktı:**
+
+```
+ _   _
+| | | | ___ _ __ _ __ ___   ___  ___
+| |_| |/ _ \ '__| '_ ` _ \ / _ \/ __|
+|  _  |  __/ |  | | | | | |  __/\__ \
+|_| |_|\___|_|  |_| |_| |_|\___||___/
+
+      Yapay Zeka Destekli Uygulama Geliştirme
+
+Fikirden PRD Üretici
+====================
+
+Fikir: kullanıcı doğrulama, ürün kataloğu ve alışveriş sepeti ile e-ticaret REST API
+AI: claude
+Dil: en
+
+PRD üretiliyor...
+
+[BAŞARILI] PRD üretildi: .hermes/docs/PRD.md
+
+Sonraki adımlar:
+  1. İncele: cat .hermes/docs/PRD.md
+  2. Ayrıştır: hermes prd .hermes/docs/PRD.md
+```
+
+### İnteraktif Mod
+
+Daha detaylı PRD için interaktif mod kullanın:
+
+```bash
+hermes idea "e-ticaret API" --interactive
+```
+
+Bu, hedef kitle, teknoloji stack'i, ölçek ve zaman çizelgesi hakkında ek sorular soracaktır.
+
+---
+
+## Adım 3: PRD'yi İncele veya Manuel Oluştur
+
+Üretilen PRD'yi inceleyebilir veya `.hermes/docs/PRD.md` dosyasını manuel olarak gereksinimlerinizle oluşturabilirsiniz:
 
 ```markdown
 # E-Ticaret API - Ürün Gereksinimleri Belgesi
@@ -84,7 +131,7 @@ Go ve PostgreSQL kullanarak bir e-ticaret platformu için REST API oluşturun.
 
 ---
 
-## Adım 3: PRD'yi Görevlere Ayrıştır
+## Adım 4: PRD'yi Görevlere Ayrıştır
 
 ```bash
 hermes prd .hermes/docs/PRD.md
@@ -116,7 +163,7 @@ Oluşturuldu: .hermes/tasks/003-alisveris-sepeti.md
 
 ---
 
-## Adım 4: Oluşturulan Görevleri İncele
+## Adım 5: Oluşturulan Görevleri İncele
 
 ```bash
 hermes status
@@ -158,7 +205,7 @@ Engellenen:  0
 
 ---
 
-## Adım 5: Görev Detaylarını Görüntüle
+## Adım 6: Görev Detaylarını Görüntüle
 
 ```bash
 hermes task T001
@@ -190,7 +237,7 @@ Başarı Kriterleri:
 
 ---
 
-## Adım 6: Görev Yürütmeyi Başlat
+## Adım 7: Görev Yürütmeyi Başlat
 
 ### Seçenek A: Tam Otomasyon
 
@@ -255,7 +302,7 @@ Görev: T002 - Kullanıcı Kayıt Endpoint
 
 ---
 
-## Adım 7: İlerlemeyi İzle
+## Adım 8: İlerlemeyi İzle
 
 ### Durumu Kontrol Et
 
@@ -315,7 +362,7 @@ Gezinme:
 
 ---
 
-## Adım 8: Sorunları Ele Al
+## Adım 9: Sorunları Ele Al
 
 ### Devre Kesici Açılırsa
 
@@ -343,7 +390,7 @@ hermes run --auto-branch --auto-commit
 
 ---
 
-## Adım 9: Yeni Özellik Ekle
+## Adım 10: Yeni Özellik Ekle
 
 İlk geliştirmeden sonra yeni özellik ekleyin:
 
@@ -377,7 +424,7 @@ Oluşturuldu: .hermes/tasks/004-odeme-akisi-ile-sipar.md
 
 ---
 
-## Adım 10: Projeyi Tamamla
+## Adım 11: Projeyi Tamamla
 
 Tüm görevler tamamlanana kadar çalıştırmaya devam edin:
 
@@ -434,18 +481,19 @@ Tamamlandıktan sonra git geçmişiniz şöyle görünür:
 
 ## Komut Referansı
 
-| Adım | Komut                                        | Açıklama                       |
-|------|----------------------------------------------|--------------------------------|
-| 1    | `hermes init <ad>`                           | Projeyi başlat                 |
-| 2    | `.hermes/docs/PRD.md` oluştur                | Gereksinimleri yaz             |
-| 3    | `hermes prd .hermes/docs/PRD.md`             | PRD'yi görevlere ayrıştır      |
-| 4    | `hermes status`                              | Tüm görevleri görüntüle        |
-| 5    | `hermes task <id>`                           | Görev detaylarını görüntüle    |
-| 6    | `hermes run --auto-branch --auto-commit`     | Görevleri yürüt                |
-| 7    | `hermes log -f`                              | Günlükleri izle                |
-| 8    | `hermes reset`                               | Devre kesiciyi sıfırla         |
-| 9    | `hermes add "<özellik>"`                     | Yeni özellik ekle              |
-| 10   | `hermes tui`                                 | İnteraktif arayüz              |
+| Adım | Komut                                        | Açıklama                          |
+|------|----------------------------------------------|-----------------------------------|
+| 1    | `hermes init <ad>`                           | Projeyi başlat                    |
+| 2    | `hermes idea "<açıklama>"`                   | Fikirden PRD üret (v1.1.0)        |
+| 3    | `.hermes/docs/PRD.md` incele/düzenle         | Gereksinimleri incele             |
+| 4    | `hermes prd .hermes/docs/PRD.md`             | PRD'yi görevlere ayrıştır         |
+| 5    | `hermes status`                              | Tüm görevleri görüntüle           |
+| 6    | `hermes task <id>`                           | Görev detaylarını görüntüle       |
+| 7    | `hermes run --auto-branch --auto-commit`     | Görevleri yürüt                   |
+| 8    | `hermes log -f`                              | Günlükleri izle                   |
+| 9    | `hermes reset`                               | Devre kesiciyi sıfırla            |
+| 10   | `hermes add "<özellik>"`                     | Yeni özellik ekle                 |
+| 11   | `hermes tui`                                 | İnteraktif arayüz                 |
 
 ---
 

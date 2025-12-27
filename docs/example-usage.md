@@ -43,9 +43,56 @@ Next steps:
 
 ---
 
-## Step 2: Create PRD Document
+## Step 2: Generate PRD from Idea (v1.1.0)
 
-Create `.hermes/docs/PRD.md` with your requirements:
+Instead of manually writing a PRD, you can generate one from a simple idea:
+
+```bash
+hermes idea "e-commerce REST API with user authentication, product catalog, and shopping cart"
+```
+
+**Output:**
+
+```
+ _   _
+| | | | ___ _ __ _ __ ___   ___  ___
+| |_| |/ _ \ '__| '_ ` _ \ / _ \/ __|
+|  _  |  __/ |  | | | | | |  __/\__ \
+|_| |_|\___|_|  |_| |_| |_|\___||___/
+
+      AI-Powered Application Development
+
+Idea to PRD Generator
+=====================
+
+Idea: e-commerce REST API with user authentication, product catalog, and shopping cart
+AI: claude
+Language: en
+
+Generating PRD...
+
+[SUCCESS] PRD generated: .hermes/docs/PRD.md
+
+Next steps:
+  1. Review: cat .hermes/docs/PRD.md
+  2. Parse:  hermes prd .hermes/docs/PRD.md
+```
+
+### Interactive Mode
+
+For more detailed PRD, use interactive mode:
+
+```bash
+hermes idea "e-commerce API" --interactive
+```
+
+This will ask additional questions about target audience, tech stack, scale, and timeline.
+
+---
+
+## Step 3: Review or Create PRD Manually
+
+You can review the generated PRD or create `.hermes/docs/PRD.md` manually with your requirements:
 
 ```markdown
 # E-Commerce API - Product Requirements Document
@@ -84,7 +131,7 @@ Build a REST API for an e-commerce platform using Go and PostgreSQL.
 
 ---
 
-## Step 3: Parse PRD into Tasks
+## Step 4: Parse PRD into Tasks
 
 ```bash
 hermes prd .hermes/docs/PRD.md
@@ -116,7 +163,7 @@ Created 3 task files in .hermes/tasks
 
 ---
 
-## Step 4: Review Generated Tasks
+## Step 5: Review Generated Tasks
 
 ```bash
 hermes status
@@ -158,7 +205,7 @@ Blocked:     0
 
 ---
 
-## Step 5: View Task Details
+## Step 6: View Task Details
 
 ```bash
 hermes task T001
@@ -190,7 +237,7 @@ Success Criteria:
 
 ---
 
-## Step 6: Start Task Execution
+## Step 7: Start Task Execution
 
 ### Option A: Full Automation
 
@@ -255,7 +302,7 @@ Task: T002 - User Registration Endpoint
 
 ---
 
-## Step 7: Monitor Progress
+## Step 8: Monitor Progress
 
 ### Check Status
 
@@ -315,7 +362,7 @@ Navigate with:
 
 ---
 
-## Step 8: Handle Issues
+## Step 9: Handle Issues
 
 ### If Circuit Breaker Opens
 
@@ -343,7 +390,7 @@ hermes run --auto-branch --auto-commit
 
 ---
 
-## Step 9: Add New Feature
+## Step 10: Add New Feature
 
 After initial development, add a new feature:
 
@@ -377,7 +424,7 @@ Created: .hermes/tasks/004-order-management-with-che.md
 
 ---
 
-## Step 10: Complete Project
+## Step 11: Complete Project
 
 Continue running until all tasks complete:
 
@@ -437,15 +484,16 @@ After completion, your git history looks like:
 | Step | Command                                      | Description                    |
 |------|----------------------------------------------|--------------------------------|
 | 1    | `hermes init <name>`                         | Initialize project             |
-| 2    | Create `.hermes/docs/PRD.md`                 | Write requirements             |
-| 3    | `hermes prd .hermes/docs/PRD.md`             | Parse PRD to tasks             |
-| 4    | `hermes status`                              | View all tasks                 |
-| 5    | `hermes task <id>`                           | View task details              |
-| 6    | `hermes run --auto-branch --auto-commit`     | Execute tasks                  |
-| 7    | `hermes log -f`                              | Monitor logs                   |
-| 8    | `hermes reset`                               | Reset circuit breaker          |
-| 9    | `hermes add "<feature>"`                     | Add new feature                |
-| 10   | `hermes tui`                                 | Interactive interface          |
+| 2    | `hermes idea "<description>"`                | Generate PRD from idea (v1.1.0)|
+| 3    | Review/edit `.hermes/docs/PRD.md`            | Review requirements            |
+| 4    | `hermes prd .hermes/docs/PRD.md`             | Parse PRD to tasks             |
+| 5    | `hermes status`                              | View all tasks                 |
+| 6    | `hermes task <id>`                           | View task details              |
+| 7    | `hermes run --auto-branch --auto-commit`     | Execute tasks                  |
+| 8    | `hermes log -f`                              | Monitor logs                   |
+| 9    | `hermes reset`                               | Reset circuit breaker          |
+| 10   | `hermes add "<feature>"`                     | Add new feature                |
+| 11   | `hermes tui`                                 | Interactive interface          |
 
 ---
 

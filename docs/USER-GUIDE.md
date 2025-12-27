@@ -7,14 +7,15 @@ Complete guide to using Hermes, the AI-powered autonomous application developmen
 1. [Installation](#installation)
 2. [Quick Start](#quick-start)
 3. [Project Initialization](#project-initialization)
-4. [PRD Parsing](#prd-parsing)
-5. [Adding Features](#adding-features)
-6. [Task Execution](#task-execution)
-7. [Status and Monitoring](#status-and-monitoring)
-8. [Interactive TUI](#interactive-tui)
-9. [Configuration](#configuration)
-10. [Circuit Breaker](#circuit-breaker)
-11. [Troubleshooting](#troubleshooting)
+4. [Idea to PRD Generation](#idea-to-prd-generation)
+5. [PRD Parsing](#prd-parsing)
+6. [Adding Features](#adding-features)
+7. [Task Execution](#task-execution)
+8. [Status and Monitoring](#status-and-monitoring)
+9. [Interactive TUI](#interactive-tui)
+10. [Configuration](#configuration)
+11. [Circuit Breaker](#circuit-breaker)
+12. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -62,8 +63,10 @@ hermes --help
 hermes init my-project
 cd my-project
 
-# 2. Create your PRD document
-# Place your PRD in .hermes/docs/PRD.md
+# 2. Generate PRD from idea (new in v1.1.0)
+hermes idea "e-commerce platform with user auth and payments"
+
+# Or create your PRD manually in .hermes/docs/PRD.md
 
 # 3. Parse PRD into tasks
 hermes prd .hermes/docs/PRD.md
@@ -123,6 +126,71 @@ After initialization, Hermes creates an initial commit:
 ```
 chore: Initialize project with Hermes
 ```
+
+---
+
+## Idea to PRD Generation
+
+Generate a detailed PRD from a simple idea or description. This feature was added in v1.1.0.
+
+### Usage
+
+```bash
+hermes idea <description> [flags]
+```
+
+### Flags
+
+| Flag            | Short | Default               | Description                            |
+|-----------------|-------|-----------------------|----------------------------------------|
+| `--output`      | `-o`  | `.hermes/docs/PRD.md` | Output file path                       |
+| `--dry-run`     |       | false                 | Preview without writing file           |
+| `--interactive` | `-i`  | false                 | Interactive mode (additional questions)|
+| `--language`    | `-l`  | `en`                  | PRD language (en/tr)                   |
+| `--timeout`     |       | 600                   | AI timeout in seconds                  |
+| `--debug`       |       | false                 | Enable debug output                    |
+
+### Examples
+
+```bash
+# Generate PRD in English
+hermes idea "e-commerce website with shopping cart"
+
+# Generate PRD in Turkish
+hermes idea "blog platformu" --language tr
+
+# Interactive mode with additional questions
+hermes idea "CRM system" --interactive
+
+# Preview without saving
+hermes idea "task manager" --dry-run
+
+# Custom output path
+hermes idea "chat application" -o docs/chat-prd.md
+```
+
+### Interactive Mode
+
+When using `--interactive`, Hermes asks additional questions:
+
+- Target audience
+- Preferred technology stack
+- Expected scale (small/medium/large/enterprise)
+- Expected timeline
+- Must-have features
+
+These answers help generate a more tailored PRD.
+
+### Output
+
+The generated PRD includes:
+
+1. Project Overview (name, description, target audience, objectives)
+2. Features (with user stories and acceptance criteria)
+3. Technical Requirements (stack, architecture, integrations)
+4. Non-Functional Requirements (security, scalability, accessibility)
+5. Success Metrics (KPIs, success criteria)
+6. Timeline & Milestones
 
 ---
 

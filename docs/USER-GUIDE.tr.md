@@ -7,14 +7,15 @@ Yapay zeka destekli otonom uygulama geliştirme sistemi Hermes'in eksiksiz kulla
 1. [Kurulum](#kurulum)
 2. [Hızlı Başlangıç](#hızlı-başlangıç)
 3. [Proje Başlatma](#proje-başlatma)
-4. [PRD Ayrıştırma](#prd-ayrıştırma)
-5. [Özellik Ekleme](#özellik-ekleme)
-6. [Görev Yürütme](#görev-yürütme)
-7. [Durum ve İzleme](#durum-ve-izleme)
-8. [İnteraktif TUI](#interaktif-tui)
-9. [Yapılandırma](#yapılandırma)
-10. [Devre Kesici](#devre-kesici)
-11. [Sorun Giderme](#sorun-giderme)
+4. [Fikirden PRD Üretme](#fikirden-prd-üretme)
+5. [PRD Ayrıştırma](#prd-ayrıştırma)
+6. [Özellik Ekleme](#özellik-ekleme)
+7. [Görev Yürütme](#görev-yürütme)
+8. [Durum ve İzleme](#durum-ve-izleme)
+9. [İnteraktif TUI](#interaktif-tui)
+10. [Yapılandırma](#yapılandırma)
+11. [Devre Kesici](#devre-kesici)
+12. [Sorun Giderme](#sorun-giderme)
 
 ---
 
@@ -62,8 +63,10 @@ hermes --help
 hermes init projem
 cd projem
 
-# 2. PRD belgenizi oluşturun
-# PRD'nizi .hermes/docs/PRD.md konumuna yerleştirin
+# 2. Fikirden PRD üret (v1.1.0'da yeni)
+hermes idea "kullanıcı doğrulama ve ödeme ile e-ticaret platformu"
+
+# Veya PRD'nizi manuel olarak .hermes/docs/PRD.md konumuna yerleştirin
 
 # 3. PRD'yi görevlere ayrıştır
 hermes prd .hermes/docs/PRD.md
@@ -123,6 +126,71 @@ Başlatma sonrası Hermes ilk commit'i oluşturur:
 ```
 chore: Initialize project with Hermes
 ```
+
+---
+
+## Fikirden PRD Üretme
+
+Basit bir fikir veya açıklamadan detaylı PRD üretir. Bu özellik v1.1.0'da eklendi.
+
+### Kullanım
+
+```bash
+hermes idea <açıklama> [bayraklar]
+```
+
+### Bayraklar
+
+| Bayrak          | Kısa  | Varsayılan            | Açıklama                                |
+|-----------------|-------|-----------------------|-----------------------------------------|
+| `--output`      | `-o`  | `.hermes/docs/PRD.md` | Çıktı dosyası yolu                      |
+| `--dry-run`     |       | false                 | Dosya yazmadan önizleme                 |
+| `--interactive` | `-i`  | false                 | İnteraktif mod (ek sorular)             |
+| `--language`    | `-l`  | `en`                  | PRD dili (en/tr)                        |
+| `--timeout`     |       | 600                   | AI zaman aşımı (saniye)                 |
+| `--debug`       |       | false                 | Hata ayıklama çıktısını etkinleştir     |
+
+### Örnekler
+
+```bash
+# İngilizce PRD üret
+hermes idea "alışveriş sepetli e-ticaret sitesi"
+
+# Türkçe PRD üret
+hermes idea "blog platformu" --language tr
+
+# Ek sorularla interaktif mod
+hermes idea "CRM sistemi" --interactive
+
+# Kaydetmeden önizle
+hermes idea "görev yöneticisi" --dry-run
+
+# Özel çıktı yolu
+hermes idea "sohbet uygulaması" -o docs/chat-prd.md
+```
+
+### İnteraktif Mod
+
+`--interactive` kullanıldığında, Hermes ek sorular sorar:
+
+- Hedef kitle
+- Tercih edilen teknoloji stack'i
+- Beklenen ölçek (small/medium/large/enterprise)
+- Beklenen zaman çizelgesi
+- Olmazsa olmaz özellikler
+
+Bu cevaplar daha özelleştirilmiş bir PRD oluşturmaya yardımcı olur.
+
+### Çıktı
+
+Üretilen PRD şunları içerir:
+
+1. Proje Genel Bakışı (ad, açıklama, hedef kitle, hedefler)
+2. Özellikler (kullanıcı hikayeleri ve kabul kriterleri ile)
+3. Teknik Gereksinimler (stack, mimari, entegrasyonlar)
+4. Fonksiyonel Olmayan Gereksinimler (güvenlik, ölçeklenebilirlik, erişilebilirlik)
+5. Başarı Metrikleri (KPI'lar, başarı kriterleri)
+6. Zaman Çizelgesi ve Kilometre Taşları
 
 ---
 
