@@ -19,7 +19,8 @@ type Workspace struct {
 // NewWorkspace creates a new workspace configuration
 func NewWorkspace(taskID, basePath string) *Workspace {
 	branchName := fmt.Sprintf("hermes/%s", taskID)
-	workPath := filepath.Join(os.TempDir(), fmt.Sprintf("hermes-%s", taskID))
+	// Create worktree in project directory instead of temp
+	workPath := filepath.Join(basePath, ".hermes", "worktrees", fmt.Sprintf("wt-%s", taskID))
 
 	return &Workspace{
 		TaskID:   taskID,

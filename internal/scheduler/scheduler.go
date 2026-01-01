@@ -3,11 +3,14 @@ package scheduler
 import (
 	"context"
 	"fmt"
+	"os/exec"
+	"strings"
 	"sync"
 	"time"
 
 	"hermes/internal/ai"
 	"hermes/internal/config"
+	"hermes/internal/isolation"
 	"hermes/internal/task"
 	"hermes/internal/ui"
 )
@@ -174,12 +177,14 @@ func (s *Scheduler) executeBatch(ctx context.Context, graph *TaskGraph, batch []
 
 	// Update graph based on results
 	var batchErr error
+	var successfulTasks []string
 	for _, result := range results {
 		if result.Success {
 			if err := graph.MarkComplete(result.TaskID); err != nil {
 				s.logError("Failed to mark task %s as complete: %v", result.TaskID, err)
 			}
 			s.logInfo("Task %s completed successfully in %v", result.TaskID, result.Duration)
+			successfulTasks = append(successfulTasks, result.TaskID)
 		} else {
 			if err := graph.MarkFailed(result.TaskID); err != nil {
 				s.logError("Failed to mark task %s as failed: %v", result.TaskID, err)
@@ -189,10 +194,72 @@ func (s *Scheduler) executeBatch(ctx context.Context, graph *TaskGraph, batch []
 		}
 	}
 
+	// Merge and cleanup workspaces for isolated execution
+	if s.config.IsolatedWorkspaces && len(successfulTasks) > 0 {
+		s.logInfo("Merging %d successful task branches...", len(successfulTasks))
+		for _, taskID := range successfulTasks {
+			workspace := pool.GetWorkspace(taskID)
+			if workspace != nil && workspace.IsIsolated() {
+				// Merge branch to main
+				if err := s.mergeBranch(workspace); err != nil {
+					s.logError("Failed to merge branch for task %s: %v", taskID, err)
+				} else {
+					s.logInfo("Merged branch %s for task %s", workspace.GetBranch(), taskID)
+				}
+				// Cleanup worktree
+				if err := workspace.Cleanup(); err != nil {
+					s.logError("Failed to cleanup workspace for task %s: %v", taskID, err)
+				}
+			}
+		}
+	}
+
 	// Stop the pool
 	pool.Stop()
 
 	return results, batchErr
+}
+
+// mergeBranch merges a workspace branch back to the base branch
+func (s *Scheduler) mergeBranch(workspace *isolation.Workspace) error {
+	// Get current branch (should be base branch)
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	cmd.Dir = s.workDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to get current branch: %w", err)
+	}
+	baseBranch := strings.TrimSpace(string(output))
+
+	// Merge the task branch
+	cmd = exec.Command("git", "merge", workspace.GetBranch(), "--no-edit", "-m", 
+		fmt.Sprintf("Merge branch '%s' (task %s)", workspace.GetBranch(), workspace.TaskID))
+	cmd.Dir = s.workDir
+	if output, err := cmd.CombinedOutput(); err != nil {
+		// Check if it's a merge conflict
+		if strings.Contains(string(output), "CONFLICT") {
+			s.logError("Merge conflict detected for %s, attempting auto-resolution...", workspace.TaskID)
+			// Try to abort and use theirs strategy
+			exec.Command("git", "merge", "--abort").Run()
+			cmd = exec.Command("git", "merge", workspace.GetBranch(), "--no-edit", "-X", "theirs", "-m",
+				fmt.Sprintf("Merge branch '%s' (task %s) with auto-resolution", workspace.GetBranch(), workspace.TaskID))
+			cmd.Dir = s.workDir
+			if output, err := cmd.CombinedOutput(); err != nil {
+				return fmt.Errorf("merge failed even with auto-resolution: %w: %s", err, string(output))
+			}
+		} else {
+			return fmt.Errorf("merge failed: %w: %s", err, string(output))
+		}
+	}
+
+	s.logInfo("Successfully merged %s into %s", workspace.GetBranch(), baseBranch)
+
+	// Optionally delete the merged branch
+	cmd = exec.Command("git", "branch", "-d", workspace.GetBranch())
+	cmd.Dir = s.workDir
+	cmd.Run() // Ignore errors, branch deletion is optional
+
+	return nil
 }
 
 // countResults updates the result counts

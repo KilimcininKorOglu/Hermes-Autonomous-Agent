@@ -1,6 +1,7 @@
 package task
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -264,23 +265,57 @@ func parseTaskListSection(content, header string) []string {
 			item = strings.TrimPrefix(item, "* ")
 			item = strings.TrimPrefix(item, "[ ] ")
 			item = strings.TrimPrefix(item, "[x] ")
+			// Remove parenthetical comments like "(project structure must exist)"
+			if idx := strings.Index(item, "("); idx > 0 {
+				item = strings.TrimSpace(item[:idx])
+			}
 			if item != "" && item != "None" && item != "none" {
 				// Handle comma-separated items in a single line
 				if strings.Contains(item, ",") {
 					for _, subItem := range strings.Split(item, ",") {
 						subItem = strings.TrimSpace(subItem)
+						// Also clean parenthetical from comma-separated items
+						if idx := strings.Index(subItem, "("); idx > 0 {
+							subItem = strings.TrimSpace(subItem[:idx])
+						}
 						if subItem != "" {
-							items = append(items, subItem)
+							// Expand range format like T031-T038
+							expanded := expandTaskRange(subItem)
+							items = append(items, expanded...)
 						}
 					}
 				} else {
-					items = append(items, item)
+					// Expand range format like T031-T038
+					expanded := expandTaskRange(item)
+					items = append(items, expanded...)
 				}
 			}
 		}
 	}
 
 	return items
+}
+
+// expandTaskRange expands range format like "T031-T038" into individual task IDs
+func expandTaskRange(item string) []string {
+	// Check if it's a range format (e.g., T031-T038)
+	rangeRegex := regexp.MustCompile(`^(T)(\d+)-(T)?(\d+)$`)
+	if m := rangeRegex.FindStringSubmatch(item); len(m) > 0 {
+		prefix := m[1]
+		startNum := 0
+		endNum := 0
+		fmt.Sscanf(m[2], "%d", &startNum)
+		fmt.Sscanf(m[4], "%d", &endNum)
+		
+		if startNum > 0 && endNum > 0 && endNum >= startNum {
+			var expanded []string
+			for i := startNum; i <= endNum; i++ {
+				expanded = append(expanded, fmt.Sprintf("%s%03d", prefix, i))
+			}
+			return expanded
+		}
+	}
+	return []string{item}
 }
 
 func parseCommaSeparated(s string) []string {

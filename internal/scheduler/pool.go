@@ -305,3 +305,17 @@ func (p *WorkerPool) WorkerCount() int {
 func (p *WorkerPool) IsRunning() bool {
 	return p.GetRunningCount() > 0
 }
+
+// GetWorkspaces returns all workspaces created by the pool
+func (p *WorkerPool) GetWorkspaces() map[string]*isolation.Workspace {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.workspaces
+}
+
+// GetWorkspace returns the workspace for a specific task
+func (p *WorkerPool) GetWorkspace(taskID string) *isolation.Workspace {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.workspaces[taskID]
+}
