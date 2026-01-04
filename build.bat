@@ -57,6 +57,10 @@ exit /b 1
 :build
 echo Building Hermes for Windows (amd64)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
+echo Generating Windows resources...
+if exist "%GOPATH%\bin\go-winres.exe" (
+    "%GOPATH%\bin\go-winres.exe" make --in winres\winres.json --out cmd\hermes\rsrc_windows
+)
 go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-windows-amd64.exe" .\cmd\hermes
 if errorlevel 1 (
     echo Build failed
@@ -96,6 +100,10 @@ goto :eof
 :build-windows
 echo Building Hermes for Windows (amd64)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
+echo Generating Windows resources...
+if exist "%GOPATH%\bin\go-winres.exe" (
+    "%GOPATH%\bin\go-winres.exe" make --in winres\winres.json --out cmd\hermes\rsrc_windows
+)
 set GOOS=windows
 set GOARCH=amd64
 go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-windows-amd64.exe" .\cmd\hermes
@@ -107,6 +115,10 @@ goto :eof
 :build-windows-arm64
 echo Building Hermes for Windows (arm64)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
+echo Generating Windows resources...
+if exist "%GOPATH%\bin\go-winres.exe" (
+    "%GOPATH%\bin\go-winres.exe" make --in winres\winres.json --out cmd\hermes\rsrc_windows
+)
 set GOOS=windows
 set GOARCH=arm64
 go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-windows-arm64.exe" .\cmd\hermes

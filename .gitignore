@@ -8,6 +8,7 @@ bin/
 hermes
 hermes.exe
 *.exe
+*.syso
 
 # Hermes generated files
 .hermes/logs/
