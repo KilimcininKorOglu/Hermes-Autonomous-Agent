@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"hermes/internal/ai"
+	"hermes/internal/circuit"
 	"hermes/internal/config"
 	"hermes/internal/isolation"
 	"hermes/internal/task"
@@ -22,6 +23,7 @@ type Scheduler struct {
 	workDir        string
 	logger         *ui.Logger
 	parallelLogger *ParallelLogger
+	breaker        *circuit.Breaker
 	mu             sync.Mutex
 }
 
@@ -44,11 +46,15 @@ type ExecutionResult struct {
 
 // New creates a new scheduler
 func New(cfg *config.ParallelConfig, provider ai.Provider, workDir string, logger *ui.Logger) *Scheduler {
+	breaker := circuit.New(workDir)
+	breaker.Initialize()
+	
 	return &Scheduler{
 		config:   cfg,
 		provider: provider,
 		workDir:  workDir,
 		logger:   logger,
+		breaker:  breaker,
 	}
 }
 
@@ -115,9 +121,35 @@ func (s *Scheduler) Execute(ctx context.Context, tasks []*task.Task) (*Execution
 		default:
 		}
 
+		// Check circuit breaker before batch execution
+		canExecute, err := s.breaker.CanExecute()
+		if err != nil {
+			s.logError("Circuit breaker error: %v", err)
+		}
+		if !canExecute {
+			s.logError("Circuit breaker OPEN - stopping execution")
+			result.EndTime = time.Now()
+			result.TotalTime = result.EndTime.Sub(startTime)
+			s.countResults(result)
+			return result, fmt.Errorf("circuit breaker open: execution halted due to no progress")
+		}
+
 		s.logInfo("Starting batch %d/%d with %d tasks", batchNum+1, len(batches), len(batch))
 
 		batchResults, err := s.executeBatch(ctx, graph, batch)
+		
+		// Calculate batch progress for circuit breaker
+		batchHasProgress := false
+		for _, r := range batchResults {
+			if r.Success {
+				batchHasProgress = true
+				break
+			}
+		}
+		
+		// Report to circuit breaker
+		s.breaker.AddLoopResult(batchHasProgress, err != nil, batchNum+1)
+		
 		if err != nil {
 			s.logError("Batch %d failed: %v", batchNum+1, err)
 			
