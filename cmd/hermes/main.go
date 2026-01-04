@@ -33,6 +33,7 @@ func main() {
 	rootCmd.AddCommand(cmd.NewTaskCmd())
 	rootCmd.AddCommand(cmd.NewLogCmd())
 	rootCmd.AddCommand(cmd.NewIdeaCmd())
+	rootCmd.AddCommand(cmd.NewConvertPrdCmd())
 
 	// Set version for update command
 	cmd.SetUpdateVersion(version)
