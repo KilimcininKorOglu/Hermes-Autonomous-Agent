@@ -4,6 +4,9 @@ package analyzer
 type AnalysisResult struct {
 	HasProgress       bool    `json:"hasProgress"`
 	IsComplete        bool    `json:"isComplete"`
+	IsBlocked         bool    `json:"isBlocked"`
+	IsAtRisk          bool    `json:"isAtRisk"`
+	IsPaused          bool    `json:"isPaused"`
 	IsTestOnly        bool    `json:"isTestOnly"`
 	IsStuck           bool    `json:"isStuck"`
 	ExitSignal        bool    `json:"exitSignal"`

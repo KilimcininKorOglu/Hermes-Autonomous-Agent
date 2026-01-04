@@ -95,14 +95,28 @@ func (a *ResponseAnalyzer) Analyze(output string) *AnalysisResult {
 	result.ErrorCount = strings.Count(outputLower, "error")
 	result.IsStuck = result.ErrorCount > 5
 
-	// Determine if complete
-	result.IsComplete = result.ExitSignal ||
-		result.Status == "COMPLETE" ||
-		result.CompletionKeyword != ""
+	// Determine status flags based on parsed status
+	switch result.Status {
+	case "COMPLETE":
+		result.IsComplete = true
+	case "BLOCKED":
+		result.IsBlocked = true
+		result.HasProgress = false // Blocked means no progress
+	case "AT_RISK":
+		result.IsAtRisk = true
+	case "PAUSED":
+		result.IsPaused = true
+		result.HasProgress = false // Paused means no progress
+	}
+
+	// Also check for completion via exit signal or keywords
+	if result.ExitSignal || result.CompletionKeyword != "" {
+		result.IsComplete = true
+	}
 
 	// Determine progress
 	if !result.HasProgress {
-		// Already set to false by no-work patterns
+		// Already set to false by no-work patterns or blocked/paused
 	} else if result.IsComplete || hasImplementation {
 		result.HasProgress = true
 	} else if result.OutputLength < 100 || result.IsTestOnly {
@@ -113,6 +127,12 @@ func (a *ResponseAnalyzer) Analyze(output string) *AnalysisResult {
 	if result.ExitSignal {
 		result.Confidence = 1.0
 	} else if result.Status == "COMPLETE" {
+		result.Confidence = 0.9
+	} else if result.Status == "BLOCKED" {
+		result.Confidence = 0.9
+	} else if result.Status == "AT_RISK" {
+		result.Confidence = 0.8
+	} else if result.Status == "PAUSED" {
 		result.Confidence = 0.9
 	} else if result.CompletionKeyword != "" {
 		result.Confidence = 0.7

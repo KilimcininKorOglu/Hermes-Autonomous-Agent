@@ -7,7 +7,7 @@ const DefaultPromptTemplate = `# Project Instructions
 
 This project uses Hermes for AI-powered autonomous application development.
 
-# General Rules
+## General Rules
 
 - ***When writing text, you will always follow the grammar rules of the language you are using! For example: if it's Turkish, follow Turkish grammar rules; if it's English, follow English grammar rules, and so on.***
 - ***Tables in Markdown files must be aligned!***
@@ -15,7 +15,7 @@ This project uses Hermes for AI-powered autonomous application development.
 
 ## Code Style
 
-- **camelCase is mandatory** – for all variable, function, and property names;
+- **camelCase is mandatory** for all variable, function, and property names;
 	✓ userName, getUserData, isActive
 	✗ user_name, get_user_data, is_active
 - File names: camelCase or kebab-case (according to project standards)

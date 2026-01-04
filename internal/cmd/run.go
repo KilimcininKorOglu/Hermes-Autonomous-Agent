@@ -239,11 +239,40 @@ func runExecute(cmd *cobra.Command, args []string) error {
 
 		// Analyze response
 		analysis := respAnalyzer.Analyze(result.Output)
-		logger.Debug("Analysis: progress=%v complete=%v confidence=%.2f",
-			analysis.HasProgress, analysis.IsComplete, analysis.Confidence)
+		logger.Debug("Analysis: progress=%v complete=%v blocked=%v atRisk=%v paused=%v confidence=%.2f",
+			analysis.HasProgress, analysis.IsComplete, analysis.IsBlocked, analysis.IsAtRisk, analysis.IsPaused, analysis.Confidence)
 
 		// Update circuit breaker
 		breaker.AddLoopResult(analysis.HasProgress, false, loopNumber)
+
+		// Handle blocked status
+		if analysis.IsBlocked {
+			logger.Warn("Task %s is BLOCKED: %s", nextTask.ID, analysis.Recommendation)
+			if err := statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusBlocked); err != nil {
+				logger.Warn("Failed to update task status: %v", err)
+			}
+			injector.RemoveTask()
+			continue // Move to next task
+		}
+
+		// Handle at-risk status
+		if analysis.IsAtRisk {
+			logger.Warn("Task %s is AT RISK: %s", nextTask.ID, analysis.Recommendation)
+			if err := statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusAtRisk); err != nil {
+				logger.Warn("Failed to update task status: %v", err)
+			}
+			// Continue working on the task
+		}
+
+		// Handle paused status
+		if analysis.IsPaused {
+			logger.Info("Task %s is PAUSED: %s", nextTask.ID, analysis.Recommendation)
+			if err := statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusPaused); err != nil {
+				logger.Warn("Failed to update task status: %v", err)
+			}
+			injector.RemoveTask()
+			continue // Move to next task
+		}
 
 		// Update task status if complete
 		if analysis.IsComplete {

@@ -246,8 +246,39 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task, attempt int) *TaskR
 	analysis := respAnalyzer.Analyze(execResult.Output)
 
 	if p.logger != nil {
-		p.logger.Worker(workerID+1, "Analysis: complete=%v progress=%v confidence=%.2f",
-			analysis.IsComplete, analysis.HasProgress, analysis.Confidence)
+		p.logger.Worker(workerID+1, "Analysis: complete=%v blocked=%v atRisk=%v paused=%v progress=%v confidence=%.2f",
+			analysis.IsComplete, analysis.IsBlocked, analysis.IsAtRisk, analysis.IsPaused, analysis.HasProgress, analysis.Confidence)
+	}
+
+	// Handle blocked status
+	if analysis.IsBlocked {
+		result.Success = false
+		result.Error = fmt.Errorf("task blocked: %s", analysis.Recommendation)
+		statusUpdater.UpdateTaskStatus(t.ID, task.StatusBlocked)
+		if p.logger != nil {
+			p.logger.Worker(workerID+1, "Task %s is BLOCKED: %s", t.ID, analysis.Recommendation)
+		}
+		return result
+	}
+
+	// Handle paused status
+	if analysis.IsPaused {
+		result.Success = false
+		result.Error = fmt.Errorf("task paused: %s", analysis.Recommendation)
+		statusUpdater.UpdateTaskStatus(t.ID, task.StatusPaused)
+		if p.logger != nil {
+			p.logger.Worker(workerID+1, "Task %s is PAUSED: %s", t.ID, analysis.Recommendation)
+		}
+		return result
+	}
+
+	// Handle at-risk status (continue but log warning)
+	if analysis.IsAtRisk {
+		statusUpdater.UpdateTaskStatus(t.ID, task.StatusAtRisk)
+		if p.logger != nil {
+			p.logger.Worker(workerID+1, "Task %s is AT RISK: %s", t.ID, analysis.Recommendation)
+		}
+		// Continue processing - at-risk doesn't stop execution
 	}
 
 	// Task is successful only if AI indicates completion
