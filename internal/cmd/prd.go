@@ -270,6 +270,14 @@ func writeTaskFiles(output string) error {
 		fileName := strings.TrimSpace(match[1])
 		content := strings.TrimSpace(match[2])
 
+		// Sanitize filename - remove any path components, keep only basename
+		fileName = filepath.Base(fileName)
+		
+		// Ensure filename ends with .md
+		if !strings.HasSuffix(fileName, ".md") {
+			fileName = fileName + ".md"
+		}
+
 		filePath := filepath.Join(tasksDir, fileName)
 		if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
 			return err
