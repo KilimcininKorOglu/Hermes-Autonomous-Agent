@@ -152,7 +152,7 @@ WIN_VERSION_FULL := $(WIN_VERSION).0
 update-winres:
 	@if command -v go-winres >/dev/null 2>&1; then \
 		echo "Updating Windows resources with version $(WIN_VERSION_FULL)..."; \
-		sed 's/{{VERSION_FULL}}/$(WIN_VERSION_FULL)/g; s/{{VERSION}}/$(VERSION)/g' winres/winres.template.json > winres/winres.json; \
+		sed 's/__VERSION_FULL__/$(WIN_VERSION_FULL)/g; s/__VERSION__/$(VERSION)/g' winres/winres.template.json > winres/winres.json; \
 		go-winres make --in winres/winres.json --out cmd/hermes/rsrc_windows; \
 	else \
 		echo "go-winres not found, skipping Windows resources"; \

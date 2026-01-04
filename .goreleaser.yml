@@ -2,7 +2,7 @@ before:
   hooks:
     - go mod tidy
     - go install github.com/tc-hib/go-winres@latest
-    - sh -c "sed 's/{{VERSION_FULL}}/{{ .Version }}.0/g; s/{{VERSION}}/{{ .Version }}/g' winres/winres.template.json > winres/winres.json"
+    - sh -c "sed 's/__VERSION_FULL__/{{ .Version }}.0/g; s/__VERSION__/{{ .Version }}/g' winres/winres.template.json > winres/winres.json"
     - go-winres make --in winres/winres.json --out cmd/hermes/rsrc_windows
 
 builds:

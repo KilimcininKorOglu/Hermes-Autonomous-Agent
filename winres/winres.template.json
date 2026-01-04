@@ -4,7 +4,7 @@
       "0409": {
         "identity": {
           "name": "Hermes.AutonomousAgent",
-          "version": "{{VERSION_FULL}}"
+          "version": "__VERSION_FULL__"
         },
         "description": "Hermes Autonomous Agent",
         "minimum-os": "win7",
@@ -28,22 +28,22 @@
     "#1": {
       "0000": {
         "fixed": {
-          "file_version": "{{VERSION_FULL}}",
-          "product_version": "{{VERSION_FULL}}"
+          "file_version": "__VERSION_FULL__",
+          "product_version": "__VERSION_FULL__"
         },
         "info": {
           "0409": {
             "Comments": "AI-powered autonomous application development system",
             "CompanyName": "Hermes Project",
             "FileDescription": "Hermes Autonomous Agent",
-            "FileVersion": "{{VERSION}}",
+            "FileVersion": "__VERSION__",
             "InternalName": "hermes",
             "LegalCopyright": "MIT License",
             "LegalTrademarks": "",
             "OriginalFilename": "hermes.exe",
             "PrivateBuild": "",
             "ProductName": "Hermes Autonomous Agent",
-            "ProductVersion": "{{VERSION}}",
+            "ProductVersion": "__VERSION__",
             "SpecialBuild": ""
           }
         }

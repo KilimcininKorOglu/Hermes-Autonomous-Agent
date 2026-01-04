@@ -329,7 +329,7 @@ goto :eof
 :update-winres
 if not exist "%GOPATH%\bin\go-winres.exe" goto :eof
 echo Updating Windows resources with version %WIN_VERSION_FULL%...
-powershell -Command "(Get-Content winres\winres.template.json) -replace '\{\{VERSION_FULL\}\}', '%WIN_VERSION_FULL%' -replace '\{\{VERSION\}\}', '%VERSION%' | Set-Content winres\winres.json"
+powershell -Command "(Get-Content winres\winres.template.json) -replace '__VERSION_FULL__', '%WIN_VERSION_FULL%' -replace '__VERSION__', '%VERSION%' | Set-Content winres\winres.json"
 "%GOPATH%\bin\go-winres.exe" make --in winres\winres.json --out cmd\hermes\rsrc_windows
 goto :eof
 
