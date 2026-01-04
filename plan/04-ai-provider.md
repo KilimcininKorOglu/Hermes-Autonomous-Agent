@@ -7,6 +7,7 @@ Implement AI provider abstraction using `github.com/severity1/claude-code-sdk-go
 ## SDK Overview
 
 The `claude-code-sdk-go` SDK provides programmatic access to Claude Code CLI:
+
 - Executes Claude CLI as subprocess
 - Handles streaming JSON output
 - Manages permissions, tools, and sessions

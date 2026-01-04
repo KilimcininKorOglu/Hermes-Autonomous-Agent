@@ -118,6 +118,7 @@ classDiagram
 ```
 
 **Key Files:**
+
 - [`provider.go`](internal/ai/provider.go:8) - [`Provider`](internal/ai/provider.go:8) interface definition
 - [`claude.go`](internal/ai/claude.go) - Claude CLI implementation using SDK
 - [`droid.go`](internal/ai/droid.go) - Droid CLI wrapper
@@ -175,6 +176,7 @@ classDiagram
 ```
 
 **Key Files:**
+
 - [`types.go`](internal/task/types.go:26) - [`Feature`](internal/task/types.go:26) and [`Task`](internal/task/types.go:43) structs
 - [`parser.go`](internal/task/parser.go) - Markdown parsing with regex
 - [`reader.go`](internal/task/reader.go) - File reading and status checking
@@ -221,6 +223,7 @@ classDiagram
 **Configuration Priority:** CLI flags > Project config > Global config > Defaults
 
 **Key Files:**
+
 - [`types.go`](internal/config/types.go:4) - [`Config`](internal/config/types.go:4) struct definitions
 - [`config.go`](internal/config/config.go) - Loading and merging logic
 - [`defaults.go`](internal/config/defaults.go) - Default values
@@ -242,6 +245,7 @@ stateDiagram-v2
 ```
 
 **States:**
+
 | State | Description |
 |-------|-------------|
 | CLOSED | Normal operation - execution allowed |
@@ -249,6 +253,7 @@ stateDiagram-v2
 | OPEN | Halted - requires `hermes reset` command |
 
 **Key Files:**
+
 - [`breaker.go`](internal/circuit/breaker.go:17) - [`Breaker`](internal/circuit/breaker.go:17) implementation
 - [`state.go`](internal/circuit/state.go) - State constants and types
 
@@ -292,12 +297,14 @@ flowchart LR
 ```
 
 **Key Components:**
+
 - [`Scheduler`](internal/scheduler/scheduler.go:16) - Main orchestrator
 - [`TaskGraph`](internal/scheduler/graph.go) - DAG for dependency resolution
 - [`WorkerPool`](internal/scheduler/pool.go) - Concurrent worker management
 - [`PriorityQueue`](internal/scheduler/priority.go) - Task prioritization
 
 **Key Files:**
+
 - [`scheduler.go`](internal/scheduler/scheduler.go:16) - [`Scheduler`](internal/scheduler/scheduler.go:16) struct
 - [`graph.go`](internal/scheduler/graph.go) - Dependency graph with topological sort
 - [`pool.go`](internal/scheduler/pool.go) - Worker pool implementation
@@ -310,12 +317,14 @@ flowchart LR
 Handles all Git interactions for feature branches and commits.
 
 **Capabilities:**
+
 - Feature branch creation: `feature/FXXX-name`
 - Conventional commits: `feat(component): message`
 - Auto-tagging on feature completion with `TargetVersion`
 - Parallel branch management with worktrees
 
 **Key Files:**
+
 - [`branch.go`](internal/git/branch.go) - Branch creation and switching
 - [`commit.go`](internal/git/commit.go) - Commit operations
 - [`parallel.go`](internal/git/parallel.go) - Worktree management for parallel execution
@@ -441,6 +450,7 @@ flowchart TB
 ```
 
 **Screens:**
+
 | Key | Screen | Description |
 |-----|--------|-------------|
 | 1 | Dashboard | Overview with progress stats |

@@ -1,4 +1,4 @@
-# Hermes Autonomous Agent - Örnek Kullanım
+# Hermes Autonomous Agent - Örnek Kullanım (v2.2)
 
 PRD'den tamamlanmaya kadar Hermes kullanarak proje oluşturmanın adım adım rehberi.
 
@@ -365,6 +365,7 @@ hermes tui
 ```
 
 Gezinme:
+
 - `1` - Dashboard
 - `2` - Görev listesi
 - `3` - Günlükler
@@ -494,16 +495,20 @@ Tamamlandıktan sonra git geçmişiniz şöyle görünür:
 | Adım | Komut                                        | Açıklama                          |
 |------|----------------------------------------------|-----------------------------------|
 | 1    | `hermes init <ad>`                           | Projeyi başlat                    |
-| 2    | `hermes idea "<açıklama>"`                   | Fikirden PRD üret (v1.1.0)        |
+| 2    | `hermes idea "<açıklama>"`                   | Fikirden PRD üret                 |
 | 3    | `.hermes/docs/PRD.md` incele/düzenle         | Gereksinimleri incele             |
 | 4    | `hermes prd .hermes/docs/PRD.md`             | PRD'yi görevlere ayrıştır         |
 | 5    | `hermes status`                              | Tüm görevleri görüntüle           |
 | 6    | `hermes task <id>`                           | Görev detaylarını görüntüle       |
 | 7    | `hermes run --auto-branch --auto-commit`     | Görevleri yürüt                   |
-| 8    | `hermes log -f`                              | Günlükleri izle                   |
-| 9    | `hermes reset`                               | Devre kesiciyi sıfırla            |
-| 10   | `hermes add "<özellik>"`                     | Yeni özellik ekle                 |
-| 11   | `hermes tui`                                 | İnteraktif arayüz                 |
+| 8    | `hermes run --parallel --workers 3`          | Paralel yürütme                   |
+| 9    | `hermes run --dry-run`                       | Yürütme planını önizle            |
+| 10   | `hermes log -f`                              | Günlükleri izle                   |
+| 11   | `hermes reset`                               | Devre kesiciyi sıfırla            |
+| 12   | `hermes add "<özellik>"`                     | Yeni özellik ekle                 |
+| 13   | `hermes tui`                                 | İnteraktif arayüz                 |
+| 14   | `hermes install`                             | Sistem PATH'ine kur               |
+| 15   | `hermes update`                              | Güncellemeleri kontrol et ve kur  |
 
 ---
 
@@ -514,3 +519,6 @@ Tamamlandıktan sonra git geçmişiniz şöyle görünür:
 3. **Dallar Kullanın**: Temiz geçmiş için her zaman `--auto-branch` kullanın
 4. **İlerlemeyi İzleyin**: `hermes tui` veya `hermes log -f` kullanın
 5. **Yinelemeli Çalışın**: `hermes add` ile özellikleri kademeli olarak ekleyin
+6. **Önce Önizle**: Çalıştırmadan önce `--dry-run` ile yürütme planını görün
+7. **Paralel Mod**: Bağımsız görevler için `--parallel` kullanarak hızlandırın
+8. **Sistem Genelinde Kur**: Global erişim için `hermes install` çalıştırın

@@ -428,6 +428,7 @@ func (l *ParallelLogger) MainLog(message string)
 ```
 
 Log files:
+
 ```
 .hermes/logs/
   hermes.log           # Main log
@@ -486,6 +487,7 @@ Add explicit dependency syntax:
 ```
 
 New fields:
+
 - `**Depends On:**` - Explicit task dependencies
 - `**Parallelizable:**` - Can run in parallel (default: true)
 - `**Exclusive Files:**` - Files only this task should modify
@@ -493,24 +495,28 @@ New fields:
 ## Implementation Phases
 
 ### Phase 1: Foundation (v2.0.0-alpha)
+
 - [ ] Dependency graph parser
 - [ ] Basic worker pool
 - [ ] Git worktree integration
 - [ ] Sequential merge
 
 ### Phase 2: Core Features (v2.0.0-beta)
+
 - [ ] Conflict detection
 - [ ] Auto-merge for non-conflicting
 - [ ] TUI parallel view
 - [ ] Parallel logging
 
 ### Phase 3: AI Integration (v2.0.0-rc)
+
 - [ ] AI-assisted merge
 - [ ] Smart conflict resolution
 - [ ] Semantic conflict detection
 - [ ] Merge validation
 
 ### Phase 4: Polish (v2.0.0)
+
 - [ ] Resource monitoring
 - [ ] Rate limiting
 - [ ] Rollback support
@@ -549,6 +555,7 @@ Parallel execution means parallel API calls:
 *Actual cost depends on AI provider pricing
 
 Configuration option to set budget limits:
+
 ```json
 {
   "parallel": {

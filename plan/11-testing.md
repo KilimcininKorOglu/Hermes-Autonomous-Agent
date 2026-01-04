@@ -9,6 +9,7 @@ Comprehensive unit and integration tests for all packages.
 ### Unit Tests
 
 Each package gets `*_test.go` files with:
+
 - Table-driven tests
 - Mock implementations where needed
 - Edge case coverage
@@ -16,6 +17,7 @@ Each package gets `*_test.go` files with:
 ### Integration Tests
 
 End-to-end tests that:
+
 - Use real file system (temp directories)
 - Test full workflows
 - Verify CLI output

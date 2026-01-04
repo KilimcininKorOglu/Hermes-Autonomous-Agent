@@ -485,14 +485,17 @@ Overview of system architecture...
 ## Language Support
 
 ### English (en)
+
 Default language. All section headers and content in English.
 
 ### Turkish (tr)
+
 ```bash
 hermes idea "e-commerce website" --language tr
 ```
 
 Turkish PRD output:
+
 - Proje Genel Bakisi
 - Ozellikler
 - Teknik Gereksinimler
@@ -622,6 +625,7 @@ Generating PRD...
 This feature is additive to the existing system, no breaking changes.
 
 ### New Files
+
 - `internal/cmd/idea.go`
 - `internal/idea/generator.go`
 - `internal/idea/prompt.go`
@@ -630,6 +634,7 @@ This feature is additive to the existing system, no breaking changes.
 - `internal/idea/generator_test.go`
 
 ### Updated Files
+
 - `cmd/hermes/main.go` - Add new command
 - `internal/config/config.go` - New config fields
 

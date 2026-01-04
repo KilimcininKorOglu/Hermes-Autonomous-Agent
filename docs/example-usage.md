@@ -1,4 +1,4 @@
-# Hermes Autonomous Agent - Example Usage
+# Hermes Autonomous Agent - Example Usage (v2.2)
 
 Step-by-step walkthrough of using Hermes to build a project from PRD to completion.
 
@@ -365,6 +365,7 @@ hermes tui
 ```
 
 Navigate with:
+
 - `1` - Dashboard
 - `2` - Tasks list
 - `3` - Logs
@@ -494,16 +495,20 @@ After completion, your git history looks like:
 | Step | Command                                      | Description                    |
 |------|----------------------------------------------|--------------------------------|
 | 1    | `hermes init <name>`                         | Initialize project             |
-| 2    | `hermes idea "<description>"`                | Generate PRD from idea (v1.1.0)|
+| 2    | `hermes idea "<description>"`                | Generate PRD from idea         |
 | 3    | Review/edit `.hermes/docs/PRD.md`            | Review requirements            |
 | 4    | `hermes prd .hermes/docs/PRD.md`             | Parse PRD to tasks             |
 | 5    | `hermes status`                              | View all tasks                 |
 | 6    | `hermes task <id>`                           | View task details              |
 | 7    | `hermes run --auto-branch --auto-commit`     | Execute tasks                  |
-| 8    | `hermes log -f`                              | Monitor logs                   |
-| 9    | `hermes reset`                               | Reset circuit breaker          |
-| 10   | `hermes add "<feature>"`                     | Add new feature                |
-| 11   | `hermes tui`                                 | Interactive interface          |
+| 8    | `hermes run --parallel --workers 3`          | Parallel execution             |
+| 9    | `hermes run --dry-run`                       | Preview execution plan         |
+| 10   | `hermes log -f`                              | Monitor logs                   |
+| 11   | `hermes reset`                               | Reset circuit breaker          |
+| 12   | `hermes add "<feature>"`                     | Add new feature                |
+| 13   | `hermes tui`                                 | Interactive interface          |
+| 14   | `hermes install`                             | Install to system PATH         |
+| 15   | `hermes update`                              | Check and install updates      |
 
 ---
 
@@ -514,3 +519,6 @@ After completion, your git history looks like:
 3. **Use Branches**: Always use `--auto-branch` for clean history
 4. **Monitor Progress**: Use `hermes tui` or `hermes log -f`
 5. **Iterate**: Add features incrementally with `hermes add`
+6. **Preview First**: Use `--dry-run` to see execution plan before running
+7. **Parallel Mode**: Use `--parallel` for independent tasks to speed up
+8. **Install System-wide**: Run `hermes install` for global access

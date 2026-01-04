@@ -303,6 +303,7 @@ git tag -a v1.0.0 -m "Release v1.0.0: F001 - User Authentication"
 ```
 
 Tags are only created if:
+
 - All tasks in the feature have `COMPLETED` status
 - Feature has `**Target Version:**` field set
 - Tag doesn't already exist
@@ -419,16 +420,19 @@ make test
 ## Changelog
 
 ### v2.2.3
+
 - Windows version info in Task Manager/Properties
 - Dynamic version from git tags
 - GoReleaser integration for releases
 
 ### v2.1.x
+
 - Full status support (BLOCKED, AT_RISK, PAUSED)
 - Enhanced prompt templates
 - PRD filename sanitization
 
 ### v2.0.0
+
 - Parallel task execution with worker pools
 - Git worktree isolation
 - AI-assisted merge conflict resolution

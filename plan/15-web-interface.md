@@ -561,11 +561,13 @@ func StaticHandler() http.Handler {
 ```
 
 **Pros:**
+
 - Single binary distribution
 - No external dependencies
 - Easy deployment
 
 **Cons:**
+
 - Larger binary size (~5-10MB)
 - Rebuild required for frontend changes
 
@@ -581,11 +583,13 @@ func StaticHandler(dir string) http.Handler {
 ```
 
 **Pros:**
+
 - Smaller binary
 - Independent frontend updates
 - Development flexibility
 
 **Cons:**
+
 - More complex deployment
 - Additional configuration
 
@@ -641,18 +645,21 @@ Desktop (1200px+)        Tablet (768px-1199px)      Mobile (<768px)
 ## Implementation Phases
 
 ### Phase 1: Foundation (v3.0.0-alpha)
+
 - [ ] HTTP server setup
 - [ ] REST API endpoints (tasks, config)
 - [ ] Basic React frontend
 - [ ] Static file embedding
 
 ### Phase 2: Real-time (v3.0.0-beta)
+
 - [ ] WebSocket implementation
 - [ ] Event broker
 - [ ] Live execution view
 - [ ] Log streaming
 
 ### Phase 3: Features (v3.0.0-rc)
+
 - [ ] Dashboard with charts
 - [ ] Kanban task board
 - [ ] Dependency graph visualization
@@ -660,6 +667,7 @@ Desktop (1200px+)        Tablet (768px-1199px)      Mobile (<768px)
 - [ ] PRD editor
 
 ### Phase 4: Polish (v3.0.0)
+
 - [ ] Authentication
 - [ ] Mobile responsiveness
 - [ ] Dark mode
@@ -688,18 +696,21 @@ Desktop (1200px+)        Tablet (768px-1199px)      Mobile (<768px)
 ## Deployment Options
 
 ### 1. Local Development
+
 ```bash
 hermes serve --port 8080
 # Open http://localhost:8080
 ```
 
 ### 2. Remote Server
+
 ```bash
 hermes serve --host 0.0.0.0 --port 8080 --auth token
 # Access from any device on network
 ```
 
 ### 3. Docker
+
 ```dockerfile
 FROM golang:1.24 AS builder
 WORKDIR /app
@@ -713,6 +724,7 @@ CMD ["hermes", "serve"]
 ```
 
 ### 4. Reverse Proxy (Production)
+
 ```nginx
 server {
     listen 443 ssl;
