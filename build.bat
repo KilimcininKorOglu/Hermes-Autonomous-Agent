@@ -12,6 +12,18 @@ set "BINARY_NAME=hermes"
 for /f "tokens=*" %%i in ('git describe --tags --always --dirty 2^>nul') do set "VERSION=%%i"
 if "%VERSION%"=="" set "VERSION=dev"
 
+:: Parse version for Windows resources (remove 'v' prefix, ensure X.Y.Z.0 format)
+set "WIN_VERSION=%VERSION:v=%"
+for /f "tokens=1,2,3 delims=.-" %%a in ("%WIN_VERSION%") do (
+    set "VER_MAJOR=%%a"
+    set "VER_MINOR=%%b"
+    set "VER_PATCH=%%c"
+)
+if "%VER_MAJOR%"=="" set "VER_MAJOR=0"
+if "%VER_MINOR%"=="" set "VER_MINOR=0"
+if "%VER_PATCH%"=="" set "VER_PATCH=0"
+set "WIN_VERSION_FULL=%VER_MAJOR%.%VER_MINOR%.%VER_PATCH%.0"
+
 :: Get build time
 for /f "tokens=*" %%i in ('powershell -command "Get-Date -Format 'yyyy-MM-dd_HH:mm:ss'"') do set "BUILD_TIME=%%i"
 
@@ -57,10 +69,7 @@ exit /b 1
 :build
 echo Building Hermes for Windows (amd64)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
-echo Generating Windows resources...
-if exist "%GOPATH%\bin\go-winres.exe" (
-    "%GOPATH%\bin\go-winres.exe" make --in winres\winres.json --out cmd\hermes\rsrc_windows
-)
+call :update-winres
 go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-windows-amd64.exe" .\cmd\hermes
 if errorlevel 1 (
     echo Build failed
@@ -100,10 +109,7 @@ goto :eof
 :build-windows
 echo Building Hermes for Windows (amd64)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
-echo Generating Windows resources...
-if exist "%GOPATH%\bin\go-winres.exe" (
-    "%GOPATH%\bin\go-winres.exe" make --in winres\winres.json --out cmd\hermes\rsrc_windows
-)
+call :update-winres
 set GOOS=windows
 set GOARCH=amd64
 go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-windows-amd64.exe" .\cmd\hermes
@@ -115,10 +121,7 @@ goto :eof
 :build-windows-arm64
 echo Building Hermes for Windows (arm64)...
 if not exist "%BINARY_DIR%" mkdir "%BINARY_DIR%"
-echo Generating Windows resources...
-if exist "%GOPATH%\bin\go-winres.exe" (
-    "%GOPATH%\bin\go-winres.exe" make --in winres\winres.json --out cmd\hermes\rsrc_windows
-)
+call :update-winres
 set GOOS=windows
 set GOARCH=arm64
 go build %LDFLAGS% -o "%BINARY_DIR%\%BINARY_NAME%-windows-arm64.exe" .\cmd\hermes
@@ -319,5 +322,14 @@ echo   install            Install to GOPATH\bin
 echo   clean              Remove build artifacts
 echo   help               Show this help message
 echo.
+goto :eof
+
+:: ==================== WINDOWS RESOURCES ====================
+
+:update-winres
+if not exist "%GOPATH%\bin\go-winres.exe" goto :eof
+echo Updating Windows resources with version %WIN_VERSION_FULL%...
+powershell -Command "(Get-Content winres\winres.template.json) -replace '\{\{VERSION_FULL\}\}', '%WIN_VERSION_FULL%' -replace '\{\{VERSION\}\}', '%VERSION%' | Set-Content winres\winres.json"
+"%GOPATH%\bin\go-winres.exe" make --in winres\winres.json --out cmd\hermes\rsrc_windows
 goto :eof
 
