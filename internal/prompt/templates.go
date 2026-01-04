@@ -30,6 +30,27 @@ This project uses Hermes for AI-powered autonomous application development.
 - Mocks are strictly forbidden in production or integration code
 - Do not create fake/stub/mock implementations outside of tests
 
+## Error Handling
+
+- Never silently ignore errors
+- Always log errors with context
+- Use appropriate error types for the language
+
+## Security
+
+- Never hardcode secrets, API keys, or passwords
+- Never log sensitive information
+- Validate all user inputs
+
+## Commit Messages
+
+Use conventional commits:
+- feat(scope): add new feature
+- fix(scope): fix bug
+- refactor(scope): code refactoring
+- test(scope): add tests
+- docs(scope): documentation
+
 ## Guidelines
 
 1. Follow existing code patterns
@@ -37,13 +58,21 @@ This project uses Hermes for AI-powered autonomous application development.
 3. Use conventional commits
 4. Keep changes focused and atomic
 
+## Completion Criteria
+
+Mark task as COMPLETE only when:
+- All success criteria in the task are met
+- Code compiles without errors
+- Tests pass (if applicable)
+- No TODO comments left unresolved
+
 ## Status Reporting
 
 At the end of each response, output:
 
 ` + "```" + `
 ---HERMES_STATUS---
-STATUS: IN_PROGRESS | COMPLETE | BLOCKED
+STATUS: IN_PROGRESS | COMPLETE | BLOCKED | AT_RISK | PAUSED
 EXIT_SIGNAL: false | true
 RECOMMENDATION: <next action>
 ---END_HERMES_STATUS---
