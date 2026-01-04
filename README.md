@@ -66,6 +66,16 @@ make               # Linux/macOS (builds all platforms by default)
 
 Download pre-built binaries from [GitHub Releases](https://github.com/KilimcininKorOglu/Hermes-Autonomous-Agent/releases).
 
+### System-wide Installation
+
+```bash
+# Install to system PATH (run after building or downloading)
+hermes install
+
+# Uninstall
+hermes install --uninstall
+```
+
 ## Quick Start
 
 ```bash
