@@ -21,7 +21,7 @@ type Workspace struct {
 
 // NewWorkspace creates a new workspace configuration
 func NewWorkspace(taskID, basePath string) *Workspace {
-	branchName := fmt.Sprintf("hermes/%s", taskID)
+	branchName := fmt.Sprintf("task/%s", taskID)
 	// Create worktree in project directory instead of temp
 	workPath := filepath.Join(basePath, ".hermes", "worktrees", fmt.Sprintf("wt-%s", taskID))
 
@@ -39,7 +39,7 @@ func NewWorkspaceWithName(taskID, taskName, basePath string) *Workspace {
 	if taskName != "" {
 		branchName = git.GetTaskBranchName(taskID, taskName)
 	} else {
-		branchName = fmt.Sprintf("hermes/%s", taskID)
+		branchName = fmt.Sprintf("task/%s", taskID)
 	}
 	// Create worktree in project directory instead of temp
 	workPath := filepath.Join(basePath, ".hermes", "worktrees", fmt.Sprintf("wt-%s", taskID))

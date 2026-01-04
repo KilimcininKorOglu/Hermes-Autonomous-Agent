@@ -37,7 +37,7 @@ func (m *ParallelBranchManager) CreateTaskBranch(taskID string, taskName ...stri
 	if len(taskName) > 0 && taskName[0] != "" {
 		branchName = GetTaskBranchName(taskID, taskName[0])
 	} else {
-		branchName = fmt.Sprintf("hermes/%s", taskID)
+		branchName = fmt.Sprintf("task/%s", taskID)
 	}
 
 	// Check if branch already exists
@@ -69,7 +69,7 @@ func (m *ParallelBranchManager) CreateWorktree(taskID string) (string, error) {
 	}
 
 	// Create worktree path
-	worktreePath := filepath.Join(os.TempDir(), fmt.Sprintf("hermes-%s", taskID))
+	worktreePath := filepath.Join(os.TempDir(), fmt.Sprintf("wt-%s", taskID))
 
 	// Remove existing worktree if present
 	if _, err := os.Stat(worktreePath); err == nil {
@@ -248,7 +248,7 @@ func (m *ParallelBranchManager) ListWorktrees() ([]string, error) {
 	for _, line := range lines {
 		if strings.HasPrefix(line, "worktree ") {
 			path := strings.TrimPrefix(line, "worktree ")
-			if strings.Contains(path, "hermes-") {
+			if strings.Contains(path, "wt-") {
 				worktrees = append(worktrees, path)
 			}
 		}

@@ -34,7 +34,7 @@ func GetTaskBranchName(taskID, taskName string) string {
 	// Remove trailing hyphens
 	name = strings.TrimRight(name, "-")
 
-	return fmt.Sprintf("hermes/%s-%s", taskID, name)
+	return fmt.Sprintf("task/%s-%s", taskID, name)
 }
 
 // SanitizeBranchName converts a name to a valid git branch name

@@ -113,9 +113,9 @@ func TestGetTaskBranchName(t *testing.T) {
 		taskName string
 		expected string
 	}{
-		{"T001", "User Authentication", "hermes/T001-user-authentication"},
-		{"T002", "Add API endpoint", "hermes/T002-add-api-endpoint"},
-		{"T003", "Fix bug #123", "hermes/T003-fix-bug-123"},
+		{"T001", "User Authentication", "task/T001-user-authentication"},
+		{"T002", "Add API endpoint", "task/T002-add-api-endpoint"},
+		{"T003", "Fix bug #123", "task/T003-fix-bug-123"},
 	}
 
 	for _, tt := range tests {

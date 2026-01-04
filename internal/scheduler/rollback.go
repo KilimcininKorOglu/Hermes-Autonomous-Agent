@@ -86,8 +86,8 @@ func (r *Rollback) RollbackAll() error {
 
 // CleanupTaskBranches removes all task branches
 func (r *Rollback) CleanupTaskBranches() error {
-	// List all hermes branches
-	output, err := runGitCommandOutput(r.workDir, "branch", "--list", "hermes/*")
+	// List all task branches
+	output, err := runGitCommandOutput(r.workDir, "branch", "--list", "task/*")
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (r *Rollback) CleanupTaskBranches() error {
 	for _, branch := range branches {
 		branch = strings.TrimSpace(branch)
 		branch = strings.TrimPrefix(branch, "* ")
-		if branch != "" && strings.HasPrefix(branch, "hermes/") {
+		if branch != "" && strings.HasPrefix(branch, "task/") {
 			runGitCommand(r.workDir, "branch", "-D", branch)
 		}
 	}
@@ -114,7 +114,7 @@ func (r *Rollback) CleanupWorktrees() error {
 
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
-		if strings.HasPrefix(line, "worktree ") && strings.Contains(line, "hermes-") {
+		if strings.HasPrefix(line, "worktree ") && strings.Contains(line, "wt-") {
 			path := strings.TrimPrefix(line, "worktree ")
 			runGitCommand(r.workDir, "worktree", "remove", path, "--force")
 		}
