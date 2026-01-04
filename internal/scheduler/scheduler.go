@@ -254,10 +254,7 @@ func (s *Scheduler) mergeBranch(workspace *isolation.Workspace) error {
 
 	s.logInfo("Successfully merged %s into %s", workspace.GetBranch(), baseBranch)
 
-	// Optionally delete the merged branch
-	cmd = exec.Command("git", "branch", "-d", workspace.GetBranch())
-	cmd.Dir = s.workDir
-	cmd.Run() // Ignore errors, branch deletion is optional
+	// Keep merged branches for history (branch deletion disabled)
 
 	return nil
 }

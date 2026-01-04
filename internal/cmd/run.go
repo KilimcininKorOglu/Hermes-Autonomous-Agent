@@ -449,9 +449,8 @@ func runParallel(ctx context.Context, cfg *config.Config, provider ai.Provider, 
 		}
 	}
 
-	// Cleanup
+	// Cleanup worktrees only (keep task branches for history)
 	rollback.CleanupWorktrees()
-	rollback.CleanupTaskBranches()
 
 	if result.Failed > 0 {
 		return fmt.Errorf("%d tasks failed", result.Failed)
