@@ -6,11 +6,14 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"hermes/internal/git"
 )
 
 // Workspace represents an isolated workspace for a task
 type Workspace struct {
 	TaskID   string
+	TaskName string
 	BasePath string // Original repository path
 	WorkPath string // Isolated workspace path (git worktree)
 	Branch   string
@@ -24,6 +27,26 @@ func NewWorkspace(taskID, basePath string) *Workspace {
 
 	return &Workspace{
 		TaskID:   taskID,
+		BasePath: basePath,
+		WorkPath: workPath,
+		Branch:   branchName,
+	}
+}
+
+// NewWorkspaceWithName creates a new workspace configuration with task name
+func NewWorkspaceWithName(taskID, taskName, basePath string) *Workspace {
+	var branchName string
+	if taskName != "" {
+		branchName = git.GetTaskBranchName(taskID, taskName)
+	} else {
+		branchName = fmt.Sprintf("hermes/%s", taskID)
+	}
+	// Create worktree in project directory instead of temp
+	workPath := filepath.Join(basePath, ".hermes", "worktrees", fmt.Sprintf("wt-%s", taskID))
+
+	return &Workspace{
+		TaskID:   taskID,
+		TaskName: taskName,
 		BasePath: basePath,
 		WorkPath: workPath,
 		Branch:   branchName,

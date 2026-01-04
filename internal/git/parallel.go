@@ -32,8 +32,13 @@ func (m *ParallelBranchManager) GetBaseBranch() string {
 }
 
 // CreateTaskBranch creates a new branch for a task
-func (m *ParallelBranchManager) CreateTaskBranch(taskID string) (string, error) {
-	branchName := fmt.Sprintf("hermes/%s", taskID)
+func (m *ParallelBranchManager) CreateTaskBranch(taskID string, taskName ...string) (string, error) {
+	var branchName string
+	if len(taskName) > 0 && taskName[0] != "" {
+		branchName = GetTaskBranchName(taskID, taskName[0])
+	} else {
+		branchName = fmt.Sprintf("hermes/%s", taskID)
+	}
 
 	// Check if branch already exists
 	if m.git.BranchExists(branchName) {

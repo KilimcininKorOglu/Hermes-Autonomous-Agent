@@ -150,7 +150,7 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task) *TaskResult {
 	workDir := p.workDir
 	var workspace *isolation.Workspace
 	if p.useIsolation {
-		workspace = isolation.NewWorkspace(t.ID, p.workDir)
+		workspace = isolation.NewWorkspaceWithName(t.ID, t.Name, p.workDir)
 		if err := workspace.Setup(); err != nil {
 			// Fall back to shared workspace
 			if p.logger != nil {

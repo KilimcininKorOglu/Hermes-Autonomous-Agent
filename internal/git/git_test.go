@@ -99,10 +99,30 @@ func TestSanitizeBranchName(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := sanitizeBranchName(tt.input)
+		result := SanitizeBranchName(tt.input)
 		if result != tt.expected {
-			t.Errorf("sanitizeBranchName(%q) = %q, want %q",
+			t.Errorf("SanitizeBranchName(%q) = %q, want %q",
 				tt.input, result, tt.expected)
+		}
+	}
+}
+
+func TestGetTaskBranchName(t *testing.T) {
+	tests := []struct {
+		taskID   string
+		taskName string
+		expected string
+	}{
+		{"T001", "User Authentication", "hermes/T001-user-authentication"},
+		{"T002", "Add API endpoint", "hermes/T002-add-api-endpoint"},
+		{"T003", "Fix bug #123", "hermes/T003-fix-bug-123"},
+	}
+
+	for _, tt := range tests {
+		result := GetTaskBranchName(tt.taskID, tt.taskName)
+		if result != tt.expected {
+			t.Errorf("GetTaskBranchName(%q, %q) = %q, want %q",
+				tt.taskID, tt.taskName, result, tt.expected)
 		}
 	}
 }

@@ -9,7 +9,7 @@ import (
 
 // GetFeatureBranchName generates a branch name for a feature
 func (g *Git) GetFeatureBranchName(featureID, featureName string) string {
-	name := sanitizeBranchName(featureName)
+	name := SanitizeBranchName(featureName)
 
 	// Truncate if too long
 	if len(name) > 30 {
@@ -22,8 +22,23 @@ func (g *Git) GetFeatureBranchName(featureID, featureName string) string {
 	return fmt.Sprintf("feature/%s-%s", featureID, name)
 }
 
-// sanitizeBranchName converts a name to a valid git branch name
-func sanitizeBranchName(name string) string {
+// GetTaskBranchName generates a branch name for a task
+func GetTaskBranchName(taskID, taskName string) string {
+	name := SanitizeBranchName(taskName)
+
+	// Truncate if too long
+	if len(name) > 30 {
+		name = name[:30]
+	}
+
+	// Remove trailing hyphens
+	name = strings.TrimRight(name, "-")
+
+	return fmt.Sprintf("hermes/%s-%s", taskID, name)
+}
+
+// SanitizeBranchName converts a name to a valid git branch name
+func SanitizeBranchName(name string) string {
 	// Convert to lowercase
 	name = strings.ToLower(name)
 
