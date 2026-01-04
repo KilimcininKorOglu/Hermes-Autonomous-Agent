@@ -265,30 +265,30 @@ func (d *ConflictDetector) GetConflictsByTask(taskID string) []Conflict {
 // PrintConflictSummary prints a summary of all conflicts
 func (d *ConflictDetector) PrintConflictSummary() {
 	if len(d.conflicts) == 0 {
-		fmt.Println("✓ No conflicts detected")
+		fmt.Println("[OK] No conflicts detected")
 		return
 	}
 
-	fmt.Printf("\n⚠️  %d conflict(s) detected:\n", len(d.conflicts))
-	fmt.Println("═══════════════════════════════════════")
+	fmt.Printf("\n[!] %d conflict(s) detected:\n", len(d.conflicts))
+	fmt.Println("=======================================")
 
 	for i, c := range d.conflicts {
-		status := "⚠️"
+		status := "[!]"
 		if c.CanAutoResolve {
-			status = "✓"
+			status = "[OK]"
 		} else if c.Severity == SeverityHigh {
-			status = "❌"
+			status = "[X]"
 		}
 
-		fmt.Printf("\n%d. [%s] %s\n", i+1, status, filepath.Base(c.File))
+		fmt.Printf("\n%d. %s %s\n", i+1, status, filepath.Base(c.File))
 		fmt.Printf("   Type: %s | Severity: %d\n", c.Type, c.Severity)
 		fmt.Printf("   Tasks: %v\n", c.Tasks)
 		fmt.Printf("   %s\n", c.Description)
 		if c.CanAutoResolve {
-			fmt.Println("   → Can be auto-resolved")
+			fmt.Println("   -> Can be auto-resolved")
 		}
 	}
-	fmt.Println("═══════════════════════════════════════")
+	fmt.Println("=======================================")
 }
 
 // Helper functions
