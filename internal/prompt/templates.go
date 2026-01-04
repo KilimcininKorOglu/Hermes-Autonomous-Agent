@@ -7,6 +7,29 @@ const DefaultPromptTemplate = `# Project Instructions
 
 This project uses Hermes for AI-powered autonomous application development.
 
+# General Rules
+
+- ***When writing text, you will always follow the grammar rules of the language you are using! For example: if it's Turkish, follow Turkish grammar rules; if it's English, follow English grammar rules, and so on.***
+- ***Tables in Markdown files must be aligned!***
+- ***Readme files will be emoji-free and professionally designed.***
+
+## Code Style
+
+- **camelCase is mandatory** – for all variable, function, and property names;
+	✓ userName, getUserData, isActive
+	✗ user_name, get_user_data, is_active
+- File names: camelCase or kebab-case (according to project standards)
+- ***Always use code comments to explain complex logic in your code.***
+- ***When creating functions, always include parameter and return type annotations.***
+- ***When writing code, always follow the best practices and coding standards of the programming language you are using.***
+- ***Writing mock code is strictly forbidden, except for test files!***
+
+## Testing
+
+- Mock code may be used **only in unit tests**
+- Mocks are strictly forbidden in production or integration code
+- Do not create fake/stub/mock implementations outside of tests
+
 ## Guidelines
 
 1. Follow existing code patterns
