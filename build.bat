@@ -23,7 +23,7 @@ if "%COMMIT%"=="" set "COMMIT=unknown"
 set "LDFLAGS=-ldflags "-X main.Version=%VERSION% -X main.BuildTime=%BUILD_TIME% -X main.Commit=%COMMIT%""
 
 :: Parse command
-if "%1"=="" goto :build
+if "%1"=="" goto :build-all
 if "%1"=="help" goto :help
 if "%1"=="-h" goto :help
 if "%1"=="--help" goto :help
@@ -276,7 +276,8 @@ echo.
 echo Usage: build.bat [command]
 echo.
 echo Build targets:
-echo   build              Build for Windows (default)
+echo   (no command)       Build for all platforms (default)
+echo   build              Build for Windows only
 echo   build-linux        Build for Linux (amd64)
 echo   build-linux-arm64  Build for Linux (arm64)
 echo   build-windows      Build for Windows (amd64)

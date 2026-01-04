@@ -150,9 +150,10 @@ func (i *Injector) generateTaskSection(t *task.Task) string {
 	sb.WriteString("2. Implement all requirements following project conventions\n")
 	sb.WriteString("3. Create or update files as specified\n")
 	sb.WriteString("4. Write tests for new functionality\n")
-	sb.WriteString("5. Verify all success criteria are met\n")
-	sb.WriteString("6. Ensure code compiles without errors\n")
-	sb.WriteString("7. Output status block when done\n\n")
+	sb.WriteString("5. ***Writing mock code is strictly forbidden, except for test files!***\n")
+	sb.WriteString("6. Verify all success criteria are met\n")
+	sb.WriteString("7. Ensure code compiles without errors\n")
+	sb.WriteString("8. Output status block when done\n\n")
 
 	sb.WriteString("### Status Reporting\n\n")
 	sb.WriteString("At the end of your response, output the appropriate status block:\n\n")

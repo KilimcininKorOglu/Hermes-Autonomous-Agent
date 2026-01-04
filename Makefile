@@ -32,8 +32,8 @@ GOMOD := $(GOCMD) mod
 GOFMT := gofmt
 GOLINT := golangci-lint
 
-# Default target
-all: build
+# Default target - build for all platforms
+all: build-all-platforms
 
 # ==================== BUILD TARGETS ====================
 
@@ -150,7 +150,8 @@ help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Build targets:"
-	@echo "  build              Build for current platform"
+	@echo "  (no target)        Build for all platforms (default)"
+	@echo "  build              Build for current platform only"
 	@echo "  build-linux        Build for Linux (amd64)"
 	@echo "  build-linux-arm64  Build for Linux (arm64)"
 	@echo "  build-windows      Build for Windows (amd64)"
