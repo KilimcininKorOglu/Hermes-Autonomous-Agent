@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"hermes/internal/ai"
+	"hermes/internal/analyzer"
 	"hermes/internal/isolation"
 	"hermes/internal/prompt"
 	"hermes/internal/task"
@@ -203,16 +204,35 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task) *TaskResult {
 		return result
 	}
 
-	result.Success = true
 	result.Output = execResult.Output
 
-	// Log task completion
+	// Analyze AI response to determine if task is truly complete
+	respAnalyzer := analyzer.NewResponseAnalyzer()
+	analysis := respAnalyzer.Analyze(execResult.Output)
+
 	if p.logger != nil {
-		p.logger.TaskComplete(workerID+1, t.ID, result.Duration)
+		p.logger.Worker(workerID+1, "Analysis: complete=%v progress=%v confidence=%.2f",
+			analysis.IsComplete, analysis.HasProgress, analysis.Confidence)
 	}
 
-	// Remove task from PROMPT.md
-	injector.RemoveTask()
+	// Task is successful only if AI indicates completion
+	if analysis.IsComplete {
+		result.Success = true
+		if p.logger != nil {
+			p.logger.TaskComplete(workerID+1, t.ID, result.Duration)
+		}
+		// Remove task from PROMPT.md only on completion
+		injector.RemoveTask()
+	} else {
+		// AI did not indicate task completion
+		result.Success = false
+		result.Error = fmt.Errorf("task not completed by AI (progress=%v, confidence=%.2f)", 
+			analysis.HasProgress, analysis.Confidence)
+		if p.logger != nil {
+			p.logger.Worker(workerID+1, "Task %s not marked as complete by AI", t.ID)
+		}
+		return result
+	}
 
 	// Commit changes in isolated workspace
 	if workspace != nil && workspace.HasUncommittedChanges() {
