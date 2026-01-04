@@ -15,7 +15,9 @@ Yapay zeka destekli otonom uygulama geliştirme sistemi Hermes'in eksiksiz kulla
 9. [İnteraktif TUI](#interaktif-tui)
 10. [Yapılandırma](#yapılandırma)
 11. [Devre Kesici](#devre-kesici)
-12. [Sorun Giderme](#sorun-giderme)
+12. [Kurulum ve Güncelleme](#kurulum-ve-güncelleme)
+13. [Otomatik Git Etiketleme](#otomatik-git-etiketleme)
+14. [Sorun Giderme](#sorun-giderme)
 
 ---
 
@@ -737,6 +739,49 @@ Devre kesici başarıyla sıfırlandı.
 
 ---
 
+## Kurulum ve Güncelleme
+
+### Sistem Genelinde Kurulum
+
+Hermes'i kolay erişim için sistem PATH'ine kurun:
+
+```bash
+# Sistem PATH'ine kur
+hermes install
+
+# Sistem PATH'inden kaldır
+hermes install --uninstall
+```
+
+### Güncelleme Kontrolü
+
+GitHub sürümlerinden güncelleme kontrol edin ve yükleyin:
+
+```bash
+# Güncelleme kontrol et ve yükle
+hermes update
+```
+
+---
+
+## Otomatik Git Etiketleme
+
+Bir özellikteki tüm görevler tamamlandığında ve özellik `Target Version` alanına sahipse, Hermes otomatik olarak bir git etiketi oluşturur.
+
+```bash
+# Örnek: Target Version v1.0.0 olan F001 özelliği tamamlandığında
+# Hermes şunu oluşturur:
+git tag -a v1.0.0 -m "Release v1.0.0: F001 - User Authentication"
+```
+
+Etiketler yalnızca şu durumlarda oluşturulur:
+
+- Özellikteki tüm görevler `COMPLETED` durumunda
+- Özellik `**Target Version:**` alanına sahip
+- Etiket zaten mevcut değil
+
+---
+
 ## Sorun Giderme
 
 ### Yaygın Sorunlar
@@ -856,6 +901,8 @@ hermes prd --help
 | IN_PROGRESS  | Görev üzerinde çalışılıyor            |
 | COMPLETED    | Görev tamamlandı                      |
 | BLOCKED      | Görev bağımlılık nedeniyle engellendi |
+| AT_RISK      | Görev son tarihi kaçırabilir          |
+| PAUSED       | Görev geçici olarak askıya alındı     |
 
 ### Öncelik Değerleri
 

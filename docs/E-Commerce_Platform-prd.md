@@ -213,12 +213,12 @@ RESTful API design:
 
 ## 6. Timeline
 
-| Phase   | Features                     | Duration |
-|---------|------------------------------|----------|
-| Phase 1 | User Auth, Product Catalog   | 2 weeks  |
-| Phase 2 | Shopping Cart, Checkout      | 2 weeks  |
-| Phase 3 | Admin Panel, Reports         | 1 week   |
-| Phase 4 | Testing, Deployment          | 1 week   |
+| Phase   | Features                   | Duration |
+|---------|----------------------------|----------|
+| Phase 1 | User Auth, Product Catalog | 2 weeks  |
+| Phase 2 | Shopping Cart, Checkout    | 2 weeks  |
+| Phase 3 | Admin Panel, Reports       | 1 week   |
+| Phase 4 | Testing, Deployment        | 1 week   |
 
 **Total Estimated Duration:** 6 weeks
 
@@ -236,11 +236,11 @@ RESTful API design:
 
 ## 8. Risks and Mitigations
 
-| Risk                        | Impact | Mitigation                    |
-|-----------------------------|--------|-------------------------------|
-| Payment integration delays  | High   | Early Stripe sandbox testing  |
-| Performance issues          | Medium | Load testing in Phase 4       |
-| Security vulnerabilities    | High   | Security audit before launch  |
+| Risk                       | Impact | Mitigation                   |
+|----------------------------|--------|------------------------------|
+| Payment integration delays | High   | Early Stripe sandbox testing |
+| Performance issues         | Medium | Load testing in Phase 4      |
+| Security vulnerabilities   | High   | Security audit before launch |
 
 ---
 
@@ -256,8 +256,8 @@ Detailed API documentation will be created with Swagger.
 
 ### C. Glossary
 
-| Term | Definition              |
-|------|-------------------------|
-| SKU  | Stock Keeping Unit      |
-| JWT  | JSON Web Token          |
+| Term | Definition                   |
+|------|------------------------------|
+| SKU  | Stock Keeping Unit           |
+| JWT  | JSON Web Token               |
 | CRUD | Create, Read, Update, Delete |

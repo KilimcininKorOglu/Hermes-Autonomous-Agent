@@ -15,7 +15,9 @@ Complete guide to using Hermes, the AI-powered autonomous application developmen
 9. [Interactive TUI](#interactive-tui)
 10. [Configuration](#configuration)
 11. [Circuit Breaker](#circuit-breaker)
-12. [Troubleshooting](#troubleshooting)
+12. [Install and Update](#install-and-update)
+13. [Auto Git Tagging](#auto-git-tagging)
+14. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -761,6 +763,49 @@ The circuit breaker automatically recovers when progress is detected:
 
 ---
 
+## Install and Update
+
+### System-wide Installation
+
+Install Hermes to your system PATH for easy access:
+
+```bash
+# Install to system PATH
+hermes install
+
+# Uninstall from system PATH
+hermes install --uninstall
+```
+
+### Checking for Updates
+
+Check for and install updates from GitHub releases:
+
+```bash
+# Check and install updates
+hermes update
+```
+
+---
+
+## Auto Git Tagging
+
+When all tasks in a feature are completed and the feature has a `Target Version`, Hermes automatically creates a git tag.
+
+```bash
+# Example: Feature F001 with Target Version v1.0.0 completes
+# Hermes creates:
+git tag -a v1.0.0 -m "Release v1.0.0: F001 - User Authentication"
+```
+
+Tags are only created if:
+
+- All tasks in the feature have `COMPLETED` status
+- Feature has `**Target Version:**` field set
+- Tag doesn't already exist
+
+---
+
 ## Troubleshooting
 
 ### Common Issues
@@ -880,6 +925,8 @@ hermes prd --help
 | IN_PROGRESS  | Task is currently being worked |
 | COMPLETED    | Task is finished               |
 | BLOCKED      | Task is blocked by dependency  |
+| AT_RISK      | Task may not meet deadline     |
+| PAUSED       | Task is temporarily suspended  |
 
 ### Priority Values
 
