@@ -1,9 +1,11 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.0.0-blue)
-![Status](https://img.shields.io/badge/status-beta-yellow)
+![Version](https://img.shields.io/badge/version-v2.2.3-blue)
+![Status](https://img.shields.io/badge/status-stable-green)
+![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 
-AI-powered autonomous application development system written in Go. Supports Claude, Droid, and Gemini CLIs with task-driven development, automatic branching, and circuit breaker protection.
+AI-powered autonomous application development system written in Go. Supports Claude, Droid, and Gemini CLIs with task-driven development, parallel execution, automatic branching, and circuit breaker protection.
 
 ## Documentation
 
@@ -20,11 +22,14 @@ AI-powered autonomous application development system written in Go. Supports Cla
 - **Multi-AI Support** - Claude, Droid, and Gemini CLI providers with auto-detection
 - **PRD Parser** - Convert PRD documents to structured task files
 - **Task Execution Loop** - Autonomous task execution with progress tracking
+- **Parallel Execution** - Multiple AI agents working simultaneously (v2.0)
 - **Auto Git Operations** - Feature branches and conventional commits
-- **Auto Git Tagging** - Automatic version tags when features complete (v1.2.0)
+- **Auto Git Tagging** - Automatic version tags when features complete
+- **AI-Assisted Merge** - LLM-powered conflict resolution
 - **Circuit Breaker** - Stagnation detection and recovery
 - **Interactive TUI** - Dashboard, task list, and log viewer
 - **Resume Support** - Continue from where you left off
+- **Windows Version Info** - Task Manager shows app name and version (v2.2)
 
 ## Requirements
 
@@ -49,13 +54,17 @@ npm install -g @google/gemini-cli
 
 ```bash
 # Clone and build
-git clone https://github.com/YourUsername/hermes.git
-cd hermes
-build.bat          # Windows
-make build         # Linux/macOS
+git clone https://github.com/KilimcininKorOglu/Hermes-Autonomous-Agent.git
+cd Hermes-Autonomous-Agent
+build.bat          # Windows (builds all platforms by default)
+make               # Linux/macOS (builds all platforms by default)
 
 # Binary outputs to bin/hermes-{os}-{arch}[.exe]
 ```
+
+### Pre-built Releases
+
+Download pre-built binaries from [GitHub Releases](https://github.com/KilimcininKorOglu/Hermes-Autonomous-Agent/releases).
 
 ## Quick Start
 
@@ -381,18 +390,39 @@ Prevents runaway execution when no progress is detected.
 ## Development
 
 ```bash
-# Build
+# Build for all platforms (default)
 build.bat              # Windows
+make                   # Linux/macOS
+
+# Build for current platform only
+build.bat build        # Windows
 make build             # Linux/macOS
 
 # Test
 build.bat test
 make test
 
-# Build all platforms
-build.bat build-all
-make build-all-platforms
+# Windows builds include version info
+# Requires go-winres: go install github.com/tc-hib/go-winres@latest
 ```
+
+## Changelog
+
+### v2.2.3
+- Windows version info in Task Manager/Properties
+- Dynamic version from git tags
+- GoReleaser integration for releases
+
+### v2.1.x
+- Full status support (BLOCKED, AT_RISK, PAUSED)
+- Enhanced prompt templates
+- PRD filename sanitization
+
+### v2.0.0
+- Parallel task execution with worker pools
+- Git worktree isolation
+- AI-assisted merge conflict resolution
+- Dependency graph scheduling
 
 ## License
 
