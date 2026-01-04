@@ -44,14 +44,17 @@ const (
 
 // Conflict represents a conflict between parallel task changes
 type Conflict struct {
-	File        string       // File path with conflict
-	Tasks       []string     // Task IDs involved
-	Type        ConflictType // Type of conflict
-	Severity    int          // 1-3 severity level
-	Description string       // Human-readable description
-	LineStart   int          // Starting line of conflict
-	LineEnd     int          // Ending line of conflict
-	CanAutoResolve bool      // Whether this can be auto-resolved
+	File            string       // File path with conflict
+	Tasks           []string     // Task IDs involved
+	Type            ConflictType // Type of conflict
+	Severity        int          // 1-3 severity level
+	Description     string       // Human-readable description
+	LineStart       int          // Starting line of conflict
+	LineEnd         int          // Ending line of conflict
+	CanAutoResolve  bool         // Whether this can be auto-resolved
+	OriginalContent string       // Original file content before changes
+	Task1Content    string       // Content after task 1 changes
+	Task2Content    string       // Content after task 2 changes
 }
 
 // ConflictDetector analyzes changes for potential conflicts

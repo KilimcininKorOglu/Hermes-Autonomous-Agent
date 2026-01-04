@@ -1,9 +1,12 @@
 package merger
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"hermes/internal/ai"
 )
 
 // ResolutionStrategy represents how to resolve a conflict
@@ -46,8 +49,10 @@ type ResolutionResult struct {
 
 // Resolver handles conflict resolution between parallel task changes
 type Resolver struct {
-	workDir     string
+	workDir           string
 	preferredStrategy ResolutionStrategy
+	aiMerger          *AIMerger
+	ctx               context.Context
 }
 
 // NewResolver creates a new conflict resolver
@@ -55,7 +60,18 @@ func NewResolver(workDir string) *Resolver {
 	return &Resolver{
 		workDir:           workDir,
 		preferredStrategy: StrategyAutoMerge,
+		ctx:               context.Background(),
 	}
+}
+
+// SetAIProvider sets the AI provider for AI-assisted merging
+func (r *Resolver) SetAIProvider(provider ai.Provider) {
+	r.aiMerger = NewAIMerger(provider, r.workDir)
+}
+
+// SetContext sets the context for AI operations
+func (r *Resolver) SetContext(ctx context.Context) {
+	r.ctx = ctx
 }
 
 // SetPreferredStrategy sets the preferred resolution strategy
@@ -81,10 +97,7 @@ func (r *Resolver) Resolve(conflict Conflict) ResolutionResult {
 	case StrategyTakeLast:
 		return r.takeLast(conflict)
 	case StrategyAIAssisted:
-		// AI-assisted resolution will be implemented in Phase 3
-		result.Description = "AI-assisted resolution not yet implemented"
-		result.Success = false
-		return result
+		return r.aiAssistedMerge(conflict)
 	default:
 		result.Strategy = StrategyManual
 		result.Description = "Conflict requires manual resolution"
@@ -176,6 +189,59 @@ func (r *Resolver) takeLast(conflict Conflict) ResolutionResult {
 	lastTask := conflict.Tasks[len(conflict.Tasks)-1]
 	result.Success = true
 	result.Description = fmt.Sprintf("Kept changes from task %s, discarded others", lastTask)
+	return result
+}
+
+// aiAssistedMerge uses AI to resolve a conflict
+func (r *Resolver) aiAssistedMerge(conflict Conflict) ResolutionResult {
+	result := ResolutionResult{
+		Strategy: StrategyAIAssisted,
+	}
+
+	// Check if AI merger is configured
+	if r.aiMerger == nil {
+		result.Error = fmt.Errorf("AI provider not configured")
+		result.Description = "AI-assisted resolution requires an AI provider"
+		return result
+	}
+
+	// Need at least 2 tasks
+	if len(conflict.Tasks) < 2 {
+		result.Error = fmt.Errorf("need at least 2 tasks to merge")
+		return result
+	}
+
+	// Build merge context from conflict info
+	mergeCtx := MergeContext{
+		File:         conflict.File,
+		OriginalCode: conflict.OriginalContent,
+		Task1ID:      conflict.Tasks[0],
+		Task1Changes: conflict.Task1Content,
+		Task1Intent:  fmt.Sprintf("Changes from task %s", conflict.Tasks[0]),
+		Task2ID:      conflict.Tasks[1],
+		Task2Changes: conflict.Task2Content,
+		Task2Intent:  fmt.Sprintf("Changes from task %s", conflict.Tasks[1]),
+	}
+
+	// Call AI merger
+	aiResult := r.aiMerger.ResolveConflict(r.ctx, conflict, mergeCtx)
+
+	if aiResult.Error != nil {
+		result.Error = aiResult.Error
+		result.Description = "AI merge failed"
+		return result
+	}
+
+	if !aiResult.Success {
+		result.Description = "AI could not resolve the conflict"
+		return result
+	}
+
+	result.Success = true
+	result.MergedFile = conflict.File
+	result.Description = fmt.Sprintf("AI merged changes (confidence: %.0f%%): %s",
+		aiResult.Confidence*100, aiResult.Explanation)
+
 	return result
 }
 
