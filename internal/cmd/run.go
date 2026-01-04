@@ -30,6 +30,7 @@ func NewRunCmd() *cobra.Command {
 		Example: `  hermes run
   hermes run --auto-branch --auto-commit
   hermes run --autonomous=false
+  hermes run --dry-run
   hermes run --parallel --workers 3
   hermes run --parallel --dry-run`,
 		RunE: runExecute,
@@ -156,8 +157,13 @@ func runExecute(cmd *cobra.Command, args []string) error {
 	}
 
 	// Handle parallel execution
-	if parallel || dryRun {
+	if parallel {
 		return runParallel(ctx, cfg, provider, reader, logger, workers, dryRun)
+	}
+
+	// Handle dry-run for sequential mode
+	if dryRun {
+		return runSequentialDryRun(reader, logger, breaker, gitOps, autoBranch)
 	}
 
 	// Sequential execution (original behavior)
@@ -493,5 +499,93 @@ func runParallel(ctx context.Context, cfg *config.Config, provider ai.Provider, 
 	}
 
 	logger.Success("All %d tasks completed successfully!", result.Successful)
+	return nil
+}
+
+// runSequentialDryRun shows execution plan for sequential mode without running
+func runSequentialDryRun(reader *task.Reader, logger *ui.Logger, breaker *circuit.Breaker, gitOps *git.Git, autoBranch bool) error {
+	ui.PrintHeader("Sequential Execution Plan (Dry Run)")
+
+	// Get all tasks
+	allTasks, err := reader.GetAllTasks()
+	if err != nil {
+		return fmt.Errorf("failed to get tasks: %w", err)
+	}
+
+	// Get progress
+	progress, _ := reader.GetProgress()
+
+	// Print summary
+	fmt.Println("\n📊 Task Summary")
+	fmt.Println("═══════════════════════════════════════")
+	fmt.Printf("Total Tasks:   %d\n", progress.Total)
+	fmt.Printf("Completed:     %d\n", progress.Completed)
+	fmt.Printf("In Progress:   %d\n", progress.InProgress)
+	fmt.Printf("Not Started:   %d\n", progress.NotStarted)
+	fmt.Printf("Blocked:       %d\n", progress.Blocked)
+	fmt.Printf("Progress:      %.1f%%\n", progress.Percentage)
+
+	// Show progress bar
+	bar := ui.FormatProgressBar(progress.Percentage, 30)
+	fmt.Printf("\n%s\n", bar)
+
+	// Circuit breaker status
+	fmt.Println("\n⚡ Circuit Breaker Status")
+	fmt.Println("═══════════════════════════════════════")
+	state, _ := breaker.GetState()
+	fmt.Printf("State:         %s\n", state.State)
+	if state.ConsecutiveNoProgress > 0 {
+		fmt.Printf("No Progress:   %d consecutive loops\n", state.ConsecutiveNoProgress)
+	}
+
+	// Git status
+	fmt.Println("\n🔀 Git Status")
+	fmt.Println("═══════════════════════════════════════")
+	if gitOps.IsRepository() {
+		currentBranch, _ := gitOps.GetCurrentBranch()
+		fmt.Printf("Repository:    Yes\n")
+		fmt.Printf("Branch:        %s\n", currentBranch)
+		fmt.Printf("Auto-Branch:   %v\n", autoBranch)
+	} else {
+		fmt.Printf("Repository:    No\n")
+	}
+
+	// Pending tasks list
+	fmt.Println("\n📋 Pending Tasks (Execution Order)")
+	fmt.Println("═══════════════════════════════════════")
+
+	pendingCount := 0
+	for _, t := range allTasks {
+		if t.Status == task.StatusNotStarted || t.Status == task.StatusInProgress {
+			pendingCount++
+			statusIcon := "○"
+			if t.Status == task.StatusInProgress {
+				statusIcon = "◐"
+			}
+			
+			fmt.Printf("\n%s [%s] %s\n", statusIcon, t.ID, t.Name)
+			fmt.Printf("   Priority:    %s\n", t.Priority)
+			fmt.Printf("   Feature:     %s\n", t.FeatureID)
+			if t.EstimatedEffort != "" {
+				fmt.Printf("   Effort:      %s\n", t.EstimatedEffort)
+			}
+			if len(t.Dependencies) > 0 {
+				fmt.Printf("   Depends on:  %v\n", t.Dependencies)
+			}
+			if len(t.FilesToTouch) > 0 && len(t.FilesToTouch) <= 5 {
+				fmt.Printf("   Files:       %v\n", t.FilesToTouch)
+			} else if len(t.FilesToTouch) > 5 {
+				fmt.Printf("   Files:       %d files\n", len(t.FilesToTouch))
+			}
+		}
+	}
+
+	if pendingCount == 0 {
+		fmt.Println("\n✓ No pending tasks - all tasks completed!")
+	}
+
+	fmt.Println("\n═══════════════════════════════════════")
+	logger.Info("Dry run complete. Remove --dry-run flag to execute.")
+
 	return nil
 }
