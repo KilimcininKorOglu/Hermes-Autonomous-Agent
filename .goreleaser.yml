@@ -1,3 +1,10 @@
+before:
+  hooks:
+    - go mod tidy
+    - go install github.com/tc-hib/go-winres@latest
+    - sh -c "sed 's/{{VERSION_FULL}}/{{ .Version }}.0/g; s/{{VERSION}}/{{ .Version }}/g' winres/winres.template.json > winres/winres.json"
+    - go-winres make --in winres/winres.json --out cmd/hermes/rsrc_windows
+
 builds:
   - id: "hermes"
     env:
@@ -12,7 +19,7 @@ builds:
     main: ./cmd/hermes/
     binary: hermes
     ldflags:
-      - -s -w -X 'main.version={{.Version}}'
+      - -s -w -X 'main.Version={{.Version}}' -X 'main.BuildTime={{.Date}}' -X 'main.Commit={{.Commit}}'
 
 archives:
   - id: "hermes"

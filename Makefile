@@ -1,8 +1,9 @@
 # Hermes - AI-Powered Application Development
 # Makefile for development and build automation
 
-.PHONY: all build build-linux build-linux-arm64 build-windows build-darwin \
-        build-darwin-arm64 build-all-platforms test lint fmt vet clean run help
+.PHONY: all build build-linux build-linux-arm64 build-windows build-windows-arm64 \
+        build-darwin build-darwin-arm64 build-all-platforms test lint fmt vet \
+        clean run run-tui deps deps-update install update-winres help
 
 # Variables
 BINARY_DIR := bin
@@ -54,12 +55,12 @@ build-linux-arm64:
 	@mkdir -p $(BINARY_DIR)
 	GOOS=linux GOARCH=arm64 $(GOBUILD) $(LDFLAGS) -o $(BINARY_DIR)/$(BINARY_NAME)-linux-arm64 ./cmd/hermes
 
-build-windows:
+build-windows: update-winres
 	@echo "Building Hermes for Windows (amd64)..."
 	@mkdir -p $(BINARY_DIR)
 	GOOS=windows GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o $(BINARY_DIR)/$(BINARY_NAME)-windows-amd64.exe ./cmd/hermes
 
-build-windows-arm64:
+build-windows-arm64: update-winres
 	@echo "Building Hermes for Windows (arm64)..."
 	@mkdir -p $(BINARY_DIR)
 	GOOS=windows GOARCH=arm64 $(GOBUILD) $(LDFLAGS) -o $(BINARY_DIR)/$(BINARY_NAME)-windows-arm64.exe ./cmd/hermes
@@ -141,6 +142,21 @@ deps-update:
 install: build
 	@echo "Installing Hermes to GOPATH/bin..."
 	cp $(BINARY_DIR)/$(BINARY_NAME)$(BINARY_SUFFIX) $(GOPATH)/bin/
+
+# ==================== WINDOWS RESOURCES ====================
+
+# Version parsing for Windows resources
+WIN_VERSION := $(shell echo $(VERSION) | sed 's/^v//' | sed 's/-.*$$//')
+WIN_VERSION_FULL := $(WIN_VERSION).0
+
+update-winres:
+	@if command -v go-winres >/dev/null 2>&1; then \
+		echo "Updating Windows resources with version $(WIN_VERSION_FULL)..."; \
+		sed 's/{{VERSION_FULL}}/$(WIN_VERSION_FULL)/g; s/{{VERSION}}/$(VERSION)/g' winres/winres.template.json > winres/winres.json; \
+		go-winres make --in winres/winres.json --out cmd/hermes/rsrc_windows; \
+	else \
+		echo "go-winres not found, skipping Windows resources"; \
+	fi
 
 # ==================== HELP ====================
 
