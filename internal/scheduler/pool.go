@@ -8,6 +8,7 @@ import (
 
 	"hermes/internal/ai"
 	"hermes/internal/isolation"
+	"hermes/internal/prompt"
 	"hermes/internal/task"
 )
 
@@ -146,6 +147,14 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task) *TaskResult {
 		p.logger.TaskStart(workerID+1, t.ID, t.Name)
 	}
 
+	// Update task status to IN_PROGRESS
+	statusUpdater := task.NewStatusUpdater(p.workDir)
+	if err := statusUpdater.UpdateTaskStatus(t.ID, task.StatusInProgress); err != nil {
+		if p.logger != nil {
+			p.logger.Worker(workerID+1, "Failed to set task IN_PROGRESS: %v", err)
+		}
+	}
+
 	// Setup isolated workspace if enabled
 	workDir := p.workDir
 	var workspace *isolation.Workspace
@@ -165,11 +174,19 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task) *TaskResult {
 		}
 	}
 
+	// Inject task into PROMPT.md
+	injector := prompt.NewInjector(workDir)
+	if err := injector.AddTask(t); err != nil {
+		if p.logger != nil {
+			p.logger.Worker(workerID+1, "Failed to inject task into prompt: %v", err)
+		}
+	}
+
 	// Create task executor with appropriate work directory
 	executor := ai.NewTaskExecutor(p.provider, workDir)
 
-	// Build prompt content from task
-	promptContent := p.buildPromptContent(t)
+	// Read prompt content (includes injected task)
+	promptContent, _ := injector.Read()
 
 	// Execute the task
 	execResult, err := executor.ExecuteTask(p.ctx, t, promptContent, p.streamOutput)
@@ -193,6 +210,9 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task) *TaskResult {
 	if p.logger != nil {
 		p.logger.TaskComplete(workerID+1, t.ID, result.Duration)
 	}
+
+	// Remove task from PROMPT.md
+	injector.RemoveTask()
 
 	// Commit changes in isolated workspace
 	if workspace != nil && workspace.HasUncommittedChanges() {

@@ -479,6 +479,12 @@ func runParallel(ctx context.Context, cfg *config.Config, provider ai.Provider, 
 		}
 	}
 
+	// Show progress bar
+	if progress, err := reader.GetProgress(); err == nil {
+		bar := ui.FormatProgressBar(progress.Percentage, 30)
+		fmt.Printf("\nProgress: %s\n", bar)
+	}
+
 	// Cleanup worktrees only (keep task branches for history)
 	rollback.CleanupWorktrees()
 
