@@ -191,6 +191,7 @@ func (s *Scheduler) executeBatch(ctx context.Context, graph *TaskGraph, batch []
 		UseIsolation: s.config.IsolatedWorkspaces,
 		Logger:       s.parallelLogger,
 		StreamOutput: false, // Parallel mode should not stream to avoid mixed output
+		MaxRetries:   s.config.MaxRetries,
 	})
 	pool.Start()
 

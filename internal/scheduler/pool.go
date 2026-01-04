@@ -43,6 +43,7 @@ type WorkerPool struct {
 	workspaces     map[string]*isolation.Workspace
 	logger         *ParallelLogger
 	streamOutput   bool
+	maxRetries     int
 }
 
 // WorkerPoolConfig contains configuration for the worker pool
@@ -51,6 +52,7 @@ type WorkerPoolConfig struct {
 	UseIsolation bool
 	Logger       *ParallelLogger
 	StreamOutput bool
+	MaxRetries   int
 }
 
 // NewWorkerPool creates a new worker pool
@@ -65,6 +67,10 @@ func NewWorkerPool(ctx context.Context, workers int, provider ai.Provider, workD
 // NewWorkerPoolWithConfig creates a new worker pool with configuration
 func NewWorkerPoolWithConfig(ctx context.Context, provider ai.Provider, workDir string, cfg WorkerPoolConfig) *WorkerPool {
 	ctx, cancel := context.WithCancel(ctx)
+	maxRetries := cfg.MaxRetries
+	if maxRetries <= 0 {
+		maxRetries = 2 // Default retry count
+	}
 	return &WorkerPool{
 		workers:      cfg.Workers,
 		taskQueue:    make(chan *task.Task, cfg.Workers*2),
@@ -77,6 +83,7 @@ func NewWorkerPoolWithConfig(ctx context.Context, provider ai.Provider, workDir 
 		workspaces:   make(map[string]*isolation.Workspace),
 		logger:       cfg.Logger,
 		streamOutput: cfg.StreamOutput,
+		maxRetries:   maxRetries,
 	}
 }
 
@@ -101,7 +108,31 @@ func (p *WorkerPool) worker(workerID int) {
 				return
 			}
 			p.incrementRunning()
-			result := p.executeTask(workerID, t)
+			
+			// Retry loop for task execution
+			var result *TaskResult
+			for attempt := 1; attempt <= p.maxRetries; attempt++ {
+				result = p.executeTask(workerID, t, attempt)
+				
+				if result.Success {
+					break // Task completed successfully
+				}
+				
+				// Check if we should retry
+				if attempt < p.maxRetries {
+					if p.logger != nil {
+						p.logger.Worker(workerID+1, "Task %s attempt %d/%d failed, retrying...", 
+							t.ID, attempt, p.maxRetries)
+					}
+					// Small delay before retry
+					select {
+					case <-time.After(2 * time.Second):
+					case <-p.ctx.Done():
+						break
+					}
+				}
+			}
+			
 			p.decrementRunning()
 			
 			select {
@@ -133,7 +164,7 @@ func (p *WorkerPool) GetRunningCount() int {
 }
 
 // executeTask executes a single task and returns the result
-func (p *WorkerPool) executeTask(workerID int, t *task.Task) *TaskResult {
+func (p *WorkerPool) executeTask(workerID int, t *task.Task, attempt int) *TaskResult {
 	startTime := time.Now()
 
 	result := &TaskResult{
@@ -141,6 +172,10 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task) *TaskResult {
 		TaskName:  t.Name,
 		StartTime: startTime,
 		WorkerID:  workerID + 1, // 1-indexed for display
+	}
+
+	if attempt > 1 && p.logger != nil {
+		p.logger.Worker(workerID+1, "Task %s attempt %d/%d", t.ID, attempt, p.maxRetries)
 	}
 
 	// Log task start
