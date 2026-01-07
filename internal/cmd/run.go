@@ -95,7 +95,7 @@ func runExecute(cmd *cobra.Command, args []string) error {
 	}
 	defer logger.Close()
 
-	ui.PrintBanner()
+	ui.PrintBanner(GetVersion())
 	ui.PrintHeader("Task Execution Loop")
 
 	// Initialize components

@@ -15,6 +15,11 @@ func SetUpdateVersion(v string) {
 	updateVersion = v
 }
 
+// GetVersion returns the current version
+func GetVersion() string {
+	return updateVersion
+}
+
 // NewUpdateCmd creates the update command
 func NewUpdateCmd() *cobra.Command {
 	var checkOnly bool

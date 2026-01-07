@@ -48,7 +48,7 @@ func NewAddCmd() *cobra.Command {
 func addExecute(featureDesc string, opts *addOptions) error {
 	ctx := context.Background()
 
-	ui.PrintBanner()
+	ui.PrintBanner(GetVersion())
 	ui.PrintHeader("Feature Add")
 
 	fmt.Printf("Adding feature: %s\n\n", featureDesc)

@@ -57,7 +57,7 @@ func ideaExecute(ideaText string, opts *ideaOptions) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(opts.timeout)*time.Second)
 	defer cancel()
 
-	ui.PrintBanner()
+	ui.PrintBanner(GetVersion())
 	ui.PrintHeader("Idea to PRD Generator")
 
 	// Check if .hermes directory exists

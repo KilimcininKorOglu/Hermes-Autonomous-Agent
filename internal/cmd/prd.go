@@ -50,7 +50,7 @@ func NewPrdCmd() *cobra.Command {
 func prdExecute(prdFile string, opts *prdOptions) error {
 	ctx := context.Background()
 
-	ui.PrintBanner()
+	ui.PrintBanner(GetVersion())
 	ui.PrintHeader("PRD Parser")
 
 	// Load config

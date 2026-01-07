@@ -119,9 +119,10 @@ func PrintDivider() {
 	fmt.Println(strings.Repeat("-", 60))
 }
 
-// PrintBanner prints the Hermes banner
-func PrintBanner() {
+// PrintBanner prints the Hermes banner with version
+func PrintBanner(version string) {
 	cyan := color.New(color.FgCyan, color.Bold)
+	gray := color.New(color.FgHiBlack)
 	cyan.Print(`
  _   _                                
 | | | | ___ _ __ _ __ ___   ___  ___  
@@ -129,6 +130,10 @@ func PrintBanner() {
 |  _  |  __/ |  | | | | | |  __/\__ \ 
 |_| |_|\___|_|  |_| |_| |_|\___||___/ 
                                       
-      AI-Powered Application Development
 `)
+	cyan.Print("      AI-Powered Application Development")
+	if version != "" {
+		gray.Printf(" %s", version)
+	}
+	fmt.Println()
 }

@@ -58,7 +58,7 @@ func convertPrdExecute(opts *convertPrdOptions) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(opts.timeout)*time.Second)
 	defer cancel()
 
-	ui.PrintBanner()
+	ui.PrintBanner(GetVersion())
 	ui.PrintHeader("Project to PRD Converter")
 
 	// Get current directory
