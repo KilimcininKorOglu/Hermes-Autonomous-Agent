@@ -156,7 +156,7 @@ func (p *ClaudeProvider) processStreamMessage(msg claudecode.Message, events cha
 			switch b := block.(type) {
 			case *claudecode.TextBlock:
 				events <- StreamEvent{
-					Type: "assistant",
+					Type: "text",
 					Text: b.Text,
 				}
 			case *claudecode.ToolUseBlock:

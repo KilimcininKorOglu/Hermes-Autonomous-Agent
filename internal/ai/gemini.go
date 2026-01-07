@@ -216,7 +216,7 @@ func (p *GeminiProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptions
 			if err := json.Unmarshal([]byte(line), &gEvent); err != nil {
 				// Plain text output
 				events <- StreamEvent{
-					Type: "assistant",
+					Type: "text",
 					Text: line,
 				}
 				continue
@@ -231,7 +231,7 @@ func (p *GeminiProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptions
 			case "message":
 				if gEvent.Role == "assistant" && gEvent.Content != "" {
 					events <- StreamEvent{
-						Type: "assistant",
+						Type: "text",
 						Text: gEvent.Content,
 					}
 				}
