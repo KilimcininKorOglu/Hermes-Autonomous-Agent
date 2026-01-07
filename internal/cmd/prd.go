@@ -257,12 +257,17 @@ func writeTaskFiles(output string) error {
 		return err
 	}
 
-	// Parse FILE markers
+	// Try parsing with END_FILE markers first
 	fileRegex := regexp.MustCompile(`---FILE:\s*(.+?)---\s*([\s\S]*?)---END_FILE---`)
 	matches := fileRegex.FindAllStringSubmatch(output, -1)
 
+	// If no END_FILE markers, try parsing consecutive FILE markers
 	if len(matches) == 0 {
-		// No file markers, write single file
+		matches = parseConsecutiveFileMarkers(output)
+	}
+
+	if len(matches) == 0 {
+		// No file markers at all, write single file
 		filePath := filepath.Join(tasksDir, "001-tasks.md")
 		if err := os.WriteFile(filePath, []byte(output), 0644); err != nil {
 			return err
@@ -292,4 +297,40 @@ func writeTaskFiles(output string) error {
 
 	fmt.Printf("\nCreated %d task files in %s\n", len(matches), tasksDir)
 	return nil
+}
+
+// parseConsecutiveFileMarkers parses FILE markers without END_FILE markers
+func parseConsecutiveFileMarkers(output string) [][]string {
+	// Find all ---FILE: xxx--- positions
+	markerRegex := regexp.MustCompile(`---FILE:\s*(.+?)---`)
+	allMatches := markerRegex.FindAllStringSubmatchIndex(output, -1)
+
+	if len(allMatches) == 0 {
+		return nil
+	}
+
+	var results [][]string
+	for i, match := range allMatches {
+		// match[0] = start of full match
+		// match[1] = end of full match
+		// match[2] = start of capture group (filename)
+		// match[3] = end of capture group (filename)
+
+		fileName := output[match[2]:match[3]]
+		contentStart := match[1] // After the ---FILE: xxx--- marker
+
+		var contentEnd int
+		if i+1 < len(allMatches) {
+			// Content ends where next marker starts
+			contentEnd = allMatches[i+1][0]
+		} else {
+			// Last file - content goes to end
+			contentEnd = len(output)
+		}
+
+		content := strings.TrimSpace(output[contentStart:contentEnd])
+		results = append(results, []string{"", fileName, content})
+	}
+
+	return results
 }

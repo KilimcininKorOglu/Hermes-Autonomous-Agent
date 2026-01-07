@@ -188,3 +188,59 @@ func TestWriteFeatureFile(t *testing.T) {
 		t.Error("expected content to contain F005")
 	}
 }
+
+func TestWriteTaskFilesConsecutiveMarkers(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "hermes-cmd-test-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	oldWd, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(oldWd)
+
+	// Test with consecutive FILE markers (no END_FILE)
+	output := `Some intro text from AI---FILE: 001-feature.md---
+# Feature 1: Test
+**Feature ID:** F001
+**Status:** NOT_STARTED
+
+## Tasks
+
+### T001: First Task
+---FILE: 002-feature.md---
+# Feature 2: Another
+**Feature ID:** F002
+**Status:** NOT_STARTED
+
+## Tasks
+
+### T002: Second Task`
+
+	err = writeTaskFiles(output)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check files were created
+	files, _ := filepath.Glob(filepath.Join(tmpDir, ".hermes", "tasks", "*.md"))
+	if len(files) != 2 {
+		t.Errorf("expected 2 files, got %d", len(files))
+	}
+
+	// Check first file content
+	content1, _ := os.ReadFile(filepath.Join(tmpDir, ".hermes", "tasks", "001-feature.md"))
+	if !strings.Contains(string(content1), "F001") {
+		t.Error("expected first file to contain F001")
+	}
+	if !strings.Contains(string(content1), "T001") {
+		t.Error("expected first file to contain T001")
+	}
+
+	// Check second file content
+	content2, _ := os.ReadFile(filepath.Join(tmpDir, ".hermes", "tasks", "002-feature.md"))
+	if !strings.Contains(string(content2), "F002") {
+		t.Error("expected second file to contain F002")
+	}
+}

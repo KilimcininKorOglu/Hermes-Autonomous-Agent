@@ -36,14 +36,14 @@
             "Comments": "AI-powered autonomous application development system",
             "CompanyName": "Hermes Project",
             "FileDescription": "Hermes Autonomous Agent",
-            "FileVersion": "v2.3.0",
+            "FileVersion": "v2.3.0-1-gec4e24f-dirty",
             "InternalName": "hermes",
             "LegalCopyright": "MIT License",
             "LegalTrademarks": "",
             "OriginalFilename": "hermes.exe",
             "PrivateBuild": "",
             "ProductName": "Hermes Autonomous Agent",
-            "ProductVersion": "v2.3.0",
+            "ProductVersion": "v2.3.0-1-gec4e24f-dirty",
             "SpecialBuild": ""
           }
         }
