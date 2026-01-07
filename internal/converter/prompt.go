@@ -139,10 +139,10 @@ Note: Write the entire PRD in Turkish. Use Turkish section headers:
 `)
 	}
 
-	sb.WriteString("\nCRITICAL: Do NOT create, write, or modify any files directly on the filesystem!\n")
-	sb.WriteString("Do NOT use any file creation tools or commands!\n")
-	sb.WriteString("Only output the PRD content as plain text in Markdown format.\n")
-	sb.WriteString("Hermes will parse your text output and save it to the correct location.\n\n")
+	sb.WriteString("\nFILE CREATION RULES:\n")
+	sb.WriteString("- If creating a file, create it ONLY in .hermes/docs/ directory\n")
+	sb.WriteString("- Use filename: .hermes/docs/PRD.md\n")
+	sb.WriteString("- Do NOT create files anywhere else\n\n")
 
 	sb.WriteString("Output ONLY the PRD content in Markdown format. Start directly with the project title as a level-1 heading. Do not include any explanations or meta-commentary.\n")
 

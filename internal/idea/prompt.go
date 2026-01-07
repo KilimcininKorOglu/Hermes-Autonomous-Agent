@@ -60,10 +60,10 @@ Generate a comprehensive PRD in Markdown format with the following sections:
 
 ## Output Format
 
-CRITICAL: Do NOT create, write, or modify any files directly on the filesystem!
-Do NOT use any file creation tools or commands!
-Only output the PRD content as plain text in Markdown format.
-Hermes will parse your text output and save it to the correct location.
+FILE CREATION RULES:
+- If creating a file, create it ONLY in .hermes/docs/ directory
+- Use filename: .hermes/docs/PRD.md
+- Do NOT create files anywhere else
 
 Output ONLY the PRD content in Markdown format. Do not include any explanations or meta-commentary.
 Start directly with the project title as a level-1 heading.

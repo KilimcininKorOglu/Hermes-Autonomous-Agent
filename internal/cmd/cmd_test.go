@@ -76,8 +76,8 @@ func TestBuildPrdPrompt(t *testing.T) {
 	if !strings.Contains(prompt, "Feature ID:") {
 		t.Error("expected prompt to contain 'Feature ID:' instruction")
 	}
-	if !strings.Contains(prompt, "---FILE:") {
-		t.Error("expected prompt to contain file marker instruction")
+	if !strings.Contains(prompt, ".hermes/tasks/") {
+		t.Error("expected prompt to contain .hermes/tasks/ path instruction")
 	}
 }
 

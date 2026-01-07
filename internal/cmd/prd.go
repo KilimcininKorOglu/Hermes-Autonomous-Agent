@@ -235,19 +235,17 @@ IMPORTANT RULES:
 6. Technical details should guide implementation
 7. Priority levels: P1=Critical, P2=High, P3=Medium, P4=Low
 
-CRITICAL: Do NOT create, write, or modify any files directly on the filesystem!
-Do NOT use any file creation tools or commands!
-Only output the content as plain text in the format shown below.
-Hermes will parse your text output and create the files in the correct location.
+FILE CREATION RULES:
+- Create task files ONLY in the .hermes/tasks/ directory
+- Use filenames like: .hermes/tasks/001-feature-name.md
+- Do NOT create files anywhere else (not in tasks/, not in root, not in any other location)
+- Each feature should be a separate file in .hermes/tasks/
 
 PRD Content:
 
 %s
 
-Output each file as plain text with these markers (do NOT create actual files):
----FILE: XXX-feature-name.md---
-<content>
----END_FILE---`, prdContent)
+Create each feature file directly in .hermes/tasks/ directory with proper naming (001-xxx.md, 002-xxx.md, etc).`, prdContent)
 }
 
 func writeTaskFiles(output string) error {
