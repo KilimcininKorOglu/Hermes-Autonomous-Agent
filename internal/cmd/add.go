@@ -193,6 +193,11 @@ RULES:
 5. Success criteria must be specific and measurable
 6. Analyze the project structure to suggest correct file paths
 
+CRITICAL: Do NOT create, write, or modify any files directly on the filesystem!
+Do NOT use any file creation tools or commands!
+Only output the markdown content as plain text.
+Hermes will parse your text output and create the file in the correct location.
+
 Output only the markdown content, no additional explanation.`, desc, featureID, taskID, featureID, featureID, taskID, taskID+4, taskID)
 }
 

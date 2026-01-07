@@ -235,11 +235,16 @@ IMPORTANT RULES:
 6. Technical details should guide implementation
 7. Priority levels: P1=Critical, P2=High, P3=Medium, P4=Low
 
+CRITICAL: Do NOT create, write, or modify any files directly on the filesystem!
+Do NOT use any file creation tools or commands!
+Only output the content as plain text in the format shown below.
+Hermes will parse your text output and create the files in the correct location.
+
 PRD Content:
 
 %s
 
-Output each file with:
+Output each file as plain text with these markers (do NOT create actual files):
 ---FILE: XXX-feature-name.md---
 <content>
 ---END_FILE---`, prdContent)
