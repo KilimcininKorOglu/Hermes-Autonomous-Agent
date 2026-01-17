@@ -1,4 +1,4 @@
-# Hermes Autonomous Agent - Example Usage (v2.2)
+# Hermes Autonomous Agent - Example Usage (v2.3)
 
 Step-by-step walkthrough of using Hermes to build a project from PRD to completion.
 
@@ -492,23 +492,24 @@ After completion, your git history looks like:
 
 ## Command Reference
 
-| Step | Command                                      | Description                    |
-|------|----------------------------------------------|--------------------------------|
-| 1    | `hermes init <name>`                         | Initialize project             |
-| 2    | `hermes idea "<description>"`                | Generate PRD from idea         |
-| 3    | Review/edit `.hermes/docs/PRD.md`            | Review requirements            |
-| 4    | `hermes prd .hermes/docs/PRD.md`             | Parse PRD to tasks             |
-| 5    | `hermes status`                              | View all tasks                 |
-| 6    | `hermes task <id>`                           | View task details              |
-| 7    | `hermes run --auto-branch --auto-commit`     | Execute tasks                  |
-| 8    | `hermes run --parallel --workers 3`          | Parallel execution             |
-| 9    | `hermes run --dry-run`                       | Preview execution plan         |
-| 10   | `hermes log -f`                              | Monitor logs                   |
-| 11   | `hermes reset`                               | Reset circuit breaker          |
-| 12   | `hermes add "<feature>"`                     | Add new feature                |
-| 13   | `hermes tui`                                 | Interactive interface          |
-| 14   | `hermes install`                             | Install to system PATH         |
-| 15   | `hermes update`                              | Check and install updates      |
+| Step | Command                                  | Description                 |
+|------|------------------------------------------|-----------------------------|
+| 1    | `hermes init <name>`                     | Initialize project          |
+| 2    | `hermes idea "<description>"`            | Generate PRD from idea      |
+| 3    | Review/edit `.hermes/docs/PRD.md`        | Review requirements         |
+| 4    | `hermes prd .hermes/docs/PRD.md`         | Parse PRD to tasks          |
+| 5    | `hermes convertprd`                      | Convert PRD between formats |
+| 6    | `hermes status`                          | View all tasks              |
+| 7    | `hermes task <id>`                       | View task details           |
+| 8    | `hermes run --auto-branch --auto-commit` | Execute tasks               |
+| 9    | `hermes run --parallel --workers 3`      | Parallel execution          |
+| 10   | `hermes run --dry-run`                   | Preview execution plan      |
+| 11   | `hermes log -f`                          | Monitor logs                |
+| 12   | `hermes reset`                           | Reset circuit breaker       |
+| 13   | `hermes add "<feature>"`                 | Add new feature             |
+| 14   | `hermes tui`                             | Interactive interface       |
+| 15   | `hermes install`                         | Install to system PATH      |
+| 16   | `hermes update`                          | Check and install updates   |
 
 ---
 

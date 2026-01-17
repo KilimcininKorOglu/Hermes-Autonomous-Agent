@@ -9,15 +9,16 @@ Yapay zeka destekli otonom uygulama geliştirme sistemi Hermes'in eksiksiz kulla
 3. [Proje Başlatma](#proje-başlatma)
 4. [Fikirden PRD Üretme](#fikirden-prd-üretme)
 5. [PRD Ayrıştırma](#prd-ayrıştırma)
-6. [Özellik Ekleme](#özellik-ekleme)
-7. [Görev Yürütme](#görev-yürütme)
-8. [Durum ve İzleme](#durum-ve-izleme)
-9. [İnteraktif TUI](#interaktif-tui)
-10. [Yapılandırma](#yapılandırma)
-11. [Devre Kesici](#devre-kesici)
-12. [Kurulum ve Güncelleme](#kurulum-ve-güncelleme)
-13. [Otomatik Git Etiketleme](#otomatik-git-etiketleme)
-14. [Sorun Giderme](#sorun-giderme)
+6. [PRD Dönüştürme](#prd-dönüştürme)
+7. [Özellik Ekleme](#özellik-ekleme)
+8. [Görev Yürütme](#görev-yürütme)
+9. [Durum ve İzleme](#durum-ve-izleme)
+10. [İnteraktif TUI](#interaktif-tui)
+11. [Yapılandırma](#yapılandırma)
+12. [Devre Kesici](#devre-kesici)
+13. [Kurulum ve Güncelleme](#kurulum-ve-güncelleme)
+14. [Otomatik Git Etiketleme](#otomatik-git-etiketleme)
+15. [Sorun Giderme](#sorun-giderme)
 
 ---
 
@@ -40,8 +41,9 @@ git clone https://github.com/YourUsername/hermes.git
 cd hermes
 
 # Platformunuz için derleyin
-build.bat              # Windows
-make build             # Linux/macOS
+build.bat              # Windows (varsayılan olarak tüm platformlar)
+make                   # Linux/macOS (varsayılan olarak tüm platformlar)
+make build             # Sadece mevcut platform
 
 # Binary konumu
 bin/hermes-windows-amd64.exe    # Windows
@@ -143,14 +145,14 @@ hermes idea <açıklama> [bayraklar]
 
 ### Bayraklar
 
-| Bayrak          | Kısa  | Varsayılan            | Açıklama                                |
-|-----------------|-------|-----------------------|-----------------------------------------|
-| `--output`      | `-o`  | `.hermes/docs/PRD.md` | Çıktı dosyası yolu                      |
-| `--dry-run`     |       | false                 | Dosya yazmadan önizleme                 |
-| `--interactive` | `-i`  | false                 | İnteraktif mod (ek sorular)             |
-| `--language`    | `-l`  | `en`                  | PRD dili (en/tr)                        |
-| `--timeout`     |       | 600                   | AI zaman aşımı (saniye)                 |
-| `--debug`       |       | false                 | Hata ayıklama çıktısını etkinleştir     |
+| Bayrak          | Kısa | Varsayılan            | Açıklama                            |
+|-----------------|------|-----------------------|-------------------------------------|
+| `--output`      | `-o` | `.hermes/docs/PRD.md` | Çıktı dosyası yolu                  |
+| `--dry-run`     |      | false                 | Dosya yazmadan önizleme             |
+| `--interactive` | `-i` | false                 | İnteraktif mod (ek sorular)         |
+| `--language`    | `-l` | `en`                  | PRD dili (en/tr)                    |
+| `--timeout`     |      | 600                   | AI zaman aşımı (saniye)             |
+| `--debug`       |      | false                 | Hata ayıklama çıktısını etkinleştir |
 
 ### Örnekler
 
@@ -208,12 +210,12 @@ hermes prd <prd-dosyası> [bayraklar]
 
 ### Bayraklar
 
-| Bayrak           | Varsayılan | Açıklama                           |
-|------------------|------------|------------------------------------|
-| `--dry-run`      | false      | Yazmadan önizleme                  |
-| `--timeout`      | 1200       | Saniye cinsinden zaman aşımı       |
-| `--max-retries`  | 10         | Maksimum yeniden deneme sayısı     |
-| `--debug`        | false      | Hata ayıklama çıktısını etkinleştir|
+| Bayrak          | Varsayılan | Açıklama                            |
+|-----------------|------------|-------------------------------------|
+| `--dry-run`     | false      | Yazmadan önizleme                   |
+| `--timeout`     | 1200       | Saniye cinsinden zaman aşımı        |
+| `--max-retries` | 10         | Maksimum yeniden deneme sayısı      |
+| `--debug`       | false      | Hata ayıklama çıktısını etkinleştir |
 
 ### Örnekler
 
@@ -252,6 +254,32 @@ Görev dosyaları `.hermes/tasks/` dizininde oluşturulur:
 
 ---
 
+## PRD Dönüştürme
+
+PRD dosyalarını farklı formatlar arasında dönüştürür.
+
+### Kullanım
+
+```bash
+hermes convertprd [bayraklar]
+```
+
+### Açıklama
+
+`convertprd` komutu PRD belgelerini çeşitli formatlar arasında dönüştürmeye yardımcı olur, farklı dokümantasyon stilleriyle çalışmayı ve harici araçlarla entegrasyonu kolaylaştırır.
+
+### Örnekler
+
+```bash
+# PRD formatını dönüştür
+hermes convertprd
+
+# Belirli seçeneklerle
+hermes convertprd --debug
+```
+
+---
+
 ## Özellik Ekleme
 
 Tüm PRD'yi yeniden ayrıştırmadan bireysel özellikler ekleyin.
@@ -264,11 +292,11 @@ hermes add <özellik-açıklaması> [bayraklar]
 
 ### Bayraklar
 
-| Bayrak      | Varsayılan | Açıklama                           |
-|-------------|------------|------------------------------------|
-| `--dry-run` | false      | Yazmadan önizleme                  |
-| `--timeout` | 300        | Saniye cinsinden zaman aşımı       |
-| `--debug`   | false      | Hata ayıklama çıktısını etkinleştir|
+| Bayrak      | Varsayılan | Açıklama                            |
+|-------------|------------|-------------------------------------|
+| `--dry-run` | false      | Yazmadan önizleme                   |
+| `--timeout` | 300        | Saniye cinsinden zaman aşımı        |
+| `--debug`   | false      | Hata ayıklama çıktısını etkinleştir |
 
 ### Örnekler
 
@@ -304,17 +332,17 @@ hermes run [bayraklar]
 
 ### Bayraklar
 
-| Bayrak          | Varsayılan  | Açıklama                              |
-|-----------------|-------------|---------------------------------------|
-| `--ai`          | auto        | AI sağlayıcı (claude/droid/gemini)    |
-| `--auto-branch` | config'den  | Özellik dalları oluştur               |
-| `--auto-commit` | config'den  | Tamamlandığında commit at             |
-| `--autonomous`  | true        | Duraklamadan çalıştır                 |
-| `--timeout`     | config'den  | AI zaman aşımı (saniye)               |
-| `--debug`       | false       | Hata ayıklama çıktısını etkinleştir   |
-| `--parallel`    | false       | Paralel yürütmeyi etkinleştir (v2.0.0)|
-| `--workers`     | 3           | Paralel çalışan sayısı                |
-| `--dry-run`     | false       | Sadece yürütme planını önizle         |
+| Bayrak          | Varsayılan | Açıklama                               |
+|-----------------|------------|----------------------------------------|
+| `--ai`          | auto       | AI sağlayıcı (claude/droid/gemini)     |
+| `--auto-branch` | config'den | Özellik dalları oluştur                |
+| `--auto-commit` | config'den | Tamamlandığında commit at              |
+| `--autonomous`  | true       | Duraklamadan çalıştır                  |
+| `--timeout`     | config'den | AI zaman aşımı (saniye)                |
+| `--debug`       | false      | Hata ayıklama çıktısını etkinleştir    |
+| `--parallel`    | false      | Paralel yürütmeyi etkinleştir (v2.0.0) |
+| `--workers`     | 3          | Paralel çalışan sayısı                 |
+| `--dry-run`     | false      | Sadece yürütme planını önizle          |
 
 ### Örnekler
 
@@ -511,12 +539,12 @@ hermes log --level WARN
 #### Günlük Seviyeleri
 
 | Seviye  | Renk    | Açıklama              |
-|---------|---------|----------------------|
-| ERROR   | Kırmızı | Hata mesajları       |
-| WARN    | Sarı    | Uyarı mesajları      |
-| SUCCESS | Yeşil   | Başarı mesajları     |
-| INFO    | Beyaz   | Bilgilendirme        |
-| DEBUG   | Gri     | Hata ayıklama bilgisi|
+|---------|---------|-----------------------|
+| ERROR   | Kırmızı | Hata mesajları        |
+| WARN    | Sarı    | Uyarı mesajları       |
+| SUCCESS | Yeşil   | Başarı mesajları      |
+| INFO    | Beyaz   | Bilgilendirme         |
+| DEBUG   | Gri     | Hata ayıklama bilgisi |
 
 ---
 
@@ -530,8 +558,8 @@ hermes tui
 
 ### Ekranlar
 
-| Tuş | Ekran     | Açıklama                               |
-|-----|-----------|----------------------------------------|
+| Tuş | Ekran     | Açıklama                              |
+|-----|-----------|---------------------------------------|
 | 1   | Dashboard | İlerleme genel bakışı ve devre kesici |
 | 2   | Görevler  | Filtreleme ile görev listesi          |
 | 3   | Günlükler | Gerçek zamanlı günlük görüntüleyici   |
@@ -574,19 +602,19 @@ Gösterir:
 
 ### Klavye Kısayolları
 
-| Tuş       | Eylem                        |
-|-----------|------------------------------|
-| 1/2/3/?   | Ekran değiştir               |
-| r         | Görev yürütmeyi başlat       |
-| s         | Yürütmeyi durdur             |
-| Shift+R   | Manuel yenile                |
-| Enter     | Görev detayını aç            |
-| Esc       | Önceki ekrana dön            |
-| j/k       | Aşağı/yukarı kaydır          |
-| g         | Başa git                     |
-| Shift+G   | Sona git                     |
-| f         | Otomatik kaydırma (günlükler)|
-| q         | Çıkış                        |
+| Tuş     | Eylem                         |
+|---------|-------------------------------|
+| 1/2/3/? | Ekran değiştir                |
+| r       | Görev yürütmeyi başlat        |
+| s       | Yürütmeyi durdur              |
+| Shift+R | Manuel yenile                 |
+| Enter   | Görev detayını aç             |
+| Esc     | Önceki ekrana dön             |
+| j/k     | Aşağı/yukarı kaydır           |
+| g       | Başa git                      |
+| Shift+G | Sona git                      |
+| f       | Otomatik kaydırma (günlükler) |
+| q       | Çıkış                         |
 
 ---
 
@@ -635,45 +663,45 @@ Hermes katmanlı yapılandırma kullanır:
 
 ### AI Yapılandırması
 
-| Seçenek        | Tip    | Varsayılan | Açıklama                         |
-|----------------|--------|------------|----------------------------------|
-| `planning`     | string | "claude"   | PRD ayrıştırma için AI           |
-| `coding`       | string | "claude"   | Görev yürütme için AI            |
-| `timeout`      | int    | 300        | Görev yürütme zaman aşımı (sn)   |
-| `prdTimeout`   | int    | 1200       | PRD ayrıştırma zaman aşımı (sn)  |
-| `maxRetries`   | int    | 10         | Maksimum yeniden deneme          |
-| `streamOutput` | bool   | true       | AI çıktısını aktar               |
+| Seçenek        | Tip    | Varsayılan | Açıklama                        |
+|----------------|--------|------------|---------------------------------|
+| `planning`     | string | "claude"   | PRD ayrıştırma için AI          |
+| `coding`       | string | "claude"   | Görev yürütme için AI           |
+| `timeout`      | int    | 300        | Görev yürütme zaman aşımı (sn)  |
+| `prdTimeout`   | int    | 1200       | PRD ayrıştırma zaman aşımı (sn) |
+| `maxRetries`   | int    | 10         | Maksimum yeniden deneme         |
+| `streamOutput` | bool   | true       | AI çıktısını aktar              |
 
 ### Görev Modu Yapılandırması
 
-| Seçenek                | Tip  | Varsayılan | Açıklama                         |
-|------------------------|------|------------|----------------------------------|
-| `autoBranch`           | bool | true       | Özellik dalları oluştur          |
-| `autoCommit`           | bool | true       | Tamamlandığında commit           |
-| `autonomous`           | bool | true       | Duraklamadan çalıştır            |
-| `maxConsecutiveErrors` | int  | 5          | N ardışık hatadan sonra dur      |
+| Seçenek                | Tip  | Varsayılan | Açıklama                    |
+|------------------------|------|------------|-----------------------------|
+| `autoBranch`           | bool | true       | Özellik dalları oluştur     |
+| `autoCommit`           | bool | true       | Tamamlandığında commit      |
+| `autonomous`           | bool | true       | Duraklamadan çalıştır       |
+| `maxConsecutiveErrors` | int  | 5          | N ardışık hatadan sonra dur |
 
 ### Döngü Yapılandırması
 
-| Seçenek          | Tip | Varsayılan | Açıklama                    |
-|------------------|-----|------------|-----------------------------|
-| `maxCallsPerHour`| int | 100        | Hız sınırı                  |
-| `timeoutMinutes` | int | 15         | Döngü zaman aşımı           |
-| `errorDelay`     | int | 10         | Hatadan sonra gecikme (sn)  |
+| Seçenek           | Tip | Varsayılan | Açıklama                   |
+|-------------------|-----|------------|----------------------------|
+| `maxCallsPerHour` | int | 100        | Hız sınırı                 |
+| `timeoutMinutes`  | int | 15         | Döngü zaman aşımı          |
+| `errorDelay`      | int | 10         | Hatadan sonra gecikme (sn) |
 
 ### Paralel Yapılandırma (v2.0.0)
 
-| Seçenek             | Tip    | Varsayılan        | Açıklama                      |
-|---------------------|--------|-------------------|-------------------------------|
-| `enabled`           | bool   | false             | Varsayılan olarak paralel aç  |
-| `maxWorkers`        | int    | 3                 | Maksimum paralel çalışan      |
-| `strategy`          | string | "branch-per-task" | Dallanma stratejisi           |
-| `conflictResolution`| string | "ai-assisted"     | Çakışma çözüm yöntemi         |
-| `isolatedWorkspaces`| bool   | true              | Git worktree kullan           |
-| `mergeStrategy`     | string | "sequential"      | Sonuçları birleştirme yöntemi |
-| `maxCostPerHour`    | float  | 0                 | Maliyet sınırı (0 = sınırsız) |
-| `failureStrategy`   | string | "continue"        | fail-fast veya continue       |
-| `maxRetries`        | int    | 2                 | Başarısız görevleri tekrar dene|
+| Seçenek              | Tip    | Varsayılan        | Açıklama                        |
+|----------------------|--------|-------------------|---------------------------------|
+| `enabled`            | bool   | false             | Varsayılan olarak paralel aç    |
+| `maxWorkers`         | int    | 3                 | Maksimum paralel çalışan        |
+| `strategy`           | string | "branch-per-task" | Dallanma stratejisi             |
+| `conflictResolution` | string | "ai-assisted"     | Çakışma çözüm yöntemi           |
+| `isolatedWorkspaces` | bool   | true              | Git worktree kullan             |
+| `mergeStrategy`      | string | "sequential"      | Sonuçları birleştirme yöntemi   |
+| `maxCostPerHour`     | float  | 0                 | Maliyet sınırı (0 = sınırsız)   |
+| `failureStrategy`    | string | "continue"        | fail-fast veya continue         |
+| `maxRetries`         | int    | 2                 | Başarısız görevleri tekrar dene |
 
 ---
 
@@ -895,14 +923,14 @@ hermes prd --help
 
 ### Durum Değerleri
 
-| Durum        | Açıklama                              |
-|--------------|---------------------------------------|
-| NOT_STARTED  | Görev başlamadı                       |
-| IN_PROGRESS  | Görev üzerinde çalışılıyor            |
-| COMPLETED    | Görev tamamlandı                      |
-| BLOCKED      | Görev bağımlılık nedeniyle engellendi |
-| AT_RISK      | Görev son tarihi kaçırabilir          |
-| PAUSED       | Görev geçici olarak askıya alındı     |
+| Durum       | Açıklama                              |
+|-------------|---------------------------------------|
+| NOT_STARTED | Görev başlamadı                       |
+| IN_PROGRESS | Görev üzerinde çalışılıyor            |
+| COMPLETED   | Görev tamamlandı                      |
+| BLOCKED     | Görev bağımlılık nedeniyle engellendi |
+| AT_RISK     | Görev son tarihi kaçırabilir          |
+| PAUSED      | Görev geçici olarak askıya alındı     |
 
 ### Öncelik Değerleri
 

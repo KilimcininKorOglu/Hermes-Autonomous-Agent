@@ -14,9 +14,16 @@ flowchart TB
             init[init]
             idea[idea]
             prd[prd]
+            convertprd[convertprd]
+            add[add]
             run[run]
             status[status]
+            task[task]
+            log[log]
             tui[tui]
+            reset[reset]
+            update[update]
+            install[install]
         end
     end
 
@@ -59,6 +66,7 @@ hermes/
 │   ├── circuit/                # Circuit breaker pattern implementation
 │   ├── cmd/                    # Cobra subcommand implementations
 │   ├── config/                 # Configuration management with Viper
+│   ├── converter/              # PRD conversion utilities
 │   ├── git/                    # Git operations - branch, commit, tag
 │   ├── idea/                   # Idea-to-PRD generation
 │   ├── installer/              # System-wide installation
@@ -246,11 +254,11 @@ stateDiagram-v2
 
 **States:**
 
-| State | Description |
-|-------|-------------|
-| CLOSED | Normal operation - execution allowed |
+| State     | Description                                  |
+|-----------|----------------------------------------------|
+| CLOSED    | Normal operation - execution allowed         |
 | HALF_OPEN | Monitoring - 2 consecutive no-progress loops |
-| OPEN | Halted - requires `hermes reset` command |
+| OPEN      | Halted - requires `hermes reset` command     |
 
 **Key Files:**
 
@@ -451,37 +459,40 @@ flowchart TB
 
 **Screens:**
 
-| Key | Screen | Description |
-|-----|--------|-------------|
-| 1 | Dashboard | Overview with progress stats |
-| 2 | Tasks | Task list with status |
-| 3 | Logs | Execution log viewer |
-| ? | Help | Keyboard shortcuts |
+| Key | Screen    | Description                  |
+|-----|-----------|------------------------------|
+| 1   | Dashboard | Overview with progress stats |
+| 2   | Tasks     | Task list with status        |
+| 3   | Logs      | Execution log viewer         |
+| ?   | Help      | Keyboard shortcuts           |
 
 ---
 
 ## Key Dependencies
 
-| Package | Purpose |
-|---------|---------|
-| `github.com/spf13/cobra` | CLI framework |
-| `github.com/spf13/viper` | Configuration management |
-| `github.com/charmbracelet/bubbletea` | TUI framework |
-| `github.com/charmbracelet/lipgloss` | TUI styling |
-| `github.com/charmbracelet/bubbles` | TUI components |
-| `github.com/fatih/color` | Colored console output |
+| Package                              | Purpose                  |
+|--------------------------------------|--------------------------|
+| `github.com/spf13/cobra`             | CLI framework            |
+| `github.com/spf13/viper`             | Configuration management |
+| `github.com/charmbracelet/bubbletea` | TUI framework            |
+| `github.com/charmbracelet/lipgloss`  | TUI styling              |
+| `github.com/charmbracelet/bubbles`   | TUI components           |
+| `github.com/fatih/color`             | Colored console output   |
 
 ---
 
 ## Build and Test
 
-| Command | Description |
-|---------|-------------|
-| `build.bat` or `make build` | Build for current platform |
-| `build.bat test` or `make test` | Run tests with coverage |
-| `build.bat build-all` | Build for all platforms |
-| `go test ./...` | Run all tests |
-| `go test -v ./internal/task` | Test specific package |
+| Command                      | Description                |
+|------------------------------|----------------------------|
+| `make`                       | Build for all platforms    |
+| `make build`                 | Build for current platform |
+| `make test`                  | Run tests with coverage    |
+| `build.bat`                  | Build for all platforms    |
+| `build.bat build`            | Build for Windows only     |
+| `build.bat test`             | Run tests with coverage    |
+| `go test ./...`              | Run all tests              |
+| `go test -v ./internal/task` | Test specific package      |
 
 **Output:** `bin/hermes-{os}-{arch}[.exe]`
 
@@ -489,11 +500,14 @@ flowchart TB
 
 ## Version History
 
-| Version | Feature |
-|---------|---------|
-| v1.0.0 | Initial Go rewrite |
-| v1.1.0 | Idea-to-PRD generation |
-| v1.2.0 | Auto git tagging |
-| v1.2.1 | Stream output support |
-| v1.2.2 | Auto-update command |
-| v2.0.0 | Parallel execution, system installer |
+| Version | Feature                                      |
+|---------|----------------------------------------------|
+| v1.0.0  | Initial Go rewrite                           |
+| v1.1.0  | Idea-to-PRD generation                       |
+| v1.2.0  | Auto git tagging                             |
+| v1.2.1  | Stream output support                        |
+| v1.2.2  | Auto-update command                          |
+| v2.0.0  | Parallel execution, system installer         |
+| v2.1.x  | Full status support, enhanced prompts        |
+| v2.2.x  | Windows version info, GoReleaser integration |
+| v2.3.x  | PRD converter, stability improvements        |

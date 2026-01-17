@@ -9,15 +9,16 @@ Complete guide to using Hermes, the AI-powered autonomous application developmen
 3. [Project Initialization](#project-initialization)
 4. [Idea to PRD Generation](#idea-to-prd-generation)
 5. [PRD Parsing](#prd-parsing)
-6. [Adding Features](#adding-features)
-7. [Task Execution](#task-execution)
-8. [Status and Monitoring](#status-and-monitoring)
-9. [Interactive TUI](#interactive-tui)
-10. [Configuration](#configuration)
-11. [Circuit Breaker](#circuit-breaker)
-12. [Install and Update](#install-and-update)
-13. [Auto Git Tagging](#auto-git-tagging)
-14. [Troubleshooting](#troubleshooting)
+6. [PRD Conversion](#prd-conversion)
+7. [Adding Features](#adding-features)
+8. [Task Execution](#task-execution)
+9. [Status and Monitoring](#status-and-monitoring)
+10. [Interactive TUI](#interactive-tui)
+11. [Configuration](#configuration)
+12. [Circuit Breaker](#circuit-breaker)
+13. [Install and Update](#install-and-update)
+14. [Auto Git Tagging](#auto-git-tagging)
+15. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -40,8 +41,9 @@ git clone https://github.com/YourUsername/hermes.git
 cd hermes
 
 # Build for your platform
-build.bat              # Windows
-make build             # Linux/macOS
+build.bat              # Windows (all platforms by default)
+make                   # Linux/macOS (all platforms by default)
+make build             # Current platform only
 
 # Binary location
 bin/hermes-windows-amd64.exe    # Windows
@@ -143,14 +145,14 @@ hermes idea <description> [flags]
 
 ### Flags
 
-| Flag            | Short | Default               | Description                            |
-|-----------------|-------|-----------------------|----------------------------------------|
-| `--output`      | `-o`  | `.hermes/docs/PRD.md` | Output file path                       |
-| `--dry-run`     |       | false                 | Preview without writing file           |
-| `--interactive` | `-i`  | false                 | Interactive mode (additional questions)|
-| `--language`    | `-l`  | `en`                  | PRD language (en/tr)                   |
-| `--timeout`     |       | 600                   | AI timeout in seconds                  |
-| `--debug`       |       | false                 | Enable debug output                    |
+| Flag            | Short | Default               | Description                             |
+|-----------------|-------|-----------------------|-----------------------------------------|
+| `--output`      | `-o`  | `.hermes/docs/PRD.md` | Output file path                        |
+| `--dry-run`     |       | false                 | Preview without writing file            |
+| `--interactive` | `-i`  | false                 | Interactive mode (additional questions) |
+| `--language`    | `-l`  | `en`                  | PRD language (en/tr)                    |
+| `--timeout`     |       | 600                   | AI timeout in seconds                   |
+| `--debug`       |       | false                 | Enable debug output                     |
 
 ### Examples
 
@@ -208,12 +210,12 @@ hermes prd <prd-file> [flags]
 
 ### Flags
 
-| Flag             | Default | Description                      |
-|------------------|---------|----------------------------------|
-| `--dry-run`      | false   | Preview output without writing   |
-| `--timeout`      | 1200    | Timeout in seconds               |
-| `--max-retries`  | 10      | Maximum retry attempts           |
-| `--debug`        | false   | Enable debug output              |
+| Flag            | Default | Description                    |
+|-----------------|---------|--------------------------------|
+| `--dry-run`     | false   | Preview output without writing |
+| `--timeout`     | 1200    | Timeout in seconds             |
+| `--max-retries` | 10      | Maximum retry attempts         |
+| `--debug`       | false   | Enable debug output            |
 
 ### Examples
 
@@ -252,6 +254,32 @@ Task files are created in `.hermes/tasks/` with the format:
 
 ---
 
+## PRD Conversion
+
+Convert PRD files between different formats.
+
+### Usage
+
+```bash
+hermes convertprd [flags]
+```
+
+### Description
+
+The `convertprd` command helps convert PRD documents between various formats, making it easier to work with different documentation styles and integrate with external tools.
+
+### Examples
+
+```bash
+# Convert PRD format
+hermes convertprd
+
+# With specific options
+hermes convertprd --debug
+```
+
+---
+
 ## Adding Features
 
 Add individual features without re-parsing the entire PRD.
@@ -264,11 +292,11 @@ hermes add <feature-description> [flags]
 
 ### Flags
 
-| Flag        | Default | Description                      |
-|-------------|---------|----------------------------------|
-| `--dry-run` | false   | Preview output without writing   |
-| `--timeout` | 300     | Timeout in seconds               |
-| `--debug`   | false   | Enable debug output              |
+| Flag        | Default | Description                    |
+|-------------|---------|--------------------------------|
+| `--dry-run` | false   | Preview output without writing |
+| `--timeout` | 300     | Timeout in seconds             |
+| `--debug`   | false   | Enable debug output            |
 
 ### Examples
 
@@ -304,17 +332,17 @@ hermes run [flags]
 
 ### Flags
 
-| Flag            | Default     | Description                         |
-|-----------------|-------------|-------------------------------------|
-| `--ai`          | auto        | AI provider (claude/droid/gemini)   |
-| `--auto-branch` | from config | Create feature branches             |
-| `--auto-commit` | from config | Commit on task completion           |
-| `--autonomous`  | true        | Run without pausing                 |
-| `--timeout`     | from config | AI timeout in seconds               |
-| `--debug`       | false       | Enable debug output                 |
-| `--parallel`    | false       | Enable parallel execution (v2.0.0)  |
-| `--workers`     | 3           | Number of parallel workers          |
-| `--dry-run`     | false       | Preview execution plan only         |
+| Flag            | Default     | Description                        |
+|-----------------|-------------|------------------------------------|
+| `--ai`          | auto        | AI provider (claude/droid/gemini)  |
+| `--auto-branch` | from config | Create feature branches            |
+| `--auto-commit` | from config | Commit on task completion          |
+| `--autonomous`  | true        | Run without pausing                |
+| `--timeout`     | from config | AI timeout in seconds              |
+| `--debug`       | false       | Enable debug output                |
+| `--parallel`    | false       | Enable parallel execution (v2.0.0) |
+| `--workers`     | 3           | Number of parallel workers         |
+| `--dry-run`     | false       | Preview execution plan only        |
 
 ### Examples
 
@@ -534,13 +562,13 @@ hermes log --level WARN
 
 #### Log Levels
 
-| Level   | Color  | Description         |
-|---------|--------|---------------------|
-| ERROR   | Red    | Error messages      |
-| WARN    | Yellow | Warning messages    |
-| SUCCESS | Green  | Success messages    |
-| INFO    | White  | Informational       |
-| DEBUG   | Gray   | Debug information   |
+| Level   | Color  | Description       |
+|---------|--------|-------------------|
+| ERROR   | Red    | Error messages    |
+| WARN    | Yellow | Warning messages  |
+| SUCCESS | Green  | Success messages  |
+| INFO    | White  | Informational     |
+| DEBUG   | Gray   | Debug information |
 
 ---
 
@@ -554,12 +582,12 @@ hermes tui
 
 ### Screens
 
-| Key | Screen    | Description                              |
-|-----|-----------|------------------------------------------|
-| 1   | Dashboard | Progress overview and circuit breaker    |
-| 2   | Tasks     | Task list with filtering                 |
-| 3   | Logs      | Real-time log viewer                     |
-| ?   | Help      | Keyboard shortcuts reference             |
+| Key | Screen    | Description                           |
+|-----|-----------|---------------------------------------|
+| 1   | Dashboard | Progress overview and circuit breaker |
+| 2   | Tasks     | Task list with filtering              |
+| 3   | Logs      | Real-time log viewer                  |
+| ?   | Help      | Keyboard shortcuts reference          |
 
 ### Dashboard Screen
 
@@ -598,19 +626,19 @@ Features:
 
 ### Keyboard Shortcuts
 
-| Key       | Action                     |
-|-----------|----------------------------|
-| 1/2/3/?   | Switch screens             |
-| r         | Start task execution       |
-| s         | Stop execution             |
-| Shift+R   | Manual refresh             |
-| Enter     | Open task detail           |
-| Esc       | Back to previous screen    |
-| j/k       | Scroll down/up             |
-| g         | Go to top                  |
-| Shift+G   | Go to bottom               |
-| f         | Toggle auto-scroll (logs)  |
-| q         | Quit                       |
+| Key     | Action                    |
+|---------|---------------------------|
+| 1/2/3/? | Switch screens            |
+| r       | Start task execution      |
+| s       | Stop execution            |
+| Shift+R | Manual refresh            |
+| Enter   | Open task detail          |
+| Esc     | Back to previous screen   |
+| j/k     | Scroll down/up            |
+| g       | Go to top                 |
+| Shift+G | Go to bottom              |
+| f       | Toggle auto-scroll (logs) |
+| q       | Quit                      |
 
 ---
 
@@ -659,45 +687,45 @@ Hermes uses layered configuration:
 
 ### AI Configuration
 
-| Option         | Type   | Default  | Description                     |
-|----------------|--------|----------|---------------------------------|
-| `planning`     | string | "claude" | AI for PRD parsing              |
-| `coding`       | string | "claude" | AI for task execution           |
-| `timeout`      | int    | 300      | Task execution timeout (sec)    |
-| `prdTimeout`   | int    | 1200     | PRD parsing timeout (sec)       |
-| `maxRetries`   | int    | 10       | Maximum retry attempts          |
-| `streamOutput` | bool   | true     | Stream AI output                |
+| Option         | Type   | Default  | Description                  |
+|----------------|--------|----------|------------------------------|
+| `planning`     | string | "claude" | AI for PRD parsing           |
+| `coding`       | string | "claude" | AI for task execution        |
+| `timeout`      | int    | 300      | Task execution timeout (sec) |
+| `prdTimeout`   | int    | 1200     | PRD parsing timeout (sec)    |
+| `maxRetries`   | int    | 10       | Maximum retry attempts       |
+| `streamOutput` | bool   | true     | Stream AI output             |
 
 ### Task Mode Configuration
 
-| Option                 | Type | Default | Description                    |
-|------------------------|------|---------|--------------------------------|
-| `autoBranch`           | bool | true    | Create feature branches        |
-| `autoCommit`           | bool | true    | Commit on completion           |
-| `autonomous`           | bool | true    | Run without pausing            |
-| `maxConsecutiveErrors` | int  | 5       | Stop after N consecutive errors|
+| Option                 | Type | Default | Description                     |
+|------------------------|------|---------|---------------------------------|
+| `autoBranch`           | bool | true    | Create feature branches         |
+| `autoCommit`           | bool | true    | Commit on completion            |
+| `autonomous`           | bool | true    | Run without pausing             |
+| `maxConsecutiveErrors` | int  | 5       | Stop after N consecutive errors |
 
 ### Loop Configuration
 
-| Option           | Type | Default | Description               |
-|------------------|------|---------|---------------------------|
-| `maxCallsPerHour`| int  | 100     | Rate limit                |
-| `timeoutMinutes` | int  | 15      | Loop timeout              |
-| `errorDelay`     | int  | 10      | Delay after error (sec)   |
+| Option            | Type | Default | Description             |
+|-------------------|------|---------|-------------------------|
+| `maxCallsPerHour` | int  | 100     | Rate limit              |
+| `timeoutMinutes`  | int  | 15      | Loop timeout            |
+| `errorDelay`      | int  | 10      | Delay after error (sec) |
 
 ### Parallel Configuration (v2.0.0)
 
-| Option              | Type   | Default           | Description                   |
-|---------------------|--------|-------------------|-------------------------------|
-| `enabled`           | bool   | false             | Enable parallel by default    |
-| `maxWorkers`        | int    | 3                 | Maximum parallel workers      |
-| `strategy`          | string | "branch-per-task" | Branching strategy            |
-| `conflictResolution`| string | "ai-assisted"     | Conflict resolution method    |
-| `isolatedWorkspaces`| bool   | true              | Use git worktrees             |
-| `mergeStrategy`     | string | "sequential"      | How to merge results          |
-| `maxCostPerHour`    | float  | 0                 | Cost limit (0 = unlimited)    |
-| `failureStrategy`   | string | "continue"        | fail-fast or continue         |
-| `maxRetries`        | int    | 2                 | Retry failed tasks            |
+| Option               | Type   | Default           | Description                |
+|----------------------|--------|-------------------|----------------------------|
+| `enabled`            | bool   | false             | Enable parallel by default |
+| `maxWorkers`         | int    | 3                 | Maximum parallel workers   |
+| `strategy`           | string | "branch-per-task" | Branching strategy         |
+| `conflictResolution` | string | "ai-assisted"     | Conflict resolution method |
+| `isolatedWorkspaces` | bool   | true              | Use git worktrees          |
+| `mergeStrategy`      | string | "sequential"      | How to merge results       |
+| `maxCostPerHour`     | float  | 0                 | Cost limit (0 = unlimited) |
+| `failureStrategy`    | string | "continue"        | fail-fast or continue      |
+| `maxRetries`         | int    | 2                 | Retry failed tasks         |
 
 ---
 
@@ -707,11 +735,11 @@ The circuit breaker prevents runaway execution when no progress is detected.
 
 ### States
 
-| State     | Description                                     |
-|-----------|-------------------------------------------------|
-| CLOSED    | Normal operation, execution allowed             |
-| HALF_OPEN | Monitoring mode, 2 loops without progress       |
-| OPEN      | Execution halted, requires manual reset         |
+| State     | Description                               |
+|-----------|-------------------------------------------|
+| CLOSED    | Normal operation, execution allowed       |
+| HALF_OPEN | Monitoring mode, 2 loops without progress |
+| OPEN      | Execution halted, requires manual reset   |
 
 ### Thresholds
 
@@ -919,23 +947,23 @@ hermes prd --help
 
 ### Status Values
 
-| Status       | Description                    |
-|--------------|--------------------------------|
-| NOT_STARTED  | Task has not been started      |
-| IN_PROGRESS  | Task is currently being worked |
-| COMPLETED    | Task is finished               |
-| BLOCKED      | Task is blocked by dependency  |
-| AT_RISK      | Task may not meet deadline     |
-| PAUSED       | Task is temporarily suspended  |
+| Status      | Description                    |
+|-------------|--------------------------------|
+| NOT_STARTED | Task has not been started      |
+| IN_PROGRESS | Task is currently being worked |
+| COMPLETED   | Task is finished               |
+| BLOCKED     | Task is blocked by dependency  |
+| AT_RISK     | Task may not meet deadline     |
+| PAUSED      | Task is temporarily suspended  |
 
 ### Priority Values
 
-| Priority | Description     |
-|----------|-----------------|
-| P1       | Critical        |
-| P2       | High            |
-| P3       | Medium          |
-| P4       | Low             |
+| Priority | Description |
+|----------|-------------|
+| P1       | Critical    |
+| P2       | High        |
+| P3       | Medium      |
+| P4       | Low         |
 
 ---
 

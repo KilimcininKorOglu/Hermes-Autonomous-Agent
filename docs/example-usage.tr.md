@@ -1,4 +1,4 @@
-# Hermes Autonomous Agent - Örnek Kullanım (v2.2)
+# Hermes Autonomous Agent - Örnek Kullanım (v2.3)
 
 PRD'den tamamlanmaya kadar Hermes kullanarak proje oluşturmanın adım adım rehberi.
 
@@ -492,23 +492,24 @@ Tamamlandıktan sonra git geçmişiniz şöyle görünür:
 
 ## Komut Referansı
 
-| Adım | Komut                                        | Açıklama                          |
-|------|----------------------------------------------|-----------------------------------|
-| 1    | `hermes init <ad>`                           | Projeyi başlat                    |
-| 2    | `hermes idea "<açıklama>"`                   | Fikirden PRD üret                 |
-| 3    | `.hermes/docs/PRD.md` incele/düzenle         | Gereksinimleri incele             |
-| 4    | `hermes prd .hermes/docs/PRD.md`             | PRD'yi görevlere ayrıştır         |
-| 5    | `hermes status`                              | Tüm görevleri görüntüle           |
-| 6    | `hermes task <id>`                           | Görev detaylarını görüntüle       |
-| 7    | `hermes run --auto-branch --auto-commit`     | Görevleri yürüt                   |
-| 8    | `hermes run --parallel --workers 3`          | Paralel yürütme                   |
-| 9    | `hermes run --dry-run`                       | Yürütme planını önizle            |
-| 10   | `hermes log -f`                              | Günlükleri izle                   |
-| 11   | `hermes reset`                               | Devre kesiciyi sıfırla            |
-| 12   | `hermes add "<özellik>"`                     | Yeni özellik ekle                 |
-| 13   | `hermes tui`                                 | İnteraktif arayüz                 |
-| 14   | `hermes install`                             | Sistem PATH'ine kur               |
-| 15   | `hermes update`                              | Güncellemeleri kontrol et ve kur  |
+| Adım | Komut                                    | Açıklama                         |
+|------|------------------------------------------|----------------------------------|
+| 1    | `hermes init <ad>`                       | Projeyi başlat                   |
+| 2    | `hermes idea "<açıklama>"`               | Fikirden PRD üret                |
+| 3    | `.hermes/docs/PRD.md` incele/düzenle     | Gereksinimleri incele            |
+| 4    | `hermes prd .hermes/docs/PRD.md`         | PRD'yi görevlere ayrıştır        |
+| 5    | `hermes convertprd`                      | PRD formatları arası dönüştür    |
+| 6    | `hermes status`                          | Tüm görevleri görüntüle          |
+| 7    | `hermes task <id>`                       | Görev detaylarını görüntüle      |
+| 8    | `hermes run --auto-branch --auto-commit` | Görevleri yürüt                  |
+| 9    | `hermes run --parallel --workers 3`      | Paralel yürütme                  |
+| 10   | `hermes run --dry-run`                   | Yürütme planını önizle           |
+| 11   | `hermes log -f`                          | Günlükleri izle                  |
+| 12   | `hermes reset`                           | Devre kesiciyi sıfırla           |
+| 13   | `hermes add "<özellik>"`                 | Yeni özellik ekle                |
+| 14   | `hermes tui`                             | İnteraktif arayüz                |
+| 15   | `hermes install`                         | Sistem PATH'ine kur              |
+| 16   | `hermes update`                          | Güncellemeleri kontrol et ve kur |
 
 ---
 

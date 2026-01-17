@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.2.3-blue)
+![Version](https://img.shields.io/badge/version-v2.3.5-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -9,12 +9,12 @@ AI-powered autonomous application development system written in Go. Supports Cla
 
 ## Documentation
 
-| Document                                  | Description                          |
-|-------------------------------------------|--------------------------------------|
-| [User Guide](docs/USER-GUIDE.md)          | Complete usage documentation         |
-| [Example Usage](docs/example-usage.md)    | Step-by-step walkthrough             |
-| [Kullanım Kılavuzu](docs/USER-GUIDE.tr.md)| Türkçe kullanım dokümantasyonu       |
-| [Örnek Kullanım](docs/example-usage.tr.md)| Türkçe adım adım rehber              |
+| Document                                   | Description                    |
+|--------------------------------------------|--------------------------------|
+| [User Guide](docs/USER-GUIDE.md)           | Complete usage documentation   |
+| [Example Usage](docs/example-usage.md)     | Step-by-step walkthrough       |
+| [Kullanım Kılavuzu](docs/USER-GUIDE.tr.md) | Türkçe kullanım dokümantasyonu |
+| [Örnek Kullanım](docs/example-usage.tr.md) | Türkçe adım adım rehber        |
 
 ## Features
 
@@ -98,20 +98,21 @@ hermes run --auto-branch --auto-commit
 
 ## Commands
 
-| Command              | Description                      |
-|----------------------|----------------------------------|
-| `hermes init [name]` | Initialize project               |
-| `hermes idea <desc>` | Generate PRD from idea           |
-| `hermes prd <file>`  | Parse PRD to task files          |
-| `hermes add <feat>`  | Add single feature               |
-| `hermes run`         | Execute task loop                |
-| `hermes status`      | Show task status table           |
-| `hermes task <id>`   | Show task details                |
-| `hermes log`         | View execution logs              |
-| `hermes tui`         | Launch interactive TUI           |
-| `hermes reset`       | Reset circuit breaker            |
-| `hermes update`      | Check and install updates        |
-| `hermes install`     | Install to system PATH           |
+| Command              | Description                 |
+|----------------------|-----------------------------|
+| `hermes init [name]` | Initialize project          |
+| `hermes idea <desc>` | Generate PRD from idea      |
+| `hermes prd <file>`  | Parse PRD to task files     |
+| `hermes convertprd`  | Convert PRD between formats |
+| `hermes add <feat>`  | Add single feature          |
+| `hermes run`         | Execute task loop           |
+| `hermes status`      | Show task status table      |
+| `hermes task <id>`   | Show task details           |
+| `hermes log`         | View execution logs         |
+| `hermes tui`         | Launch interactive TUI      |
+| `hermes reset`       | Reset circuit breaker       |
+| `hermes update`      | Check and install updates   |
+| `hermes install`     | Install to system PATH      |
 
 ## Idea Command Options
 
@@ -182,17 +183,17 @@ Add to `.hermes/config.json`:
 }
 ```
 
-| Option              | Default            | Description                        |
-|---------------------|--------------------|------------------------------------|
-| enabled             | false              | Enable parallel by default         |
-| maxWorkers          | 3                  | Maximum parallel AI agents         |
-| strategy            | "branch-per-task"  | Branching strategy                 |
-| conflictResolution  | "ai-assisted"      | Conflict resolution method         |
-| isolatedWorkspaces  | true               | Use git worktrees                  |
-| mergeStrategy       | "sequential"       | How to merge results               |
-| maxCostPerHour      | 0                  | Cost limit (0 = unlimited)         |
-| failureStrategy     | "continue"         | fail-fast or continue              |
-| maxRetries          | 2                  | Retry failed tasks                 |
+| Option             | Default           | Description                |
+|--------------------|-------------------|----------------------------|
+| enabled            | false             | Enable parallel by default |
+| maxWorkers         | 3                 | Maximum parallel AI agents |
+| strategy           | "branch-per-task" | Branching strategy         |
+| conflictResolution | "ai-assisted"     | Conflict resolution method |
+| isolatedWorkspaces | true              | Use git worktrees          |
+| mergeStrategy      | "sequential"      | How to merge results       |
+| maxCostPerHour     | 0                 | Cost limit (0 = unlimited) |
+| failureStrategy    | "continue"        | fail-fast or continue      |
+| maxRetries         | 2                 | Retry failed tasks         |
 
 ## AI Providers
 
@@ -276,21 +277,21 @@ Use PostgreSQL with UUID primary keys. Add indexes on email and username.
 
 ## Risk Assessment
 
-| Risk              | Probability | Impact | Mitigation           |
-|-------------------|-------------|--------|----------------------|
-| SQL injection     | Low         | High   | Use parameterized queries |
+| Risk          | Probability | Impact | Mitigation                |
+|---------------|-------------|--------|---------------------------|
+| SQL injection | Low         | High   | Use parameterized queries |
 ```
 
 ### Task Status Types
 
-| Status       | Description                     |
-|--------------|--------------------------------|
-| NOT_STARTED  | Task not yet begun             |
-| IN_PROGRESS  | Currently being worked on      |
-| COMPLETED    | Successfully finished          |
-| BLOCKED      | Cannot proceed                 |
-| AT_RISK      | May not meet deadline          |
-| PAUSED       | Temporarily suspended          |
+| Status      | Description               |
+|-------------|---------------------------|
+| NOT_STARTED | Task not yet begun        |
+| IN_PROGRESS | Currently being worked on |
+| COMPLETED   | Successfully finished     |
+| BLOCKED     | Cannot proceed            |
+| AT_RISK     | May not meet deadline     |
+| PAUSED      | Temporarily suspended     |
 
 ## Auto Git Tagging
 
@@ -355,48 +356,48 @@ Tags are only created if:
 
 ### Configuration Options
 
-| Section    | Key                   | Default        | Description                          |
-|------------|-----------------------|----------------|--------------------------------------|
-| ai         | planning              | "claude"       | AI provider for PRD parsing          |
-| ai         | coding                | "claude"       | AI provider for task execution       |
-| ai         | timeout               | 300            | Task execution timeout (seconds)     |
-| ai         | prdTimeout            | 1200           | PRD parsing timeout (seconds)        |
-| ai         | maxRetries            | 10             | Maximum retry attempts               |
-| ai         | streamOutput          | true           | Stream AI output to console          |
-| taskMode   | autoBranch            | true           | Create feature branches              |
-| taskMode   | autoCommit            | true           | Commit on task completion            |
-| taskMode   | autonomous            | true           | Run without pausing between tasks    |
-| taskMode   | maxConsecutiveErrors  | 5              | Stop after N consecutive errors      |
-| loop       | maxCallsPerHour       | 100            | Rate limit for AI calls              |
-| loop       | timeoutMinutes        | 15             | Loop timeout in minutes              |
-| loop       | errorDelay            | 10             | Delay after error (seconds)          |
-| paths      | hermesDir             | ".hermes"      | Hermes data directory                |
-| paths      | tasksDir              | ".hermes/tasks"| Task files directory                 |
-| paths      | logsDir               | ".hermes/logs" | Log files directory                  |
-| paths      | docsDir               | ".hermes/docs" | Documentation directory              |
+| Section  | Key                  | Default         | Description                       |
+|----------|----------------------|-----------------|-----------------------------------|
+| ai       | planning             | "claude"        | AI provider for PRD parsing       |
+| ai       | coding               | "claude"        | AI provider for task execution    |
+| ai       | timeout              | 300             | Task execution timeout (seconds)  |
+| ai       | prdTimeout           | 1200            | PRD parsing timeout (seconds)     |
+| ai       | maxRetries           | 10              | Maximum retry attempts            |
+| ai       | streamOutput         | true            | Stream AI output to console       |
+| taskMode | autoBranch           | true            | Create feature branches           |
+| taskMode | autoCommit           | true            | Commit on task completion         |
+| taskMode | autonomous           | true            | Run without pausing between tasks |
+| taskMode | maxConsecutiveErrors | 5               | Stop after N consecutive errors   |
+| loop     | maxCallsPerHour      | 100             | Rate limit for AI calls           |
+| loop     | timeoutMinutes       | 15              | Loop timeout in minutes           |
+| loop     | errorDelay           | 10              | Delay after error (seconds)       |
+| paths    | hermesDir            | ".hermes"       | Hermes data directory             |
+| paths    | tasksDir             | ".hermes/tasks" | Task files directory              |
+| paths    | logsDir              | ".hermes/logs"  | Log files directory               |
+| paths    | docsDir              | ".hermes/docs"  | Documentation directory           |
 
 Priority: CLI flag > Project config > Global config (~/.hermes/config.json) > Defaults
 
 ## TUI Keyboard Shortcuts
 
-| Key     | Action                     |
-|---------|----------------------------|
-| 1/2/3/? | Dashboard/Tasks/Logs/Help  |
-| r       | Start execution            |
-| s       | Stop execution             |
-| Shift+R | Refresh                    |
-| j/k     | Scroll                     |
-| q       | Quit                       |
+| Key     | Action                    |
+|---------|---------------------------|
+| 1/2/3/? | Dashboard/Tasks/Logs/Help |
+| r       | Start execution           |
+| s       | Stop execution            |
+| Shift+R | Refresh                   |
+| j/k     | Scroll                    |
+| q       | Quit                      |
 
 ## Circuit Breaker
 
 Prevents runaway execution when no progress is detected.
 
-| State     | Meaning                            |
-|-----------|------------------------------------|
-| CLOSED    | Normal operation                   |
-| HALF_OPEN | Monitoring (2 no-progress loops)   |
-| OPEN      | Halted (requires `hermes reset`)   |
+| State     | Meaning                          |
+|-----------|----------------------------------|
+| CLOSED    | Normal operation                 |
+| HALF_OPEN | Monitoring (2 no-progress loops) |
+| OPEN      | Halted (requires `hermes reset`) |
 
 ## Development
 
@@ -418,6 +419,11 @@ make test
 ```
 
 ## Changelog
+
+### v2.3.5
+
+- Added convertprd command for PRD format conversion
+- Updated dependencies and stability improvements
 
 ### v2.2.3
 
