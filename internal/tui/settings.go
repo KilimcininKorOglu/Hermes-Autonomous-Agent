@@ -12,6 +12,9 @@ import (
 	"hermes/internal/config"
 )
 
+// ConfigSavedMsg is sent when configuration is saved
+type ConfigSavedMsg struct{}
+
 // SettingsModel is the model for the settings screen
 type SettingsModel struct {
 	width      int
@@ -133,6 +136,7 @@ func (m *SettingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.err = err
 				} else {
 					m.saved = true
+					return m, func() tea.Msg { return ConfigSavedMsg{} }
 				}
 			}
 		}

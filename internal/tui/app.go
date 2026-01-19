@@ -127,6 +127,14 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.logs.Refresh()
 		return a, tickCmd() // Schedule next tick
 
+	case ConfigSavedMsg:
+		// Reload config after settings save
+		cfg, err := config.Load(a.basePath)
+		if err == nil {
+			a.config = cfg
+		}
+		return a, nil
+
 	case tea.WindowSizeMsg:
 		a.width = msg.Width
 		a.height = msg.Height
