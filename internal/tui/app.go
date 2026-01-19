@@ -37,6 +37,7 @@ const (
 	ScreenLogs
 	ScreenIdea
 	ScreenPrd
+	ScreenAddFeature
 	ScreenHelp
 )
 
@@ -69,6 +70,7 @@ type App struct {
 	logs       *LogsModel
 	idea       *IdeaModel
 	prd        *PrdModel
+	addFeature *AddFeatureModel
 }
 
 // NewApp creates a new TUI application
@@ -90,6 +92,7 @@ func NewApp(basePath string) (*App, error) {
 		logs:       NewLogsModel(basePath),
 		idea:       NewIdeaModel(basePath),
 		prd:        NewPrdModel(basePath),
+		addFeature: NewAddFeatureModel(basePath),
 	}, nil
 }
 
@@ -122,6 +125,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.logs.SetSize(msg.Width, msg.Height-4)
 		a.idea.SetSize(msg.Width, msg.Height-4)
 		a.prd.SetSize(msg.Width, msg.Height-4)
+		a.addFeature.SetSize(msg.Width, msg.Height-4)
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -137,6 +141,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.screen = ScreenIdea
 		case "5":
 			a.screen = ScreenPrd
+		case "6":
+			a.screen = ScreenAddFeature
 		case "?":
 			a.screen = ScreenHelp
 		case "enter":
@@ -214,6 +220,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var model tea.Model
 		model, cmd = a.prd.Update(msg)
 		a.prd = model.(*PrdModel)
+	case ScreenAddFeature:
+		var model tea.Model
+		model, cmd = a.addFeature.Update(msg)
+		a.addFeature = model.(*AddFeatureModel)
 	}
 
 	return a, cmd
@@ -239,6 +249,8 @@ func (a App) View() string {
 		content = a.idea.View()
 	case ScreenPrd:
 		content = a.prd.View()
+	case ScreenAddFeature:
+		content = a.addFeature.View()
 	case ScreenHelp:
 		content = a.helpView()
 	}
@@ -268,7 +280,7 @@ func (a App) footerView() string {
 		Foreground(lipgloss.Color("241")).
 		Width(a.width)
 
-	help := "[1]Dashboard [2]Tasks [3]Logs [4]Idea [5]PRD [?]Help [r]Run [q]Quit"
+	help := "[1]Dashboard [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [?]Help [q]Quit"
 	if a.running {
 		help = "[RUNNING] " + a.runStatus + " | [s]Stop [q]Quit"
 	}
@@ -288,6 +300,7 @@ Navigation:
   3           Logs screen
   4           Idea/PRD generator screen
   5           PRD parser screen
+  6           Add feature screen
   ?           This help screen
   Esc         Back to previous screen
 
@@ -320,6 +333,10 @@ Idea:
 PRD Parser:
   Tab         Navigate between fields
   Space/Enter Select option or parse
+
+Add Feature:
+  Tab         Navigate between fields
+  Space/Enter Select option or add
 
 Press any key to return...
 `
