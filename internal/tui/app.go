@@ -1,17 +1,12 @@
 package tui
 
 import (
-	"context"
-	"fmt"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"hermes/internal/ai"
-	"hermes/internal/analyzer"
 	"hermes/internal/circuit"
 	"hermes/internal/config"
-	"hermes/internal/prompt"
 	"hermes/internal/task"
 )
 
@@ -42,15 +37,9 @@ const (
 	ScreenCircuit
 	ScreenUpdate
 	ScreenInit
+	ScreenRun
 	ScreenHelp
 )
-
-// runResultMsg is sent when a task execution completes
-type runResultMsg struct {
-	taskID  string
-	success bool
-	err     error
-}
 
 // App is the main TUI model
 type App struct {
@@ -62,10 +51,6 @@ type App struct {
 	config     *config.Config
 	taskReader *task.Reader
 	breaker    *circuit.Breaker
-	running    bool   // Is run loop active?
-	runStatus  string
-	runCancel  context.CancelFunc
-	loopCount  int
 
 	// Sub-models
 	dashboard  *DashboardModel
@@ -79,6 +64,7 @@ type App struct {
 	circuit    *CircuitBreakerModel
 	update     *UpdateModel
 	initProj   *InitModel
+	run        *RunModel
 }
 
 // NewApp creates a new TUI application
@@ -105,6 +91,7 @@ func NewApp(basePath string, version string) (*App, error) {
 		circuit:    NewCircuitBreakerModel(basePath),
 		update:     NewUpdateModel(version),
 		initProj:   NewInitModel(),
+		run:        NewRunModel(basePath),
 	}, nil
 }
 
@@ -150,6 +137,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.circuit.SetSize(msg.Width, msg.Height-4)
 		a.update.SetSize(msg.Width, msg.Height-4)
 		a.initProj.SetSize(msg.Width, msg.Height-4)
+		a.run.SetSize(msg.Width, msg.Height-4)
 
 	case tea.KeyMsg:
 		// Check if text input is focused on current screen
@@ -233,31 +221,15 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.tasks.Refresh()
 			a.logs.Refresh()
 		case "r":
-			// Start run
-			if !a.running {
-				a.running = true
-				a.loopCount = 0
-				a.runStatus = "Starting..."
-				return a, a.startRun()
-			}
+			// Go to Run screen
+			a.screen = ScreenRun
+			a.run.Refresh()
+			return a, nil
 		case "s":
-			// Stop run
-			if a.running && a.runCancel != nil {
-				a.runCancel()
-				a.running = false
-				a.runStatus = ""
+			// Stop run (if running)
+			if a.run.IsRunning() {
+				a.run.Stop()
 			}
-		}
-
-	case runResultMsg:
-		if msg.err != nil {
-			a.runStatus = fmt.Sprintf("Error: %v", msg.err)
-		} else if msg.success {
-			a.runStatus = fmt.Sprintf("Completed: %s", msg.taskID)
-		}
-		// Continue to next task
-		if a.running {
-			return a, a.startRun()
 		}
 	}
 
@@ -308,6 +280,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var model tea.Model
 		model, cmd = a.initProj.Update(msg)
 		a.initProj = model.(*InitModel)
+	case ScreenRun:
+		var model tea.Model
+		model, cmd = a.run.Update(msg)
+		a.run = model.(*RunModel)
 	}
 
 	return a, cmd
@@ -343,6 +319,8 @@ func (a App) View() string {
 		content = a.update.View()
 	case ScreenInit:
 		content = a.initProj.View()
+	case ScreenRun:
+		content = a.run.View()
 	case ScreenHelp:
 		content = a.helpView()
 	}
@@ -372,9 +350,9 @@ func (a App) footerView() string {
 		Foreground(lipgloss.Color("241")).
 		Width(a.width)
 
-	help := "[1]Dash [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [7]Set [8]CB [9]Upd [0]Init [?]Help [q]"
-	if a.running {
-		help = "[RUNNING] " + a.runStatus + " | [s]Stop [q]Quit"
+	help := "[1]Dash [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [7]Set [8]CB [9]Upd [0]Init [r]Run [?]Help [q]"
+	if a.run.IsRunning() {
+		help = "[RUNNING] " + a.run.status + " | [s]Stop [q]Quit"
 	}
 	return style.Render(help)
 }
@@ -397,12 +375,12 @@ Navigation:
   8           Circuit breaker screen
   9           Update screen
   0           Initialize project screen
+  r           Run tasks screen
   ?           This help screen
   Esc         Back to previous screen
 
 Actions:
-  r           Start task execution
-  s           Stop execution
+  s           Stop execution (when running)
   Shift+R     Manual refresh
   Enter       Open task detail (from Tasks)
   j/k         Move up/down
@@ -450,84 +428,12 @@ Init:
   Tab         Navigate between fields
   Space/Enter Initialize project
 
+Run:
+  Space/Enter Start/Stop run
+  p           Pause/Resume
+  s/Esc       Stop execution
+
 Press any key to return...
 `
 	return style.Render(help)
-}
-
-// startRun starts executing the next task
-func (a *App) startRun() tea.Cmd {
-	return func() tea.Msg {
-		ctx, cancel := context.WithCancel(context.Background())
-		a.runCancel = cancel
-
-		// Check circuit breaker
-		canExecute, _ := a.breaker.CanExecute()
-		if !canExecute {
-			a.running = false
-			return runResultMsg{err: fmt.Errorf("circuit breaker open")}
-		}
-
-		// Get next task
-		nextTask, err := a.taskReader.GetNextTask()
-		if err != nil {
-			return runResultMsg{err: err}
-		}
-		if nextTask == nil {
-			a.running = false
-			return runResultMsg{err: fmt.Errorf("all tasks completed")}
-		}
-
-		a.loopCount++
-		a.runStatus = fmt.Sprintf("Loop #%d: %s", a.loopCount, nextTask.ID)
-
-		// Inject task into prompt
-		injector := prompt.NewInjector(a.basePath)
-		injector.AddTask(nextTask)
-		promptContent, _ := injector.Read()
-
-		// Execute AI
-		cfg, _ := config.Load(a.basePath)
-		streamOutput := true
-		var provider ai.Provider
-		if cfg != nil {
-			streamOutput = cfg.AI.StreamOutput
-			// Use coding provider from config
-			if cfg.AI.Coding != "" {
-				provider = ai.GetProvider(cfg.AI.Coding)
-			}
-		}
-		// Fallback to auto-detect if provider not found
-		if provider == nil || !provider.IsAvailable() {
-			provider = ai.AutoDetectProvider()
-		}
-		if provider == nil {
-			a.running = false
-			return runResultMsg{err: fmt.Errorf("no AI provider available")}
-		}
-		executor := ai.NewTaskExecutor(provider, a.basePath)
-		result, err := executor.ExecuteTask(ctx, nextTask, promptContent, streamOutput)
-
-		if err != nil {
-			a.breaker.AddLoopResult(false, true, a.loopCount)
-			return runResultMsg{taskID: nextTask.ID, err: err}
-		}
-
-		// Analyze response
-		respAnalyzer := analyzer.NewResponseAnalyzer()
-		analysis := respAnalyzer.Analyze(result.Output)
-
-		// Update circuit breaker
-		a.breaker.AddLoopResult(analysis.HasProgress, false, a.loopCount)
-
-		// Update task status if complete
-		if analysis.IsComplete {
-			statusUpdater := task.NewStatusUpdater(a.basePath)
-			statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusCompleted)
-			injector.RemoveTask()
-			return runResultMsg{taskID: nextTask.ID, success: true}
-		}
-
-		return runResultMsg{taskID: nextTask.ID, success: false}
-	}
 }
