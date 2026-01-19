@@ -16,6 +16,7 @@ type AIConfig struct {
 	Timeout      int    `json:"timeout" mapstructure:"timeout"`
 	PrdTimeout   int    `json:"prdTimeout" mapstructure:"prdTimeout"`
 	MaxRetries   int    `json:"maxRetries" mapstructure:"maxRetries"`
+	RetryDelay   int    `json:"retryDelay" mapstructure:"retryDelay"`
 	StreamOutput bool   `json:"streamOutput" mapstructure:"streamOutput"`
 }
 

@@ -27,7 +27,7 @@ type SettingsModel struct {
 	err        error
 }
 
-const maxFocusIndex = 27 // Total number of settings + save button
+const maxFocusIndex = 28 // Total number of settings + save button
 
 // NewSettingsModel creates a new settings model
 func NewSettingsModel(basePath string) *SettingsModel {
@@ -130,55 +130,57 @@ func (m *SettingsModel) handleSelect() tea.Cmd {
 		if m.config.AI.MaxRetries > 15 {
 			m.config.AI.MaxRetries = 1
 		}
+	case 6: // Retry Delay
+		m.cycleIntOption(&m.config.AI.RetryDelay, []int{3, 5, 10, 15, 30})
 
 	// Task Mode
-	case 6: // Auto Branch
+	case 7: // Auto Branch
 		m.config.TaskMode.AutoBranch = !m.config.TaskMode.AutoBranch
-	case 7: // Auto Commit
+	case 8: // Auto Commit
 		m.config.TaskMode.AutoCommit = !m.config.TaskMode.AutoCommit
-	case 8: // Autonomous
+	case 9: // Autonomous
 		m.config.TaskMode.Autonomous = !m.config.TaskMode.Autonomous
-	case 9: // Max Consecutive Errors
+	case 10: // Max Consecutive Errors
 		m.config.TaskMode.MaxConsecutiveErrors++
 		if m.config.TaskMode.MaxConsecutiveErrors > 10 {
 			m.config.TaskMode.MaxConsecutiveErrors = 1
 		}
 
 	// Loop Configuration
-	case 10: // Max Calls Per Hour
+	case 11: // Max Calls Per Hour
 		m.cycleIntOption(&m.config.Loop.MaxCallsPerHour, []int{50, 100, 200, 500, 1000})
-	case 11: // Timeout Minutes
+	case 12: // Timeout Minutes
 		m.cycleIntOption(&m.config.Loop.TimeoutMinutes, []int{5, 10, 15, 30, 60})
-	case 12: // Error Delay
+	case 13: // Error Delay
 		m.cycleIntOption(&m.config.Loop.ErrorDelay, []int{5, 10, 30, 60})
 
 	// Paths Configuration
-	case 13: // Hermes Dir
+	case 14: // Hermes Dir
 		m.cycleStringOption(&m.config.Paths.HermesDir, []string{".hermes", ".ai", ".agent"})
-	case 14: // Tasks Dir
+	case 15: // Tasks Dir
 		m.cycleStringOption(&m.config.Paths.TasksDir, []string{".hermes/tasks", ".ai/tasks", "tasks"})
-	case 15: // Logs Dir
+	case 16: // Logs Dir
 		m.cycleStringOption(&m.config.Paths.LogsDir, []string{".hermes/logs", ".ai/logs", "logs"})
-	case 16: // Docs Dir
+	case 17: // Docs Dir
 		m.cycleStringOption(&m.config.Paths.DocsDir, []string{".hermes/docs", ".ai/docs", "docs"})
 
 	// Parallel Configuration
-	case 17: // Enabled
+	case 18: // Enabled
 		m.config.Parallel.Enabled = !m.config.Parallel.Enabled
-	case 18: // Max Workers
+	case 19: // Max Workers
 		m.config.Parallel.MaxWorkers++
 		if m.config.Parallel.MaxWorkers > 10 {
 			m.config.Parallel.MaxWorkers = 1
 		}
-	case 19: // Strategy
+	case 20: // Strategy
 		m.cycleStringOption(&m.config.Parallel.Strategy, parallelStrategies)
-	case 20: // Conflict Resolution
+	case 21: // Conflict Resolution
 		m.cycleStringOption(&m.config.Parallel.ConflictResolution, conflictStrategies)
-	case 21: // Isolated Workspaces
+	case 22: // Isolated Workspaces
 		m.config.Parallel.IsolatedWorkspaces = !m.config.Parallel.IsolatedWorkspaces
-	case 22: // Merge Strategy
+	case 23: // Merge Strategy
 		m.cycleStringOption(&m.config.Parallel.MergeStrategy, mergeStrategies)
-	case 23: // Max Cost Per Hour
+	case 24: // Max Cost Per Hour
 		costs := []float64{0, 1, 5, 10, 25, 50, 100}
 		for i, c := range costs {
 			if c == m.config.Parallel.MaxCostPerHour {
@@ -187,16 +189,16 @@ func (m *SettingsModel) handleSelect() tea.Cmd {
 			}
 		}
 		m.config.Parallel.MaxCostPerHour = 0
-	case 24: // Failure Strategy
+	case 25: // Failure Strategy
 		m.cycleStringOption(&m.config.Parallel.FailureStrategy, strategies)
-	case 25: // Parallel Max Retries
+	case 26: // Parallel Max Retries
 		m.config.Parallel.MaxRetries++
 		if m.config.Parallel.MaxRetries > 5 {
 			m.config.Parallel.MaxRetries = 0
 		}
 
 	// Save Button
-	case 26, 27:
+	case 27, 28:
 		err := m.saveConfig()
 		if err != nil {
 			m.err = err
@@ -270,54 +272,55 @@ func (m *SettingsModel) View() string {
 	m.renderOption(&b, 3, labelStyle, selectedStyle, valueStyle, "Timeout:", fmt.Sprintf("%ds", m.config.AI.Timeout))
 	m.renderOption(&b, 4, labelStyle, selectedStyle, valueStyle, "PRD Timeout:", fmt.Sprintf("%ds", m.config.AI.PrdTimeout))
 	m.renderOption(&b, 5, labelStyle, selectedStyle, valueStyle, "Max Retries:", fmt.Sprintf("%d", m.config.AI.MaxRetries))
+	m.renderOption(&b, 6, labelStyle, selectedStyle, valueStyle, "Retry Delay:", fmt.Sprintf("%ds", m.config.AI.RetryDelay))
 
 	// Task Mode
 	b.WriteString("\n")
 	b.WriteString(sectionStyle.Render("Task Mode"))
 	b.WriteString("\n")
-	m.renderBoolOption(&b, 6, labelStyle, selectedStyle, "Auto Branch:", m.config.TaskMode.AutoBranch)
-	m.renderBoolOption(&b, 7, labelStyle, selectedStyle, "Auto Commit:", m.config.TaskMode.AutoCommit)
-	m.renderBoolOption(&b, 8, labelStyle, selectedStyle, "Autonomous:", m.config.TaskMode.Autonomous)
-	m.renderOption(&b, 9, labelStyle, selectedStyle, valueStyle, "Max Consecutive Errors:", fmt.Sprintf("%d", m.config.TaskMode.MaxConsecutiveErrors))
+	m.renderBoolOption(&b, 7, labelStyle, selectedStyle, "Auto Branch:", m.config.TaskMode.AutoBranch)
+	m.renderBoolOption(&b, 8, labelStyle, selectedStyle, "Auto Commit:", m.config.TaskMode.AutoCommit)
+	m.renderBoolOption(&b, 9, labelStyle, selectedStyle, "Autonomous:", m.config.TaskMode.Autonomous)
+	m.renderOption(&b, 10, labelStyle, selectedStyle, valueStyle, "Max Consecutive Errors:", fmt.Sprintf("%d", m.config.TaskMode.MaxConsecutiveErrors))
 
 	// Loop Configuration
 	b.WriteString("\n")
 	b.WriteString(sectionStyle.Render("Loop Configuration"))
 	b.WriteString("\n")
-	m.renderOption(&b, 10, labelStyle, selectedStyle, valueStyle, "Max Calls Per Hour:", fmt.Sprintf("%d", m.config.Loop.MaxCallsPerHour))
-	m.renderOption(&b, 11, labelStyle, selectedStyle, valueStyle, "Timeout Minutes:", fmt.Sprintf("%d", m.config.Loop.TimeoutMinutes))
-	m.renderOption(&b, 12, labelStyle, selectedStyle, valueStyle, "Error Delay:", fmt.Sprintf("%ds", m.config.Loop.ErrorDelay))
+	m.renderOption(&b, 11, labelStyle, selectedStyle, valueStyle, "Max Calls Per Hour:", fmt.Sprintf("%d", m.config.Loop.MaxCallsPerHour))
+	m.renderOption(&b, 12, labelStyle, selectedStyle, valueStyle, "Timeout Minutes:", fmt.Sprintf("%d", m.config.Loop.TimeoutMinutes))
+	m.renderOption(&b, 13, labelStyle, selectedStyle, valueStyle, "Error Delay:", fmt.Sprintf("%ds", m.config.Loop.ErrorDelay))
 
 	// Paths Configuration
 	b.WriteString("\n")
 	b.WriteString(sectionStyle.Render("Paths"))
 	b.WriteString("\n")
-	m.renderOption(&b, 13, labelStyle, selectedStyle, valueStyle, "Hermes Dir:", m.config.Paths.HermesDir)
-	m.renderOption(&b, 14, labelStyle, selectedStyle, valueStyle, "Tasks Dir:", m.config.Paths.TasksDir)
-	m.renderOption(&b, 15, labelStyle, selectedStyle, valueStyle, "Logs Dir:", m.config.Paths.LogsDir)
-	m.renderOption(&b, 16, labelStyle, selectedStyle, valueStyle, "Docs Dir:", m.config.Paths.DocsDir)
+	m.renderOption(&b, 14, labelStyle, selectedStyle, valueStyle, "Hermes Dir:", m.config.Paths.HermesDir)
+	m.renderOption(&b, 15, labelStyle, selectedStyle, valueStyle, "Tasks Dir:", m.config.Paths.TasksDir)
+	m.renderOption(&b, 16, labelStyle, selectedStyle, valueStyle, "Logs Dir:", m.config.Paths.LogsDir)
+	m.renderOption(&b, 17, labelStyle, selectedStyle, valueStyle, "Docs Dir:", m.config.Paths.DocsDir)
 
 	// Parallel Execution
 	b.WriteString("\n")
 	b.WriteString(sectionStyle.Render("Parallel Execution"))
 	b.WriteString("\n")
-	m.renderBoolOption(&b, 17, labelStyle, selectedStyle, "Enabled:", m.config.Parallel.Enabled)
-	m.renderOption(&b, 18, labelStyle, selectedStyle, valueStyle, "Max Workers:", fmt.Sprintf("%d", m.config.Parallel.MaxWorkers))
-	m.renderOption(&b, 19, labelStyle, selectedStyle, valueStyle, "Strategy:", m.config.Parallel.Strategy)
-	m.renderOption(&b, 20, labelStyle, selectedStyle, valueStyle, "Conflict Resolution:", m.config.Parallel.ConflictResolution)
-	m.renderBoolOption(&b, 21, labelStyle, selectedStyle, "Isolated Workspaces:", m.config.Parallel.IsolatedWorkspaces)
-	m.renderOption(&b, 22, labelStyle, selectedStyle, valueStyle, "Merge Strategy:", m.config.Parallel.MergeStrategy)
+	m.renderBoolOption(&b, 18, labelStyle, selectedStyle, "Enabled:", m.config.Parallel.Enabled)
+	m.renderOption(&b, 19, labelStyle, selectedStyle, valueStyle, "Max Workers:", fmt.Sprintf("%d", m.config.Parallel.MaxWorkers))
+	m.renderOption(&b, 20, labelStyle, selectedStyle, valueStyle, "Strategy:", m.config.Parallel.Strategy)
+	m.renderOption(&b, 21, labelStyle, selectedStyle, valueStyle, "Conflict Resolution:", m.config.Parallel.ConflictResolution)
+	m.renderBoolOption(&b, 22, labelStyle, selectedStyle, "Isolated Workspaces:", m.config.Parallel.IsolatedWorkspaces)
+	m.renderOption(&b, 23, labelStyle, selectedStyle, valueStyle, "Merge Strategy:", m.config.Parallel.MergeStrategy)
 	costStr := "No Limit"
 	if m.config.Parallel.MaxCostPerHour > 0 {
 		costStr = fmt.Sprintf("$%.0f", m.config.Parallel.MaxCostPerHour)
 	}
-	m.renderOption(&b, 23, labelStyle, selectedStyle, valueStyle, "Max Cost Per Hour:", costStr)
-	m.renderOption(&b, 24, labelStyle, selectedStyle, valueStyle, "Failure Strategy:", m.config.Parallel.FailureStrategy)
-	m.renderOption(&b, 25, labelStyle, selectedStyle, valueStyle, "Max Retries:", fmt.Sprintf("%d", m.config.Parallel.MaxRetries))
+	m.renderOption(&b, 24, labelStyle, selectedStyle, valueStyle, "Max Cost Per Hour:", costStr)
+	m.renderOption(&b, 25, labelStyle, selectedStyle, valueStyle, "Failure Strategy:", m.config.Parallel.FailureStrategy)
+	m.renderOption(&b, 26, labelStyle, selectedStyle, valueStyle, "Max Retries:", fmt.Sprintf("%d", m.config.Parallel.MaxRetries))
 
 	// Save Button
 	b.WriteString("\n\n")
-	if m.focusIndex == 26 || m.focusIndex == 27 {
+	if m.focusIndex == 27 || m.focusIndex == 28 {
 		b.WriteString(selectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")

@@ -93,7 +93,7 @@ func addExecute(featureDesc string, opts *addOptions) error {
 		StreamOutput: cfg.AI.StreamOutput,
 	}, &ai.RetryConfig{
 		MaxRetries: cfg.AI.MaxRetries,
-		Delay:      5 * time.Second,
+		Delay:      time.Duration(cfg.AI.RetryDelay) * time.Second,
 	})
 
 	if err != nil {

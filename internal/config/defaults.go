@@ -9,6 +9,7 @@ func DefaultConfig() *Config {
 			Timeout:      300,
 			PrdTimeout:   1200,
 			MaxRetries:   10,
+			RetryDelay:   5,
 			StreamOutput: true,
 		},
 		TaskMode: TaskModeConfig{

@@ -105,7 +105,7 @@ func prdExecute(prdFile string, opts *prdOptions) error {
 		StreamOutput: cfg.AI.StreamOutput,
 	}, &ai.RetryConfig{
 		MaxRetries: cfg.AI.MaxRetries,
-		Delay:      10 * time.Second,
+		Delay:      time.Duration(cfg.AI.RetryDelay) * time.Second,
 	})
 
 	duration := time.Since(startTime)

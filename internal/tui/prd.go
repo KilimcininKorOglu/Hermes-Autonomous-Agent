@@ -260,7 +260,7 @@ func (m *PrdModel) parsePRD(prdPath string) tea.Cmd {
 			StreamOutput: false,
 		}, &ai.RetryConfig{
 			MaxRetries: cfg.AI.MaxRetries,
-			Delay:      5 * time.Second,
+			Delay:      time.Duration(cfg.AI.RetryDelay) * time.Second,
 		})
 
 		if err != nil {

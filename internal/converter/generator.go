@@ -82,7 +82,7 @@ func (g *Generator) Generate(ctx context.Context, opts GenerateOptions) (*Genera
 		StreamOutput: g.config.AI.StreamOutput,
 	}, &ai.RetryConfig{
 		MaxRetries: g.config.AI.MaxRetries,
-		Delay:      5 * time.Second,
+		Delay:      time.Duration(g.config.AI.RetryDelay) * time.Second,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("AI execution failed: %w", err)
