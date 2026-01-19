@@ -152,29 +152,53 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.initProj.SetSize(msg.Width, msg.Height-4)
 
 	case tea.KeyMsg:
+		// Don't handle number keys for navigation on text input screens
+		isTextInputScreen := a.screen == ScreenIdea || a.screen == ScreenPrd || 
+			a.screen == ScreenAddFeature || a.screen == ScreenInit
+		
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return a, tea.Quit
 		case "1":
-			a.screen = ScreenDashboard
+			if !isTextInputScreen {
+				a.screen = ScreenDashboard
+			}
 		case "2":
-			a.screen = ScreenTasks
+			if !isTextInputScreen {
+				a.screen = ScreenTasks
+			}
 		case "3":
-			a.screen = ScreenLogs
+			if !isTextInputScreen {
+				a.screen = ScreenLogs
+			}
 		case "4":
-			a.screen = ScreenIdea
+			if !isTextInputScreen {
+				a.screen = ScreenIdea
+			}
 		case "5":
-			a.screen = ScreenPrd
+			if !isTextInputScreen {
+				a.screen = ScreenPrd
+			}
 		case "6":
-			a.screen = ScreenAddFeature
+			if !isTextInputScreen {
+				a.screen = ScreenAddFeature
+			}
 		case "7":
-			a.screen = ScreenSettings
+			if !isTextInputScreen {
+				a.screen = ScreenSettings
+			}
 		case "8":
-			a.screen = ScreenCircuit
+			if !isTextInputScreen {
+				a.screen = ScreenCircuit
+			}
 		case "9":
-			a.screen = ScreenUpdate
+			if !isTextInputScreen {
+				a.screen = ScreenUpdate
+			}
 		case "0":
-			a.screen = ScreenInit
+			if !isTextInputScreen {
+				a.screen = ScreenInit
+			}
 		case "?":
 			a.screen = ScreenHelp
 		case "enter":
