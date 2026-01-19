@@ -36,6 +36,7 @@ const (
 	ScreenTaskDetail
 	ScreenLogs
 	ScreenIdea
+	ScreenPrd
 	ScreenHelp
 )
 
@@ -67,6 +68,7 @@ type App struct {
 	taskDetail *TaskDetailModel
 	logs       *LogsModel
 	idea       *IdeaModel
+	prd        *PrdModel
 }
 
 // NewApp creates a new TUI application
@@ -87,6 +89,7 @@ func NewApp(basePath string) (*App, error) {
 		taskDetail: NewTaskDetailModel(basePath),
 		logs:       NewLogsModel(basePath),
 		idea:       NewIdeaModel(basePath),
+		prd:        NewPrdModel(basePath),
 	}, nil
 }
 
@@ -118,6 +121,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.taskDetail.SetSize(msg.Width, msg.Height-4)
 		a.logs.SetSize(msg.Width, msg.Height-4)
 		a.idea.SetSize(msg.Width, msg.Height-4)
+		a.prd.SetSize(msg.Width, msg.Height-4)
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -131,6 +135,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.screen = ScreenLogs
 		case "4":
 			a.screen = ScreenIdea
+		case "5":
+			a.screen = ScreenPrd
 		case "?":
 			a.screen = ScreenHelp
 		case "enter":
@@ -204,6 +210,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var model tea.Model
 		model, cmd = a.idea.Update(msg)
 		a.idea = model.(*IdeaModel)
+	case ScreenPrd:
+		var model tea.Model
+		model, cmd = a.prd.Update(msg)
+		a.prd = model.(*PrdModel)
 	}
 
 	return a, cmd
@@ -227,6 +237,8 @@ func (a App) View() string {
 		content = a.logs.View()
 	case ScreenIdea:
 		content = a.idea.View()
+	case ScreenPrd:
+		content = a.prd.View()
 	case ScreenHelp:
 		content = a.helpView()
 	}
@@ -256,7 +268,7 @@ func (a App) footerView() string {
 		Foreground(lipgloss.Color("241")).
 		Width(a.width)
 
-	help := "[1]Dashboard [2]Tasks [3]Logs [4]Idea [?]Help [r]Run [Shift+R]Refresh [q]Quit"
+	help := "[1]Dashboard [2]Tasks [3]Logs [4]Idea [5]PRD [?]Help [r]Run [q]Quit"
 	if a.running {
 		help = "[RUNNING] " + a.runStatus + " | [s]Stop [q]Quit"
 	}
@@ -275,6 +287,7 @@ Navigation:
   2           Tasks screen
   3           Logs screen
   4           Idea/PRD generator screen
+  5           PRD parser screen
   ?           This help screen
   Esc         Back to previous screen
 
@@ -303,6 +316,10 @@ Idea:
   Tab         Navigate between fields
   Space/Enter Select option or generate
   l           Toggle language (en/tr)
+
+PRD Parser:
+  Tab         Navigate between fields
+  Space/Enter Select option or parse
 
 Press any key to return...
 `
