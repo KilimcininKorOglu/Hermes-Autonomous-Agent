@@ -1,14 +1,17 @@
 package ai
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"time"
-
-	claudecode "github.com/severity1/claude-code-sdk-go"
 )
 
-// ClaudeProvider implements Provider using claude-code-sdk-go
+// ClaudeProvider implements Provider using Claude CLI
 type ClaudeProvider struct{}
 
 // NewClaudeProvider creates a new Claude provider
@@ -27,36 +30,107 @@ func (p *ClaudeProvider) IsAvailable() bool {
 	return err == nil
 }
 
+// claudeStreamEvent represents a JSON event from claude stream output
+// Claude CLI stream-json format event types:
+// - "assistant": AI responses with content[] containing text and tool_use blocks
+// - "user": Tool results
+// - "system": Hooks, init data
+// - "result": Final result summary
+type claudeStreamEvent struct {
+	Type    string `json:"type"`
+	Subtype string `json:"subtype,omitempty"`
+	Message struct {
+		Role    string `json:"role,omitempty"`
+		Content []struct {
+			Type      string                 `json:"type"`
+			Text      string                 `json:"text,omitempty"`
+			ID        string                 `json:"id,omitempty"`
+			Name      string                 `json:"name,omitempty"`
+			Input     map[string]interface{} `json:"input,omitempty"`
+			ToolUseID string                 `json:"tool_use_id,omitempty"`
+			Content   string                 `json:"content,omitempty"`
+			IsError   bool                   `json:"is_error,omitempty"`
+		} `json:"content,omitempty"`
+	} `json:"message,omitempty"`
+	CostUSD    float64 `json:"cost_usd,omitempty"`
+	DurationMs int64   `json:"duration_ms,omitempty"`
+	Result     string  `json:"result,omitempty"`
+}
+
 // Execute runs a prompt and returns the result
 func (p *ClaudeProvider) Execute(ctx context.Context, opts *ExecuteOptions) (*ExecuteResult, error) {
 	start := time.Now()
 
-	// Build SDK options
-	sdkOpts := p.buildOptions(opts)
+	// Build command args
+	args := []string{"--print", "--verbose", "--output-format", "stream-json", "--dangerously-skip-permissions"}
 
-	// Execute query using SDK - returns MessageIterator
-	iter, err := claudecode.Query(ctx, opts.Prompt, sdkOpts...)
+	cmd := exec.CommandContext(ctx, "claude", args...)
+
+	if opts.WorkDir != "" {
+		cmd.Dir = opts.WorkDir
+	}
+
+	// Get stdin pipe to send prompt
+	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		return &ExecuteResult{
-			Success:  false,
-			Error:    err.Error(),
-			Duration: time.Since(start).Seconds(),
-		}, err
+		return nil, fmt.Errorf("failed to get stdin pipe: %w", err)
 	}
 
-	// Process messages to extract result
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get stdout pipe: %w", err)
+	}
+
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("failed to start claude: %w", err)
+	}
+
+	// Send prompt via stdin
+	go func() {
+		defer stdin.Close()
+		io.WriteString(stdin, opts.Prompt)
+	}()
+
 	result := &ExecuteResult{
-		Duration: time.Since(start).Seconds(),
-		Success:  true,
+		Success: true,
 	}
 
-	// Iterate through messages
-	for {
-		msg, err := iter.Next(ctx)
-		if err != nil {
-			break // No more messages or error
+	scanner := bufio.NewScanner(stdout)
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, 1024*1024)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		var event claudeStreamEvent
+		if err := json.Unmarshal([]byte(line), &event); err != nil {
+			continue
 		}
-		p.processMessage(msg, result)
+
+		switch event.Type {
+		case "assistant":
+			for _, content := range event.Message.Content {
+				if content.Type == "text" && content.Text != "" {
+					result.Output += content.Text
+				}
+			}
+		case "result":
+			if event.Result != "" {
+				result.Output = event.Result
+			}
+			result.Cost = event.CostUSD
+			result.Duration = float64(event.DurationMs) / 1000
+		}
+	}
+
+	if err := cmd.Wait(); err != nil {
+		result.Success = false
+		result.Error = err.Error()
+	}
+
+	if result.Duration == 0 {
+		result.Duration = time.Since(start).Seconds()
 	}
 
 	return result, nil
@@ -69,117 +143,102 @@ func (p *ClaudeProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptions
 	go func() {
 		defer close(events)
 
-		sdkOpts := p.buildOptions(opts)
+		// Build command args
+		args := []string{"--print", "--verbose", "--output-format", "stream-json", "--dangerously-skip-permissions"}
 
-		// Use WithClient for streaming
-		err := claudecode.WithClient(ctx, func(client claudecode.Client) error {
-			// Send query
-			if err := client.Query(ctx, opts.Prompt); err != nil {
-				return err
-			}
+		cmd := exec.CommandContext(ctx, "claude", args...)
 
-			// Receive response
-			iter := client.ReceiveResponse(ctx)
-			for {
-				msg, err := iter.Next(ctx)
-				if err != nil {
-					break
-				}
-				p.processStreamMessage(msg, events)
-			}
-			return nil
-		}, sdkOpts...)
+		if opts.WorkDir != "" {
+			cmd.Dir = opts.WorkDir
+		}
 
+		stdin, err := cmd.StdinPipe()
 		if err != nil {
-			events <- StreamEvent{
-				Type: "error",
-				Text: err.Error(),
+			events <- StreamEvent{Type: "error", Text: err.Error()}
+			return
+		}
+
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			events <- StreamEvent{Type: "error", Text: err.Error()}
+			return
+		}
+
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Start(); err != nil {
+			events <- StreamEvent{Type: "error", Text: err.Error()}
+			return
+		}
+
+		// Send prompt via stdin
+		go func() {
+			defer stdin.Close()
+			io.WriteString(stdin, opts.Prompt)
+		}()
+
+		scanner := bufio.NewScanner(stdout)
+		buf := make([]byte, 0, 64*1024)
+		scanner.Buffer(buf, 1024*1024)
+
+		for scanner.Scan() {
+			line := scanner.Text()
+			var cEvent claudeStreamEvent
+			if err := json.Unmarshal([]byte(line), &cEvent); err != nil {
+				continue
 			}
+
+			switch cEvent.Type {
+			case "system":
+				events <- StreamEvent{
+					Type:  "system",
+					Model: cEvent.Subtype,
+				}
+			case "assistant":
+				for _, content := range cEvent.Message.Content {
+					switch content.Type {
+					case "text":
+						if content.Text != "" {
+							events <- StreamEvent{
+								Type: "text",
+								Text: content.Text,
+							}
+						}
+					case "tool_use":
+						events <- StreamEvent{
+							Type:      "tool_use",
+							ToolName:  content.Name,
+							ToolID:    content.ID,
+							ToolInput: content.Input,
+						}
+					}
+				}
+			case "user":
+				// Tool results come in user messages
+				for _, content := range cEvent.Message.Content {
+					if content.Type == "tool_result" {
+						events <- StreamEvent{
+							Type:       "tool_result",
+							ToolID:     content.ToolUseID,
+							ToolOutput: content.Content,
+							ToolError:  func() string { if content.IsError { return content.Content } else { return "" } }(),
+						}
+					}
+				}
+			case "result":
+				events <- StreamEvent{
+					Type:     "result",
+					Text:     cEvent.Result,
+					Cost:     cEvent.CostUSD,
+					Duration: float64(cEvent.DurationMs) / 1000,
+				}
+			}
+		}
+
+		if err := cmd.Wait(); err != nil {
+			events <- StreamEvent{Type: "error", Text: err.Error()}
 		}
 	}()
 
 	return events, nil
-}
-
-func (p *ClaudeProvider) buildOptions(opts *ExecuteOptions) []claudecode.Option {
-	sdkOpts := []claudecode.Option{
-		claudecode.WithPermissionMode(claudecode.PermissionModeBypassPermissions),
-	}
-
-	if opts.WorkDir != "" {
-		sdkOpts = append(sdkOpts, claudecode.WithCwd(opts.WorkDir))
-	}
-
-	if len(opts.Tools) > 0 {
-		sdkOpts = append(sdkOpts, claudecode.WithAllowedTools(opts.Tools...))
-	}
-
-	if opts.MaxTurns > 0 {
-		sdkOpts = append(sdkOpts, claudecode.WithMaxTurns(opts.MaxTurns))
-	}
-
-	if opts.SystemPrompt != "" {
-		sdkOpts = append(sdkOpts, claudecode.WithSystemPrompt(opts.SystemPrompt))
-	}
-
-	return sdkOpts
-}
-
-func (p *ClaudeProvider) processMessage(msg claudecode.Message, result *ExecuteResult) {
-	switch m := msg.(type) {
-	case *claudecode.AssistantMessage:
-		for _, block := range m.Content {
-			if tb, ok := block.(*claudecode.TextBlock); ok {
-				result.Output += tb.Text
-			}
-		}
-	case *claudecode.ResultMessage:
-		if m.Result != nil {
-			result.Output = *m.Result
-		}
-		if m.TotalCostUSD != nil {
-			result.Cost = *m.TotalCostUSD
-		}
-		result.Duration = float64(m.DurationMs) / 1000
-	}
-}
-
-func (p *ClaudeProvider) processStreamMessage(msg claudecode.Message, events chan<- StreamEvent) {
-	switch m := msg.(type) {
-	case *claudecode.SystemMessage:
-		events <- StreamEvent{
-			Type:  "system",
-			Model: m.Subtype,
-		}
-	case *claudecode.AssistantMessage:
-		for _, block := range m.Content {
-			switch b := block.(type) {
-			case *claudecode.TextBlock:
-				events <- StreamEvent{
-					Type: "text",
-					Text: b.Text,
-				}
-			case *claudecode.ToolUseBlock:
-				events <- StreamEvent{
-					Type:     "tool_use",
-					ToolName: b.Name,
-				}
-			}
-		}
-	case *claudecode.ResultMessage:
-		var text string
-		var cost float64
-		if m.Result != nil {
-			text = *m.Result
-		}
-		if m.TotalCostUSD != nil {
-			cost = *m.TotalCostUSD
-		}
-		events <- StreamEvent{
-			Type:     "result",
-			Text:     text,
-			Cost:     cost,
-			Duration: float64(m.DurationMs) / 1000,
-		}
-	}
 }
