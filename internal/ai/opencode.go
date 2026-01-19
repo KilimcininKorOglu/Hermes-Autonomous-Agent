@@ -171,18 +171,20 @@ func (p *OpenCodeProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptio
 					toolName = ocEvent.Part.Name
 				}
 				events <- StreamEvent{
-					Type:     "tool_use",
-					ToolName: toolName,
+					Type:      "tool_use",
+					ToolName:  toolName,
+					ToolInput: ocEvent.Part.State.Input,
 				}
 			case "tool_result":
 				if ocEvent.Part.State.IsError {
 					events <- StreamEvent{
-						Type: "error",
-						Text: ocEvent.Part.State.Error,
+						Type:      "tool_result",
+						ToolError: ocEvent.Part.State.Error,
 					}
 				} else {
 					events <- StreamEvent{
-						Type: "tool_result",
+						Type:       "tool_result",
+						ToolOutput: ocEvent.Part.State.Content,
 					}
 				}
 			case "error":

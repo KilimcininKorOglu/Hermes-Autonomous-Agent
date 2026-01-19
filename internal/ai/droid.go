@@ -39,7 +39,11 @@ type droidStreamEvent struct {
 	Role       string                 `json:"role,omitempty"`
 	Text       string                 `json:"text,omitempty"`
 	ToolName   string                 `json:"toolName,omitempty"`
+	ToolID     string                 `json:"toolId,omitempty"`
 	Parameters map[string]interface{} `json:"parameters,omitempty"`
+	Output     string                 `json:"output,omitempty"`
+	IsError    bool                   `json:"isError,omitempty"`
+	Error      string                 `json:"error,omitempty"`
 	DurationMs int64                  `json:"durationMs,omitempty"`
 	NumTurns   int                    `json:"numTurns,omitempty"`
 	FinalText  string                 `json:"finalText,omitempty"`
@@ -233,13 +237,18 @@ func (p *DroidProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptions)
 				}
 			case "tool_call":
 				events <- StreamEvent{
-					Type:     "tool_use",
-					ToolName: dEvent.ToolName,
+					Type:      "tool_use",
+					ToolName:  dEvent.ToolName,
+					ToolID:    dEvent.ToolID,
+					ToolInput: dEvent.Parameters,
 				}
 			case "tool_result":
 				events <- StreamEvent{
-					Type:     "tool_result",
-					ToolName: dEvent.ToolName,
+					Type:       "tool_result",
+					ToolName:   dEvent.ToolName,
+					ToolID:     dEvent.ToolID,
+					ToolOutput: dEvent.Output,
+					ToolError:  dEvent.Error,
 				}
 			case "completion":
 				events <- StreamEvent{
