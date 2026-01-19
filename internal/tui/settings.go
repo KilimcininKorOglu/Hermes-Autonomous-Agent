@@ -77,7 +77,7 @@ func (m *SettingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case " ", "enter":
 			m.saved = false
 			m.err = nil
-			providers := []string{"claude", "droid", "opencode", "gemini", "auto"}
+			providers := []string{"claude", "droid", "opencode", "gemini"}
 			switch m.focusIndex {
 			case 0: // Planning Provider
 				current := m.config.AI.Planning
