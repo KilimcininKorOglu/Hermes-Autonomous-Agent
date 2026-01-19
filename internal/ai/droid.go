@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
+	"strings"
 	"time"
 )
 
@@ -43,6 +45,43 @@ type droidStreamEvent struct {
 	FinalText  string                 `json:"finalText,omitempty"`
 }
 
+// buildDroidCommand creates the droid command with pseudo-TTY wrapper if needed.
+// Droid uses Ink-based UI which requires a TTY. On Unix systems, we use the
+// `script` command to create a pseudo-TTY, similar to Ralph-TUI's approach.
+func buildDroidCommand(ctx context.Context, droidArgs []string, workDir string) *exec.Cmd {
+	// Build the base droid command string
+	droidCmd := "droid " + strings.Join(droidArgs, " ")
+
+	var cmd *exec.Cmd
+
+	switch runtime.GOOS {
+	case "darwin":
+		// macOS: script -q /dev/null sh -c "droid exec ..."
+		cmd = exec.CommandContext(ctx, "script", "-q", "/dev/null", "sh", "-c", droidCmd)
+	case "linux":
+		// Linux: script -q -c "droid exec ..." /dev/null
+		cmd = exec.CommandContext(ctx, "script", "-q", "-c", droidCmd, "/dev/null")
+	default:
+		// Windows and others: run droid directly (no pseudo-TTY available)
+		cmd = exec.CommandContext(ctx, "droid", droidArgs...)
+	}
+
+	if workDir != "" {
+		cmd.Dir = workDir
+	}
+
+	// Set environment variables to signal non-interactive mode to Ink-based CLIs
+	cmd.Env = append(os.Environ(),
+		"CI=true",
+		"TERM=dumb",
+		"NO_COLOR=1",
+		"FORCE_COLOR=0",
+		"INK_DISABLE_INPUT=1",
+	)
+
+	return cmd
+}
+
 // Execute runs a prompt and returns the result
 func (p *DroidProvider) Execute(ctx context.Context, opts *ExecuteOptions) (*ExecuteResult, error) {
 	start := time.Now()
@@ -62,17 +101,11 @@ func (p *DroidProvider) Execute(ctx context.Context, opts *ExecuteOptions) (*Exe
 		return nil, fmt.Errorf("failed to close temp file: %w", err)
 	}
 
-	// Build command
-	args := []string{"exec", "--skip-permissions-unsafe", "--file", tmpFile.Name()}
+	// Build command args
+	args := []string{"exec", "--skip-permissions-unsafe", "--file", tmpFile.Name(), "--output-format", "stream-json"}
 
-	// Add output format for parsing
-	args = append(args, "--output-format", "stream-json")
-
-	cmd := exec.CommandContext(ctx, "droid", args...)
-
-	if opts.WorkDir != "" {
-		cmd.Dir = opts.WorkDir
-	}
+	// Build command with pseudo-TTY wrapper
+	cmd := buildDroidCommand(ctx, args, opts.WorkDir)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -153,14 +186,11 @@ func (p *DroidProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptions)
 			return
 		}
 
-		// Build command
+		// Build command args
 		args := []string{"exec", "--skip-permissions-unsafe", "--file", tmpFile.Name(), "--output-format", "stream-json"}
 
-		cmd := exec.CommandContext(ctx, "droid", args...)
-
-		if opts.WorkDir != "" {
-			cmd.Dir = opts.WorkDir
-		}
+		// Build command with pseudo-TTY wrapper
+		cmd := buildDroidCommand(ctx, args, opts.WorkDir)
 
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
