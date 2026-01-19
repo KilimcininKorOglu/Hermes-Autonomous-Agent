@@ -560,12 +560,20 @@ hermes tui
 
 ### Ekranlar
 
-| Tuş | Ekran     | Açıklama                              |
-|-----|-----------|---------------------------------------|
-| 1   | Dashboard | İlerleme genel bakışı ve devre kesici |
-| 2   | Görevler  | Filtreleme ile görev listesi          |
-| 3   | Günlükler | Gerçek zamanlı günlük görüntüleyici   |
-| ?   | Yardım    | Klavye kısayolları referansı          |
+| Tuş | Ekran          | Açıklama                              |
+|-----|----------------|---------------------------------------|
+| 1   | Dashboard      | İlerleme genel bakışı ve devre kesici |
+| 2   | Görevler       | Filtreleme ile görev listesi          |
+| 3   | Günlükler      | Gerçek zamanlı günlük görüntüleyici   |
+| 4   | Fikir          | Fikirden PRD üret                     |
+| 5   | PRD            | PRD'yi görev dosyalarına ayrıştır     |
+| 6   | Özellik Ekle   | Tekil özellik ekle                    |
+| 7   | Ayarlar        | Tüm yapılandırma seçeneklerini düzenle|
+| 8   | Devre Kesici   | Devre kesiciyi görüntüle ve sıfırla   |
+| 9   | Güncelleme     | Güncellemeleri kontrol et ve yükle    |
+| 0   | Başlat         | Yeni proje başlat                     |
+| r   | Çalıştır       | İlerleme takibi ile görev yürüt       |
+| ?   | Yardım         | Klavye kısayolları referansı          |
 
 ### Dashboard Ekranı
 
@@ -602,21 +610,62 @@ Gösterir:
 - Renk kodlu günlük seviyeleri
 - Otomatik kaydırma açma/kapama
 
+### Çalıştır Ekranı
+
+Çalıştır ekranı görev yürütme için görsel arayüz sağlar:
+
+- **İlerleme Çubuğu**: Tamamlanan/toplam görevleri gösterir
+- **Kontroller**: Başlat, Durdur, Duraklat/Devam düğmeleri
+- **Seçenekler**: Paralel mod, Çalışan sayısı, Otomatik Dal, Otomatik Commit
+- **Görev Geçmişi**: Son 10 işlemin gerçek zamanlı görünümü
+
+Tab ile seçenekler arası gezinin, Space/Enter ile değiştirin veya çalıştırın.
+
+### Ayarlar Ekranı
+
+Ayarlar ekranı tüm 27 yapılandırma seçeneğini düzenlemeye izin verir:
+
+**AI Ayarları:**
+- Planlama Sağlayıcı, Kodlama Sağlayıcı
+- Zaman Aşımı, PRD Zaman Aşımı, Maks Yeniden Deneme, Yeniden Deneme Gecikmesi
+- Akış Çıktısı
+
+**Görev Modu Ayarları:**
+- Otomatik Dal, Otomatik Commit, Otonom Mod
+- Maks Ardışık Hata
+
+**Döngü Ayarları:**
+- Saatlik Maks Çağrı, Zaman Aşımı Dakika, Hata Gecikmesi
+
+**Paralel Ayarları:**
+- Etkin, Maks Çalışan, Strateji
+- Çakışma Çözümü, İzole Çalışma Alanları
+- Birleştirme Stratejisi, Saatlik Maks Maliyet
+- Başarısızlık Stratejisi, Maks Yeniden Deneme
+
+**Yol Ayarları:**
+- Hermes Dizini, Görevler Dizini, Günlükler Dizini, Dökümanlar Dizini
+
+Değişiklikler hemen kaydedilir ve sonraki işlemde geçerli olur.
+
 ### Klavye Kısayolları
 
-| Tuş     | Eylem                         |
-|---------|-------------------------------|
-| 1/2/3/? | Ekran değiştir                |
-| r       | Görev yürütmeyi başlat        |
-| s       | Yürütmeyi durdur              |
-| Shift+R | Manuel yenile                 |
-| Enter   | Görev detayını aç             |
-| Esc     | Önceki ekrana dön             |
-| j/k     | Aşağı/yukarı kaydır           |
-| g       | Başa git                      |
-| Shift+G | Sona git                      |
-| f       | Otomatik kaydırma (günlükler) |
-| q       | Çıkış                         |
+| Tuş     | Eylem                             |
+|---------|-----------------------------------|
+| 1-0     | Ekran değiştir (1-9, 0=Başlat)    |
+| r       | Çalıştır ekranı                   |
+| ?       | Yardım ekranı                     |
+| s       | Yürütmeyi durdur (çalışırken)     |
+| Shift+R | Manuel yenile                     |
+| Enter   | Görev detayını aç / Çalıştır      |
+| Esc     | Önceki ekrana dön                 |
+| j/k     | Aşağı/yukarı kaydır               |
+| g       | Başa git                          |
+| Shift+G | Sona git                          |
+| f       | Otomatik kaydırma (günlükler)     |
+| Tab     | Form alanları arası gezin         |
+| Space   | Seçeneği değiştir                 |
+| q       | Çıkış                             |
 
 ---
 
@@ -641,6 +690,7 @@ Hermes katmanlı yapılandırma kullanır:
     "timeout": 300,
     "prdTimeout": 1200,
     "maxRetries": 10,
+    "retryDelay": 5,
     "streamOutput": true
   },
   "taskMode": {
@@ -672,6 +722,7 @@ Hermes katmanlı yapılandırma kullanır:
 | `timeout`      | int    | 300        | Görev yürütme zaman aşımı (sn)  |
 | `prdTimeout`   | int    | 1200       | PRD ayrıştırma zaman aşımı (sn) |
 | `maxRetries`   | int    | 10         | Maksimum yeniden deneme         |
+| `retryDelay`   | int    | 5          | Denemeler arası gecikme (sn)    |
 | `streamOutput` | bool   | true       | AI çıktısını aktar              |
 
 ### Görev Modu Yapılandırması

@@ -1,4 +1,4 @@
-# Hermes Autonomous Agent - Örnek Kullanım (v2.3)
+# Hermes Autonomous Agent - Örnek Kullanım (v2.4)
 
 PRD'den tamamlanmaya kadar Hermes kullanarak proje oluşturmanın adım adım rehberi.
 
@@ -372,6 +372,14 @@ Gezinme:
 - `1` - Dashboard
 - `2` - Görev listesi
 - `3` - Günlükler
+- `4` - Fikir üretici
+- `5` - PRD ayrıştırıcı
+- `6` - Özellik ekle
+- `7` - Ayarlar (27 yapılandırma seçeneği)
+- `8` - Devre kesici
+- `9` - Güncelleme
+- `0` - Proje başlat
+- `r` - Görev çalıştır (ilerleme çubuğu ile)
 - `?` - Yardım
 
 ---
@@ -510,7 +518,7 @@ Tamamlandıktan sonra git geçmişiniz şöyle görünür:
 | 11   | `hermes log -f`                          | Günlükleri izle                  |
 | 12   | `hermes reset`                           | Devre kesiciyi sıfırla           |
 | 13   | `hermes add "<özellik>"`                 | Yeni özellik ekle                |
-| 14   | `hermes tui`                             | İnteraktif arayüz                |
+| 14   | `hermes tui`                             | İnteraktif arayüz (11 ekran)     |
 | 15   | `hermes install`                         | Sistem PATH'ine kur              |
 | 16   | `hermes update`                          | Güncellemeleri kontrol et ve kur |
 
@@ -526,3 +534,4 @@ Tamamlandıktan sonra git geçmişiniz şöyle görünür:
 6. **Önce Önizle**: Çalıştırmadan önce `--dry-run` ile yürütme planını görün
 7. **Paralel Mod**: Bağımsız görevler için `--parallel` kullanarak hızlandırın
 8. **Sistem Genelinde Kur**: Global erişim için `hermes install` çalıştırın
+9. **TUI Çalıştır Ekranını Kullan**: TUI'da `r` tuşuna basarak ilerleme çubuğu ile görsel görev yürütme

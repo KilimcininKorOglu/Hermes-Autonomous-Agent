@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.3.5-blue)
+![Version](https://img.shields.io/badge/version-v2.4.0-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -27,7 +27,7 @@ AI-powered autonomous application development system written in Go. Supports Cla
 - **Auto Git Tagging** - Automatic version tags when features complete
 - **AI-Assisted Merge** - LLM-powered conflict resolution
 - **Circuit Breaker** - Stagnation detection and recovery
-- **Interactive TUI** - Dashboard, task list, and log viewer
+- **Interactive TUI** - 11 screens: Dashboard, Tasks, Logs, Idea, PRD, Add, Settings, Circuit, Update, Init, Run
 - **Resume Support** - Continue from where you left off
 - **Windows Version Info** - Task Manager shows app name and version (v2.2)
 
@@ -326,6 +326,7 @@ Tags are only created if:
     "timeout": 300,
     "prdTimeout": 1200,
     "maxRetries": 10,
+    "retryDelay": 5,
     "streamOutput": true
   },
   "taskMode": {
@@ -368,6 +369,7 @@ Tags are only created if:
 | ai       | timeout              | 300             | Task execution timeout (seconds)  |
 | ai       | prdTimeout           | 1200            | PRD parsing timeout (seconds)     |
 | ai       | maxRetries           | 10              | Maximum retry attempts            |
+| ai       | retryDelay           | 5               | Delay between retries (seconds)   |
 | ai       | streamOutput         | true            | Stream AI output to console       |
 | taskMode | autoBranch           | true            | Create feature branches           |
 | taskMode | autoCommit           | true            | Commit on task completion         |
@@ -385,14 +387,35 @@ Priority: CLI flag > Project config > Global config (~/.hermes/config.json) > De
 
 ## TUI Keyboard Shortcuts
 
-| Key     | Action                    |
-|---------|---------------------------|
-| 1/2/3/? | Dashboard/Tasks/Logs/Help |
-| r       | Start execution           |
-| s       | Stop execution            |
-| Shift+R | Refresh                   |
-| j/k     | Scroll                    |
-| q       | Quit                      |
+| Key     | Action                              |
+|---------|-------------------------------------|
+| 1       | Dashboard screen                    |
+| 2       | Tasks screen                        |
+| 3       | Logs screen                         |
+| 4       | Idea generator screen               |
+| 5       | PRD parser screen                   |
+| 6       | Add feature screen                  |
+| 7       | Settings screen                     |
+| 8       | Circuit breaker screen              |
+| 9       | Update screen                       |
+| 0       | Initialize project screen           |
+| r       | Run tasks screen                    |
+| ?       | Help screen                         |
+| s       | Stop execution (when running)       |
+| Shift+R | Refresh                             |
+| j/k     | Scroll down/up                      |
+| q       | Quit                                |
+
+### TUI Run Screen
+
+The Run screen (`r` key) provides:
+
+- Progress bar showing completed/total tasks
+- Start/Stop/Pause controls
+- Parallel mode toggle
+- Workers count setting
+- Auto Branch/Commit toggles
+- Real-time task history (last 10 operations)
 
 ## Circuit Breaker
 
@@ -424,6 +447,15 @@ make test
 ```
 
 ## Changelog
+
+### v2.4.0
+
+- New TUI Run screen with progress bar and pause/resume controls
+- Expanded TUI with 11 screens (Idea, PRD, Add, Settings, Circuit, Update, Init, Run)
+- TUI Settings screen with all 27 configuration options
+- Added retryDelay configuration option
+- All settings now properly read from config (no hardcoded values)
+- Hot reload support for settings changes
 
 ### v2.3.5
 

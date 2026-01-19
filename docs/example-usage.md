@@ -1,4 +1,4 @@
-# Hermes Autonomous Agent - Example Usage (v2.3)
+# Hermes Autonomous Agent - Example Usage (v2.4)
 
 Step-by-step walkthrough of using Hermes to build a project from PRD to completion.
 
@@ -372,6 +372,14 @@ Navigate with:
 - `1` - Dashboard
 - `2` - Tasks list
 - `3` - Logs
+- `4` - Idea generator
+- `5` - PRD parser
+- `6` - Add feature
+- `7` - Settings (all 27 config options)
+- `8` - Circuit breaker
+- `9` - Update
+- `0` - Init project
+- `r` - Run tasks (with progress bar)
 - `?` - Help
 
 ---
@@ -510,9 +518,9 @@ After completion, your git history looks like:
 | 11   | `hermes log -f`                          | Monitor logs                |
 | 12   | `hermes reset`                           | Reset circuit breaker       |
 | 13   | `hermes add "<feature>"`                 | Add new feature             |
-| 14   | `hermes tui`                             | Interactive interface       |
-| 15   | `hermes install`                         | Install to system PATH      |
-| 16   | `hermes update`                          | Check and install updates   |
+| 14   | `hermes tui`                             | Interactive interface (11 screens) |
+| 15   | `hermes install`                         | Install to system PATH             |
+| 16   | `hermes update`                          | Check and install updates          |
 
 ---
 
@@ -526,3 +534,4 @@ After completion, your git history looks like:
 6. **Preview First**: Use `--dry-run` to see execution plan before running
 7. **Parallel Mode**: Use `--parallel` for independent tasks to speed up
 8. **Install System-wide**: Run `hermes install` for global access
+9. **Use TUI Run Screen**: Press `r` in TUI for visual task execution with progress bar

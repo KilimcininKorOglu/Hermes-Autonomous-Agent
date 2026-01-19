@@ -584,12 +584,20 @@ hermes tui
 
 ### Screens
 
-| Key | Screen    | Description                           |
-|-----|-----------|---------------------------------------|
-| 1   | Dashboard | Progress overview and circuit breaker |
-| 2   | Tasks     | Task list with filtering              |
-| 3   | Logs      | Real-time log viewer                  |
-| ?   | Help      | Keyboard shortcuts reference          |
+| Key | Screen         | Description                           |
+|-----|----------------|---------------------------------------|
+| 1   | Dashboard      | Progress overview and circuit breaker |
+| 2   | Tasks          | Task list with filtering              |
+| 3   | Logs           | Real-time log viewer                  |
+| 4   | Idea           | Generate PRD from idea                |
+| 5   | PRD            | Parse PRD to task files               |
+| 6   | Add Feature    | Add single feature                    |
+| 7   | Settings       | Edit all configuration options        |
+| 8   | Circuit Breaker| View and reset circuit breaker        |
+| 9   | Update         | Check and install updates             |
+| 0   | Init           | Initialize new project                |
+| r   | Run            | Execute tasks with progress tracking  |
+| ?   | Help           | Keyboard shortcuts reference          |
 
 ### Dashboard Screen
 
@@ -626,21 +634,62 @@ Features:
 - Color-coded log levels
 - Auto-scroll toggle
 
+### Run Screen
+
+The Run screen provides a visual interface for task execution:
+
+- **Progress Bar**: Shows completed/total tasks
+- **Controls**: Start, Stop, Pause/Resume buttons
+- **Options**: Parallel mode, Workers count, Auto Branch, Auto Commit
+- **Task History**: Real-time display of last 10 operations
+
+Navigate with Tab between options, Space/Enter to toggle or execute.
+
+### Settings Screen
+
+The Settings screen allows editing all 27 configuration options:
+
+**AI Settings:**
+- Planning Provider, Coding Provider
+- Timeout, PRD Timeout, Max Retries, Retry Delay
+- Stream Output
+
+**Task Mode Settings:**
+- Auto Branch, Auto Commit, Autonomous Mode
+- Max Consecutive Errors
+
+**Loop Settings:**
+- Max Calls Per Hour, Timeout Minutes, Error Delay
+
+**Parallel Settings:**
+- Enabled, Max Workers, Strategy
+- Conflict Resolution, Isolated Workspaces
+- Merge Strategy, Max Cost Per Hour
+- Failure Strategy, Max Retries
+
+**Path Settings:**
+- Hermes Dir, Tasks Dir, Logs Dir, Docs Dir
+
+Changes are saved immediately and take effect on next operation.
+
 ### Keyboard Shortcuts
 
-| Key     | Action                    |
-|---------|---------------------------|
-| 1/2/3/? | Switch screens            |
-| r       | Start task execution      |
-| s       | Stop execution            |
-| Shift+R | Manual refresh            |
-| Enter   | Open task detail          |
-| Esc     | Back to previous screen   |
-| j/k     | Scroll down/up            |
-| g       | Go to top                 |
-| Shift+G | Go to bottom              |
-| f       | Toggle auto-scroll (logs) |
-| q       | Quit                      |
+| Key     | Action                         |
+|---------|--------------------------------|
+| 1-0     | Switch screens (1-9, 0=Init)   |
+| r       | Run screen                     |
+| ?       | Help screen                    |
+| s       | Stop execution (when running)  |
+| Shift+R | Manual refresh                 |
+| Enter   | Open task detail / Execute     |
+| Esc     | Back to previous screen        |
+| j/k     | Scroll down/up                 |
+| g       | Go to top                      |
+| Shift+G | Go to bottom                   |
+| f       | Toggle auto-scroll (logs)      |
+| Tab     | Navigate form fields           |
+| Space   | Toggle option                  |
+| q       | Quit                           |
 
 ---
 
@@ -665,6 +714,7 @@ Hermes uses layered configuration:
     "timeout": 300,
     "prdTimeout": 1200,
     "maxRetries": 10,
+    "retryDelay": 5,
     "streamOutput": true
   },
   "taskMode": {
@@ -696,6 +746,7 @@ Hermes uses layered configuration:
 | `timeout`      | int    | 300      | Task execution timeout (sec) |
 | `prdTimeout`   | int    | 1200     | PRD parsing timeout (sec)    |
 | `maxRetries`   | int    | 10       | Maximum retry attempts       |
+| `retryDelay`   | int    | 5        | Delay between retries (sec)  |
 | `streamOutput` | bool   | true     | Stream AI output             |
 
 ### Task Mode Configuration
