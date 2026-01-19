@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -88,10 +89,13 @@ func (u *Updater) compareVersions(remoteTag string) bool {
 	currentParts := strings.Split(current, ".")
 
 	for i := 0; i < len(remoteParts) && i < len(currentParts); i++ {
-		if remoteParts[i] > currentParts[i] {
+		remoteNum, _ := strconv.Atoi(remoteParts[i])
+		currentNum, _ := strconv.Atoi(currentParts[i])
+
+		if remoteNum > currentNum {
 			return true
 		}
-		if remoteParts[i] < currentParts[i] {
+		if remoteNum < currentNum {
 			return false
 		}
 	}
