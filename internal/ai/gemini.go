@@ -99,7 +99,9 @@ func (p *GeminiProvider) Execute(ctx context.Context, opts *ExecuteOptions) (*Ex
 		tmpFile.Close()
 		return nil, fmt.Errorf("failed to write prompt: %w", err)
 	}
-	tmpFile.Close()
+	if err := tmpFile.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close temp file: %w", err)
+	}
 
 	// Build command - use headless mode with JSON output
 	// gemini -p "prompt" --output-format json --yolo (auto-approve)
@@ -183,7 +185,10 @@ func (p *GeminiProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptions
 			events <- StreamEvent{Type: "error", Text: err.Error()}
 			return
 		}
-		tmpFile.Close()
+		if err := tmpFile.Close(); err != nil {
+			events <- StreamEvent{Type: "error", Text: err.Error()}
+			return
+		}
 
 		// Use streaming output format
 		args := []string{

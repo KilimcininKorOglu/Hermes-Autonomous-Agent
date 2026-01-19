@@ -58,7 +58,9 @@ func (p *DroidProvider) Execute(ctx context.Context, opts *ExecuteOptions) (*Exe
 		tmpFile.Close()
 		return nil, fmt.Errorf("failed to write prompt: %w", err)
 	}
-	tmpFile.Close()
+	if err := tmpFile.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close temp file: %w", err)
+	}
 
 	// Build command
 	args := []string{"exec", "--skip-permissions-unsafe", "--file", tmpFile.Name()}
@@ -146,7 +148,10 @@ func (p *DroidProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptions)
 			events <- StreamEvent{Type: "error", Text: err.Error()}
 			return
 		}
-		tmpFile.Close()
+		if err := tmpFile.Close(); err != nil {
+			events <- StreamEvent{Type: "error", Text: err.Error()}
+			return
+		}
 
 		// Build command
 		args := []string{"exec", "--skip-permissions-unsafe", "--file", tmpFile.Name(), "--output-format", "stream-json"}
