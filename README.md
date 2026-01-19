@@ -5,7 +5,7 @@
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 
-AI-powered autonomous application development system written in Go. Supports Claude, Droid, and Gemini CLIs with task-driven development, parallel execution, automatic branching, and circuit breaker protection.
+AI-powered autonomous application development system written in Go. Supports Claude, Droid, OpenCode, and Gemini CLIs with task-driven development, parallel execution, automatic branching, and circuit breaker protection.
 
 ## Documentation
 
@@ -19,7 +19,7 @@ AI-powered autonomous application development system written in Go. Supports Cla
 ## Features
 
 - **Idea to PRD** - Generate detailed PRD from a simple idea description
-- **Multi-AI Support** - Claude, Droid, and Gemini CLI providers with auto-detection
+- **Multi-AI Support** - Claude, Droid, OpenCode, and Gemini CLI providers with auto-detection
 - **PRD Parser** - Convert PRD documents to structured task files
 - **Task Execution Loop** - Autonomous task execution with progress tracking
 - **Parallel Execution** - Multiple AI agents working simultaneously (v2.0)
@@ -35,7 +35,7 @@ AI-powered autonomous application development system written in Go. Supports Cla
 
 - Go 1.24+
 - Git
-- One of: Claude CLI, Droid CLI, or Gemini CLI
+- One of: Claude CLI, Droid CLI, OpenCode CLI, or Gemini CLI
 
 ### AI CLI Installation
 
@@ -45,6 +45,9 @@ npm install -g @anthropic-ai/claude-code
 
 # Droid CLI
 curl -fsSL https://app.factory.ai/cli | sh
+
+# OpenCode CLI
+curl -fsSL https://opencode.ai/install | bash
 
 # Gemini CLI
 npm install -g @google/gemini-cli
@@ -130,6 +133,7 @@ hermes idea "chat app" -o custom-prd.md          # Custom output path
 hermes run                          # Auto-detect AI provider
 hermes run --ai claude              # Force Claude
 hermes run --ai droid               # Force Droid
+hermes run --ai opencode            # Force OpenCode
 hermes run --ai gemini              # Force Gemini
 hermes run --auto-branch            # Create feature branches
 hermes run --auto-commit            # Commit on completion
@@ -197,11 +201,12 @@ Add to `.hermes/config.json`:
 
 ## AI Providers
 
-| Provider | Priority | Command  |
-|----------|----------|----------|
-| Claude   | 1        | `claude` |
-| Droid    | 2        | `droid`  |
-| Gemini   | 3        | `gemini` |
+| Provider | Priority | Command    |
+|----------|----------|------------|
+| Claude   | 1        | `claude`   |
+| Droid    | 2        | `droid`    |
+| OpenCode | 3        | `opencode` |
+| Gemini   | 4        | `gemini`   |
 
 Auto-detection tries providers in priority order.
 

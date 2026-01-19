@@ -31,6 +31,7 @@ Complete guide to using Hermes, the AI-powered autonomous application developmen
 - One of the following AI CLIs:
   - Claude CLI: `npm install -g @anthropic-ai/claude-code`
   - Droid CLI: `curl -fsSL https://app.factory.ai/cli | sh`
+  - OpenCode CLI: `curl -fsSL https://opencode.ai/install | bash`
   - Gemini CLI: `npm install -g @google/gemini-cli`
 
 ### Building from Source
@@ -332,17 +333,17 @@ hermes run [flags]
 
 ### Flags
 
-| Flag            | Default     | Description                        |
-|-----------------|-------------|------------------------------------|
-| `--ai`          | auto        | AI provider (claude/droid/gemini)  |
-| `--auto-branch` | from config | Create feature branches            |
-| `--auto-commit` | from config | Commit on task completion          |
-| `--autonomous`  | true        | Run without pausing                |
-| `--timeout`     | from config | AI timeout in seconds              |
-| `--debug`       | false       | Enable debug output                |
-| `--parallel`    | false       | Enable parallel execution (v2.0.0) |
-| `--workers`     | 3           | Number of parallel workers         |
-| `--dry-run`     | false       | Preview execution plan only        |
+| Flag            | Default     | Description                                |
+|-----------------|-------------|--------------------------------------------|
+| `--ai`          | auto        | AI provider (claude/droid/opencode/gemini) |
+| `--auto-branch` | from config | Create feature branches                    |
+| `--auto-commit` | from config | Commit on task completion                  |
+| `--autonomous`  | true        | Run without pausing                        |
+| `--timeout`     | from config | AI timeout in seconds                      |
+| `--debug`       | false       | Enable debug output                        |
+| `--parallel`    | false       | Enable parallel execution (v2.0.0)         |
+| `--workers`     | 3           | Number of parallel workers                 |
+| `--dry-run`     | false       | Preview execution plan only                |
 
 ### Examples
 
@@ -375,7 +376,8 @@ When using `--ai auto` (default), providers are tried in order:
 
 1. Claude (`claude` command)
 2. Droid (`droid` command)
-3. Gemini (`gemini` command)
+3. OpenCode (`opencode` command)
+4. Gemini (`gemini` command)
 
 ### Parallel Execution (v2.0.0)
 
@@ -850,6 +852,8 @@ Error: no AI provider available (install claude or droid)
 npm install -g @anthropic-ai/claude-code
 # or
 curl -fsSL https://app.factory.ai/cli | sh
+# or
+curl -fsSL https://opencode.ai/install | bash
 # or
 npm install -g @google/gemini-cli
 ```

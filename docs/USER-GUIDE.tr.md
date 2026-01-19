@@ -31,6 +31,7 @@ Yapay zeka destekli otonom uygulama geliştirme sistemi Hermes'in eksiksiz kulla
 - Aşağıdaki AI CLI'lardan biri:
   - Claude CLI: `npm install -g @anthropic-ai/claude-code`
   - Droid CLI: `curl -fsSL https://app.factory.ai/cli | sh`
+  - OpenCode CLI: `curl -fsSL https://opencode.ai/install | bash`
   - Gemini CLI: `npm install -g @google/gemini-cli`
 
 ### Kaynaktan Derleme
@@ -332,17 +333,17 @@ hermes run [bayraklar]
 
 ### Bayraklar
 
-| Bayrak          | Varsayılan | Açıklama                               |
-|-----------------|------------|----------------------------------------|
-| `--ai`          | auto       | AI sağlayıcı (claude/droid/gemini)     |
-| `--auto-branch` | config'den | Özellik dalları oluştur                |
-| `--auto-commit` | config'den | Tamamlandığında commit at              |
-| `--autonomous`  | true       | Duraklamadan çalıştır                  |
-| `--timeout`     | config'den | AI zaman aşımı (saniye)                |
-| `--debug`       | false      | Hata ayıklama çıktısını etkinleştir    |
-| `--parallel`    | false      | Paralel yürütmeyi etkinleştir (v2.0.0) |
-| `--workers`     | 3          | Paralel çalışan sayısı                 |
-| `--dry-run`     | false      | Sadece yürütme planını önizle          |
+| Bayrak          | Varsayılan | Açıklama                                    |
+|-----------------|------------|---------------------------------------------|
+| `--ai`          | auto       | AI sağlayıcı (claude/droid/opencode/gemini) |
+| `--auto-branch` | config'den | Özellik dalları oluştur                     |
+| `--auto-commit` | config'den | Tamamlandığında commit at                   |
+| `--autonomous`  | true       | Duraklamadan çalıştır                       |
+| `--timeout`     | config'den | AI zaman aşımı (saniye)                     |
+| `--debug`       | false      | Hata ayıklama çıktısını etkinleştir         |
+| `--parallel`    | false      | Paralel yürütmeyi etkinleştir (v2.0.0)      |
+| `--workers`     | 3          | Paralel çalışan sayısı                      |
+| `--dry-run`     | false      | Sadece yürütme planını önizle               |
 
 ### Örnekler
 
@@ -375,7 +376,8 @@ hermes run --dry-run
 
 1. Claude (`claude` komutu)
 2. Droid (`droid` komutu)
-3. Gemini (`gemini` komutu)
+3. OpenCode (`opencode` komutu)
+4. Gemini (`gemini` komutu)
 
 ### Paralel Yürütme (v2.0.0)
 
@@ -826,6 +828,8 @@ Hata: AI sağlayıcı bulunamadı (claude veya droid yükleyin)
 npm install -g @anthropic-ai/claude-code
 # veya
 curl -fsSL https://app.factory.ai/cli | sh
+# veya
+curl -fsSL https://opencode.ai/install | bash
 # veya
 npm install -g @google/gemini-cli
 ```

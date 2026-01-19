@@ -254,6 +254,9 @@ hermes run --auto-branch --auto-commit --autonomous=false
 ### Option C: Use Specific AI Provider
 
 ```bash
+hermes run --ai claude --auto-branch --auto-commit
+hermes run --ai droid --auto-branch --auto-commit
+hermes run --ai opencode --auto-branch --auto-commit
 hermes run --ai gemini --auto-branch --auto-commit
 ```
 
