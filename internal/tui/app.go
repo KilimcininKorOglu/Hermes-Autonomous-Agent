@@ -489,10 +489,22 @@ func (a *App) startRun() tea.Cmd {
 		// Execute AI
 		cfg, _ := config.Load(a.basePath)
 		streamOutput := true
+		var provider ai.Provider
 		if cfg != nil {
 			streamOutput = cfg.AI.StreamOutput
+			// Use coding provider from config
+			if cfg.AI.Coding != "" {
+				provider = ai.GetProvider(cfg.AI.Coding)
+			}
 		}
-		provider := ai.NewClaudeProvider()
+		// Fallback to auto-detect if provider not found
+		if provider == nil || !provider.IsAvailable() {
+			provider = ai.AutoDetectProvider()
+		}
+		if provider == nil {
+			a.running = false
+			return runResultMsg{err: fmt.Errorf("no AI provider available")}
+		}
 		executor := ai.NewTaskExecutor(provider, a.basePath)
 		result, err := executor.ExecuteTask(ctx, nextTask, promptContent, streamOutput)
 
