@@ -313,40 +313,6 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task, attempt int) *TaskR
 	return result
 }
 
-// buildPromptContent builds the prompt content for a task
-func (p *WorkerPool) buildPromptContent(t *task.Task) string {
-	content := fmt.Sprintf(`# Current Task
-
-## Task ID: %s
-## Task Name: %s
-## Priority: %s
-## Estimated Effort: %s
-
-### Description
-%s
-
-### Technical Details
-%s
-
-### Files to Modify
-%v
-
-### Success Criteria
-%v
-`,
-		t.ID,
-		t.Name,
-		t.Priority,
-		t.EstimatedEffort,
-		t.Description,
-		t.TechnicalDetails,
-		t.FilesToTouch,
-		t.SuccessCriteria,
-	)
-
-	return content
-}
-
 // Submit submits a task for execution
 func (p *WorkerPool) Submit(t *task.Task) error {
 	select {
