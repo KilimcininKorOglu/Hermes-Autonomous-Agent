@@ -251,7 +251,14 @@ func (m *IdeaModel) generatePRD() tea.Cmd {
 			cfg = config.DefaultConfig()
 		}
 
-		provider := ai.AutoDetectProvider()
+		// Get provider from config
+		var provider ai.Provider
+		if cfg.AI.Planning != "" && cfg.AI.Planning != "auto" {
+			provider = ai.GetProvider(cfg.AI.Planning)
+		}
+		if provider == nil || !provider.IsAvailable() {
+			provider = ai.AutoDetectProvider()
+		}
 		if provider == nil {
 			return ideaResultMsg{err: fmt.Errorf("no AI provider available")}
 		}

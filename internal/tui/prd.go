@@ -240,7 +240,14 @@ func (m *PrdModel) parsePRD(prdPath string) tea.Cmd {
 			return prdResultMsg{err: fmt.Errorf("failed to read PRD: %w", err)}
 		}
 
-		provider := ai.AutoDetectProvider()
+		// Get provider from config
+		var provider ai.Provider
+		if cfg.AI.Planning != "" && cfg.AI.Planning != "auto" {
+			provider = ai.GetProvider(cfg.AI.Planning)
+		}
+		if provider == nil || !provider.IsAvailable() {
+			provider = ai.AutoDetectProvider()
+		}
 		if provider == nil {
 			return prdResultMsg{err: fmt.Errorf("no AI provider available")}
 		}

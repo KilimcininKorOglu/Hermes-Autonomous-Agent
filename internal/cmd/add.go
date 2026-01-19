@@ -70,8 +70,17 @@ func addExecute(featureDesc string, opts *addOptions) error {
 	fmt.Printf("Next Feature ID: F%03d\n", nextFeatureID)
 	fmt.Printf("Next Task ID: T%03d\n\n", nextTaskID)
 
-	// Get provider
-	provider := ai.NewClaudeProvider()
+	// Get provider from config
+	var provider ai.Provider
+	if cfg.AI.Planning != "" && cfg.AI.Planning != "auto" {
+		provider = ai.GetProvider(cfg.AI.Planning)
+	}
+	if provider == nil || !provider.IsAvailable() {
+		provider = ai.AutoDetectProvider()
+	}
+	if provider == nil {
+		return fmt.Errorf("no AI provider available")
+	}
 	fmt.Printf("Using AI: %s\n\n", provider.Name())
 
 	// Build prompt
