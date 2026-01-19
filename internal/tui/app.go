@@ -152,72 +152,43 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.initProj.SetSize(msg.Width, msg.Height-4)
 
 	case tea.KeyMsg:
-		// Check if text input is focused on current screen
-		textInputFocused := false
-		switch a.screen {
-		case ScreenIdea:
-			textInputFocused = a.idea.focusIndex == 0
-		case ScreenPrd:
-			textInputFocused = a.prd.focusIndex == 0
-		case ScreenAddFeature:
-			textInputFocused = a.addFeature.focusIndex == 0
-		case ScreenInit:
-			textInputFocused = a.initProj.focusIndex == 0
-		}
-		
 		switch msg.String() {
 		case "q", "ctrl+c":
 			return a, tea.Quit
 		case "1":
-			if !textInputFocused {
-				a.screen = ScreenDashboard
-				return a, nil
-			}
+			a.screen = ScreenDashboard
+			return a, nil
 		case "2":
-			if !textInputFocused {
-				a.screen = ScreenTasks
-				return a, nil
-			}
+			a.screen = ScreenTasks
+			return a, nil
 		case "3":
-			if !textInputFocused {
-				a.screen = ScreenLogs
-				return a, nil
-			}
+			a.screen = ScreenLogs
+			return a, nil
 		case "4":
-			if !textInputFocused {
-				a.screen = ScreenIdea
-				return a, nil
-			}
+			a.screen = ScreenIdea
+			a.idea.textInput.SetValue("")
+			return a, nil
 		case "5":
-			if !textInputFocused {
-				a.screen = ScreenPrd
-				return a, nil
-			}
+			a.screen = ScreenPrd
+			a.prd.textInput.SetValue("")
+			return a, nil
 		case "6":
-			if !textInputFocused {
-				a.screen = ScreenAddFeature
-				return a, nil
-			}
+			a.screen = ScreenAddFeature
+			a.addFeature.textInput.SetValue("")
+			return a, nil
 		case "7":
-			if !textInputFocused {
-				a.screen = ScreenSettings
-				return a, nil
-			}
+			a.screen = ScreenSettings
+			return a, nil
 		case "8":
-			if !textInputFocused {
-				a.screen = ScreenCircuit
-				return a, nil
-			}
+			a.screen = ScreenCircuit
+			return a, nil
 		case "9":
-			if !textInputFocused {
-				a.screen = ScreenUpdate
-				return a, nil
-			}
+			a.screen = ScreenUpdate
+			return a, nil
 		case "0":
-			if !textInputFocused {
-				a.screen = ScreenInit
-				return a, nil
-			}
+			a.screen = ScreenInit
+			a.initProj.textInput.SetValue("")
+			return a, nil
 		case "?":
 			a.screen = ScreenHelp
 		case "enter":
