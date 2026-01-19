@@ -23,7 +23,7 @@ func NewTuiCmd() *cobra.Command {
 }
 
 func tuiExecute() error {
-	app, err := tui.NewApp(".")
+	app, err := tui.NewApp(".", GetVersion())
 	if err != nil {
 		return fmt.Errorf("failed to initialize TUI: %w", err)
 	}

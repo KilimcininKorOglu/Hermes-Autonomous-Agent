@@ -40,6 +40,7 @@ const (
 	ScreenAddFeature
 	ScreenSettings
 	ScreenCircuit
+	ScreenUpdate
 	ScreenHelp
 )
 
@@ -75,10 +76,11 @@ type App struct {
 	addFeature *AddFeatureModel
 	settings   *SettingsModel
 	circuit    *CircuitBreakerModel
+	update     *UpdateModel
 }
 
 // NewApp creates a new TUI application
-func NewApp(basePath string) (*App, error) {
+func NewApp(basePath string, version string) (*App, error) {
 	cfg, err := config.Load(basePath)
 	if err != nil {
 		cfg = config.DefaultConfig()
@@ -99,6 +101,7 @@ func NewApp(basePath string) (*App, error) {
 		addFeature: NewAddFeatureModel(basePath),
 		settings:   NewSettingsModel(basePath),
 		circuit:    NewCircuitBreakerModel(basePath),
+		update:     NewUpdateModel(version),
 	}, nil
 }
 
@@ -134,6 +137,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.addFeature.SetSize(msg.Width, msg.Height-4)
 		a.settings.SetSize(msg.Width, msg.Height-4)
 		a.circuit.SetSize(msg.Width, msg.Height-4)
+		a.update.SetSize(msg.Width, msg.Height-4)
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -155,6 +159,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.screen = ScreenSettings
 		case "8":
 			a.screen = ScreenCircuit
+		case "9":
+			a.screen = ScreenUpdate
 		case "?":
 			a.screen = ScreenHelp
 		case "enter":
@@ -244,6 +250,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var model tea.Model
 		model, cmd = a.circuit.Update(msg)
 		a.circuit = model.(*CircuitBreakerModel)
+	case ScreenUpdate:
+		var model tea.Model
+		model, cmd = a.update.Update(msg)
+		a.update = model.(*UpdateModel)
 	}
 
 	return a, cmd
@@ -275,6 +285,8 @@ func (a App) View() string {
 		content = a.settings.View()
 	case ScreenCircuit:
 		content = a.circuit.View()
+	case ScreenUpdate:
+		content = a.update.View()
 	case ScreenHelp:
 		content = a.helpView()
 	}
@@ -304,7 +316,7 @@ func (a App) footerView() string {
 		Foreground(lipgloss.Color("241")).
 		Width(a.width)
 
-	help := "[1]Dash [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [7]Set [8]CB [?]Help [q]Quit"
+	help := "[1]Dash [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [7]Set [8]CB [9]Upd [?]Help [q]Quit"
 	if a.running {
 		help = "[RUNNING] " + a.runStatus + " | [s]Stop [q]Quit"
 	}
@@ -327,6 +339,7 @@ Navigation:
   6           Add feature screen
   7           Settings screen
   8           Circuit breaker screen
+  9           Update screen
   ?           This help screen
   Esc         Back to previous screen
 
@@ -371,6 +384,10 @@ Settings:
 Circuit Breaker:
   r           Refresh state
   Space/Enter Reset breaker (when OPEN/HALF_OPEN)
+
+Update:
+  c           Check for updates
+  u           Install update (when available)
 
 Press any key to return...
 `
