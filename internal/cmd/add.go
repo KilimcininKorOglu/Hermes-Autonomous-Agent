@@ -89,10 +89,10 @@ func addExecute(featureDesc string, opts *addOptions) error {
 	// Execute with retry
 	result, err := ai.ExecuteWithRetry(ctx, provider, &ai.ExecuteOptions{
 		Prompt:       prompt,
-		Timeout:      opts.timeout,
+		Timeout:      cfg.AI.Timeout,
 		StreamOutput: cfg.AI.StreamOutput,
 	}, &ai.RetryConfig{
-		MaxRetries: 3,
+		MaxRetries: cfg.AI.MaxRetries,
 		Delay:      5 * time.Second,
 	})
 

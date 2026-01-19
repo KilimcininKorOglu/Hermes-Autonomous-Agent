@@ -54,9 +54,6 @@ func NewIdeaCmd() *cobra.Command {
 }
 
 func ideaExecute(ideaText string, opts *ideaOptions) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(opts.timeout)*time.Second)
-	defer cancel()
-
 	ui.PrintBanner(GetVersion())
 	ui.PrintHeader("Idea to PRD Generator")
 
@@ -70,6 +67,9 @@ func ideaExecute(ideaText string, opts *ideaOptions) error {
 	if err != nil {
 		cfg = config.DefaultConfig()
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.AI.PrdTimeout)*time.Second)
+	defer cancel()
 
 	// Create logger
 	logger, err := ui.NewLogger(".", opts.debug)
@@ -122,7 +122,7 @@ func ideaExecute(ideaText string, opts *ideaOptions) error {
 		DryRun:            opts.dryRun,
 		Interactive:       opts.interactive,
 		Language:          opts.language,
-		Timeout:           opts.timeout,
+		Timeout:           cfg.AI.PrdTimeout,
 		AdditionalContext: additionalContext,
 	})
 	if err != nil {

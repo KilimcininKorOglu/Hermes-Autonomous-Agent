@@ -101,10 +101,10 @@ func prdExecute(prdFile string, opts *prdOptions) error {
 	startTime := time.Now()
 	result, err := ai.ExecuteWithRetry(ctx, provider, &ai.ExecuteOptions{
 		Prompt:       prompt,
-		Timeout:      opts.timeout,
+		Timeout:      cfg.AI.PrdTimeout,
 		StreamOutput: cfg.AI.StreamOutput,
 	}, &ai.RetryConfig{
-		MaxRetries: opts.maxRetries,
+		MaxRetries: cfg.AI.MaxRetries,
 		Delay:      10 * time.Second,
 	})
 

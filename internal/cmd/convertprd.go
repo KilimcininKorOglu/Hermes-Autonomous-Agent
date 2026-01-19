@@ -55,9 +55,6 @@ func NewConvertPrdCmd() *cobra.Command {
 }
 
 func convertPrdExecute(opts *convertPrdOptions) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(opts.timeout)*time.Second)
-	defer cancel()
-
 	ui.PrintBanner(GetVersion())
 	ui.PrintHeader("Project to PRD Converter")
 
@@ -82,6 +79,9 @@ func convertPrdExecute(opts *convertPrdOptions) error {
 	if err != nil {
 		cfg = config.DefaultConfig()
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.AI.PrdTimeout)*time.Second)
+	defer cancel()
 
 	// Create logger
 	logger, err := ui.NewLogger(".", opts.debug)
@@ -130,7 +130,7 @@ func convertPrdExecute(opts *convertPrdOptions) error {
 		Language:    opts.language,
 		Depth:       opts.depth,
 		ExcludeDirs: excludeDirs,
-		Timeout:     opts.timeout,
+		Timeout:     cfg.AI.PrdTimeout,
 	})
 	if err != nil {
 		return err

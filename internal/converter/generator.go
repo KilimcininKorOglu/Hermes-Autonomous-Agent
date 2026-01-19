@@ -78,10 +78,10 @@ func (g *Generator) Generate(ctx context.Context, opts GenerateOptions) (*Genera
 	result, err := ai.ExecuteWithRetry(ctx, g.provider, &ai.ExecuteOptions{
 		Prompt:       prompt,
 		WorkDir:      opts.RootDir,
-		Timeout:      opts.Timeout,
+		Timeout:      g.config.AI.PrdTimeout,
 		StreamOutput: g.config.AI.StreamOutput,
 	}, &ai.RetryConfig{
-		MaxRetries: 3,
+		MaxRetries: g.config.AI.MaxRetries,
 		Delay:      5 * time.Second,
 	})
 	if err != nil {

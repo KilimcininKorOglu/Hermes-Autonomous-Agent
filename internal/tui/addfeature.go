@@ -262,7 +262,7 @@ func (m *AddFeatureModel) addFeature() tea.Cmd {
 			Timeout:      cfg.AI.Timeout,
 			StreamOutput: false,
 		}, &ai.RetryConfig{
-			MaxRetries: 3,
+			MaxRetries: cfg.AI.MaxRetries,
 			Delay:      5 * time.Second,
 		})
 
