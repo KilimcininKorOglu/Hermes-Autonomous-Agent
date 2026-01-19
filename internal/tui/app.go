@@ -38,6 +38,7 @@ const (
 	ScreenIdea
 	ScreenPrd
 	ScreenAddFeature
+	ScreenSettings
 	ScreenHelp
 )
 
@@ -71,6 +72,7 @@ type App struct {
 	idea       *IdeaModel
 	prd        *PrdModel
 	addFeature *AddFeatureModel
+	settings   *SettingsModel
 }
 
 // NewApp creates a new TUI application
@@ -93,6 +95,7 @@ func NewApp(basePath string) (*App, error) {
 		idea:       NewIdeaModel(basePath),
 		prd:        NewPrdModel(basePath),
 		addFeature: NewAddFeatureModel(basePath),
+		settings:   NewSettingsModel(basePath),
 	}, nil
 }
 
@@ -126,6 +129,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.idea.SetSize(msg.Width, msg.Height-4)
 		a.prd.SetSize(msg.Width, msg.Height-4)
 		a.addFeature.SetSize(msg.Width, msg.Height-4)
+		a.settings.SetSize(msg.Width, msg.Height-4)
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -143,6 +147,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.screen = ScreenPrd
 		case "6":
 			a.screen = ScreenAddFeature
+		case "7":
+			a.screen = ScreenSettings
 		case "?":
 			a.screen = ScreenHelp
 		case "enter":
@@ -224,6 +230,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var model tea.Model
 		model, cmd = a.addFeature.Update(msg)
 		a.addFeature = model.(*AddFeatureModel)
+	case ScreenSettings:
+		var model tea.Model
+		model, cmd = a.settings.Update(msg)
+		a.settings = model.(*SettingsModel)
 	}
 
 	return a, cmd
@@ -251,6 +261,8 @@ func (a App) View() string {
 		content = a.prd.View()
 	case ScreenAddFeature:
 		content = a.addFeature.View()
+	case ScreenSettings:
+		content = a.settings.View()
 	case ScreenHelp:
 		content = a.helpView()
 	}
@@ -280,7 +292,7 @@ func (a App) footerView() string {
 		Foreground(lipgloss.Color("241")).
 		Width(a.width)
 
-	help := "[1]Dashboard [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [?]Help [q]Quit"
+	help := "[1]Dashboard [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [7]Settings [?]Help [q]Quit"
 	if a.running {
 		help = "[RUNNING] " + a.runStatus + " | [s]Stop [q]Quit"
 	}
@@ -301,6 +313,7 @@ Navigation:
   4           Idea/PRD generator screen
   5           PRD parser screen
   6           Add feature screen
+  7           Settings screen
   ?           This help screen
   Esc         Back to previous screen
 
@@ -337,6 +350,10 @@ PRD Parser:
 Add Feature:
   Tab         Navigate between fields
   Space/Enter Select option or add
+
+Settings:
+  j/k         Navigate options
+  Space/Enter Toggle value or save
 
 Press any key to return...
 `
