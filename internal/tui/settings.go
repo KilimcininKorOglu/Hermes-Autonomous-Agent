@@ -66,48 +66,44 @@ func (m *SettingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "j", "down":
 			m.focusIndex++
-			if m.focusIndex > 10 {
+			if m.focusIndex > 11 {
 				m.focusIndex = 0
 			}
 		case "k", "up":
 			m.focusIndex--
 			if m.focusIndex < 0 {
-				m.focusIndex = 10
+				m.focusIndex = 11
 			}
 		case " ", "enter":
 			m.saved = false
 			m.err = nil
+			providers := []string{"claude", "droid", "opencode", "gemini", "auto"}
 			switch m.focusIndex {
-			case 0: // AI Provider toggle
-				providers := []string{"claude", "droid", "opencode", "gemini", "auto"}
+			case 0: // Planning Provider
+				current := m.config.AI.Planning
+				for i, p := range providers {
+					if p == current {
+						m.config.AI.Planning = providers[(i+1)%len(providers)]
+						break
+					}
+				}
+				if m.config.AI.Planning == current {
+					m.config.AI.Planning = "claude"
+				}
+			case 1: // Coding Provider
 				current := m.config.AI.Coding
 				for i, p := range providers {
 					if p == current {
 						m.config.AI.Coding = providers[(i+1)%len(providers)]
-						m.config.AI.Planning = m.config.AI.Coding
 						break
 					}
 				}
 				if m.config.AI.Coding == current {
 					m.config.AI.Coding = "claude"
-					m.config.AI.Planning = "claude"
 				}
-			case 1: // Auto Branch
-				m.config.TaskMode.AutoBranch = !m.config.TaskMode.AutoBranch
-			case 2: // Auto Commit
-				m.config.TaskMode.AutoCommit = !m.config.TaskMode.AutoCommit
-			case 3: // Autonomous
-				m.config.TaskMode.Autonomous = !m.config.TaskMode.Autonomous
-			case 4: // Stream Output
+			case 2: // Stream Output
 				m.config.AI.StreamOutput = !m.config.AI.StreamOutput
-			case 5: // Parallel Enabled
-				m.config.Parallel.Enabled = !m.config.Parallel.Enabled
-			case 6: // Max Workers (cycle 1-5)
-				m.config.Parallel.MaxWorkers++
-				if m.config.Parallel.MaxWorkers > 5 {
-					m.config.Parallel.MaxWorkers = 1
-				}
-			case 7: // Timeout (cycle common values)
+			case 3: // Timeout
 				timeouts := []int{120, 300, 600, 900, 1200}
 				current := m.config.AI.Timeout
 				for i, t := range timeouts {
@@ -119,18 +115,31 @@ func (m *SettingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.config.AI.Timeout == current {
 					m.config.AI.Timeout = 300
 				}
-			case 8: // Max Retries (cycle 1-10)
+			case 4: // Max Retries
 				m.config.AI.MaxRetries++
 				if m.config.AI.MaxRetries > 10 {
 					m.config.AI.MaxRetries = 1
 				}
-			case 9: // Failure Strategy
+			case 5: // Auto Branch
+				m.config.TaskMode.AutoBranch = !m.config.TaskMode.AutoBranch
+			case 6: // Auto Commit
+				m.config.TaskMode.AutoCommit = !m.config.TaskMode.AutoCommit
+			case 7: // Autonomous
+				m.config.TaskMode.Autonomous = !m.config.TaskMode.Autonomous
+			case 8: // Parallel Enabled
+				m.config.Parallel.Enabled = !m.config.Parallel.Enabled
+			case 9: // Max Workers
+				m.config.Parallel.MaxWorkers++
+				if m.config.Parallel.MaxWorkers > 5 {
+					m.config.Parallel.MaxWorkers = 1
+				}
+			case 10: // Failure Strategy
 				if m.config.Parallel.FailureStrategy == "continue" {
 					m.config.Parallel.FailureStrategy = "fail-fast"
 				} else {
 					m.config.Parallel.FailureStrategy = "continue"
 				}
-			case 10: // Save button
+			case 11: // Save button
 				err := m.saveConfig()
 				if err != nil {
 					m.err = err
@@ -180,27 +189,28 @@ func (m *SettingsModel) View() string {
 
 	b.WriteString(sectionStyle.Render("AI Configuration"))
 	b.WriteString("\n")
-	m.renderOption(&b, 0, labelStyle, selectedStyle, valueStyle, "AI Provider:", m.config.AI.Coding)
-	m.renderBoolOption(&b, 4, labelStyle, selectedStyle, "Stream Output:", m.config.AI.StreamOutput)
-	m.renderOption(&b, 7, labelStyle, selectedStyle, valueStyle, "Timeout:", fmt.Sprintf("%ds", m.config.AI.Timeout))
-	m.renderOption(&b, 8, labelStyle, selectedStyle, valueStyle, "Max Retries:", fmt.Sprintf("%d", m.config.AI.MaxRetries))
+	m.renderOption(&b, 0, labelStyle, selectedStyle, valueStyle, "Planning Provider:", m.config.AI.Planning)
+	m.renderOption(&b, 1, labelStyle, selectedStyle, valueStyle, "Coding Provider:", m.config.AI.Coding)
+	m.renderBoolOption(&b, 2, labelStyle, selectedStyle, "Stream Output:", m.config.AI.StreamOutput)
+	m.renderOption(&b, 3, labelStyle, selectedStyle, valueStyle, "Timeout:", fmt.Sprintf("%ds", m.config.AI.Timeout))
+	m.renderOption(&b, 4, labelStyle, selectedStyle, valueStyle, "Max Retries:", fmt.Sprintf("%d", m.config.AI.MaxRetries))
 
 	b.WriteString("\n")
 	b.WriteString(sectionStyle.Render("Task Mode"))
 	b.WriteString("\n")
-	m.renderBoolOption(&b, 1, labelStyle, selectedStyle, "Auto Branch:", m.config.TaskMode.AutoBranch)
-	m.renderBoolOption(&b, 2, labelStyle, selectedStyle, "Auto Commit:", m.config.TaskMode.AutoCommit)
-	m.renderBoolOption(&b, 3, labelStyle, selectedStyle, "Autonomous:", m.config.TaskMode.Autonomous)
+	m.renderBoolOption(&b, 5, labelStyle, selectedStyle, "Auto Branch:", m.config.TaskMode.AutoBranch)
+	m.renderBoolOption(&b, 6, labelStyle, selectedStyle, "Auto Commit:", m.config.TaskMode.AutoCommit)
+	m.renderBoolOption(&b, 7, labelStyle, selectedStyle, "Autonomous:", m.config.TaskMode.Autonomous)
 
 	b.WriteString("\n")
 	b.WriteString(sectionStyle.Render("Parallel Execution"))
 	b.WriteString("\n")
-	m.renderBoolOption(&b, 5, labelStyle, selectedStyle, "Enabled:", m.config.Parallel.Enabled)
-	m.renderOption(&b, 6, labelStyle, selectedStyle, valueStyle, "Max Workers:", fmt.Sprintf("%d", m.config.Parallel.MaxWorkers))
-	m.renderOption(&b, 9, labelStyle, selectedStyle, valueStyle, "Failure Strategy:", m.config.Parallel.FailureStrategy)
+	m.renderBoolOption(&b, 8, labelStyle, selectedStyle, "Enabled:", m.config.Parallel.Enabled)
+	m.renderOption(&b, 9, labelStyle, selectedStyle, valueStyle, "Max Workers:", fmt.Sprintf("%d", m.config.Parallel.MaxWorkers))
+	m.renderOption(&b, 10, labelStyle, selectedStyle, valueStyle, "Failure Strategy:", m.config.Parallel.FailureStrategy)
 
 	b.WriteString("\n\n")
-	if m.focusIndex == 10 {
+	if m.focusIndex == 11 {
 		b.WriteString(selectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
