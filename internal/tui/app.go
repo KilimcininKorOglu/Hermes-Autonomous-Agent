@@ -35,6 +35,7 @@ const (
 	ScreenTasks
 	ScreenTaskDetail
 	ScreenLogs
+	ScreenIdea
 	ScreenHelp
 )
 
@@ -65,6 +66,7 @@ type App struct {
 	tasks      *TasksModel
 	taskDetail *TaskDetailModel
 	logs       *LogsModel
+	idea       *IdeaModel
 }
 
 // NewApp creates a new TUI application
@@ -84,6 +86,7 @@ func NewApp(basePath string) (*App, error) {
 		tasks:      NewTasksModel(basePath),
 		taskDetail: NewTaskDetailModel(basePath),
 		logs:       NewLogsModel(basePath),
+		idea:       NewIdeaModel(basePath),
 	}, nil
 }
 
@@ -114,6 +117,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.tasks.SetSize(msg.Width, msg.Height-4)
 		a.taskDetail.SetSize(msg.Width, msg.Height-4)
 		a.logs.SetSize(msg.Width, msg.Height-4)
+		a.idea.SetSize(msg.Width, msg.Height-4)
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -125,6 +129,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.screen = ScreenTasks
 		case "3":
 			a.screen = ScreenLogs
+		case "4":
+			a.screen = ScreenIdea
 		case "?":
 			a.screen = ScreenHelp
 		case "enter":
@@ -194,6 +200,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var model tea.Model
 		model, cmd = a.logs.Update(msg)
 		a.logs = model.(*LogsModel)
+	case ScreenIdea:
+		var model tea.Model
+		model, cmd = a.idea.Update(msg)
+		a.idea = model.(*IdeaModel)
 	}
 
 	return a, cmd
@@ -215,6 +225,8 @@ func (a App) View() string {
 		content = a.taskDetail.View()
 	case ScreenLogs:
 		content = a.logs.View()
+	case ScreenIdea:
+		content = a.idea.View()
 	case ScreenHelp:
 		content = a.helpView()
 	}
@@ -244,7 +256,7 @@ func (a App) footerView() string {
 		Foreground(lipgloss.Color("241")).
 		Width(a.width)
 
-	help := "[1]Dashboard [2]Tasks [3]Logs [?]Help [r]Run [Shift+R]Refresh [q]Quit"
+	help := "[1]Dashboard [2]Tasks [3]Logs [4]Idea [?]Help [r]Run [Shift+R]Refresh [q]Quit"
 	if a.running {
 		help = "[RUNNING] " + a.runStatus + " | [s]Stop [q]Quit"
 	}
@@ -262,6 +274,7 @@ Navigation:
   1           Dashboard screen
   2           Tasks screen
   3           Logs screen
+  4           Idea/PRD generator screen
   ?           This help screen
   Esc         Back to previous screen
 
@@ -285,6 +298,11 @@ Logs:
   g           Go to top
   Shift+G     Go to bottom
   f           Toggle auto-scroll
+
+Idea:
+  Tab         Navigate between fields
+  Space/Enter Select option or generate
+  l           Toggle language (en/tr)
 
 Press any key to return...
 `
