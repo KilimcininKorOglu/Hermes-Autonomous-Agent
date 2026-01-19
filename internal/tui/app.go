@@ -41,6 +41,7 @@ const (
 	ScreenSettings
 	ScreenCircuit
 	ScreenUpdate
+	ScreenInit
 	ScreenHelp
 )
 
@@ -77,6 +78,7 @@ type App struct {
 	settings   *SettingsModel
 	circuit    *CircuitBreakerModel
 	update     *UpdateModel
+	initProj   *InitModel
 }
 
 // NewApp creates a new TUI application
@@ -102,6 +104,7 @@ func NewApp(basePath string, version string) (*App, error) {
 		settings:   NewSettingsModel(basePath),
 		circuit:    NewCircuitBreakerModel(basePath),
 		update:     NewUpdateModel(version),
+		initProj:   NewInitModel(),
 	}, nil
 }
 
@@ -138,6 +141,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.settings.SetSize(msg.Width, msg.Height-4)
 		a.circuit.SetSize(msg.Width, msg.Height-4)
 		a.update.SetSize(msg.Width, msg.Height-4)
+		a.initProj.SetSize(msg.Width, msg.Height-4)
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -161,6 +165,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.screen = ScreenCircuit
 		case "9":
 			a.screen = ScreenUpdate
+		case "0":
+			a.screen = ScreenInit
 		case "?":
 			a.screen = ScreenHelp
 		case "enter":
@@ -254,6 +260,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var model tea.Model
 		model, cmd = a.update.Update(msg)
 		a.update = model.(*UpdateModel)
+	case ScreenInit:
+		var model tea.Model
+		model, cmd = a.initProj.Update(msg)
+		a.initProj = model.(*InitModel)
 	}
 
 	return a, cmd
@@ -287,6 +297,8 @@ func (a App) View() string {
 		content = a.circuit.View()
 	case ScreenUpdate:
 		content = a.update.View()
+	case ScreenInit:
+		content = a.initProj.View()
 	case ScreenHelp:
 		content = a.helpView()
 	}
@@ -316,7 +328,7 @@ func (a App) footerView() string {
 		Foreground(lipgloss.Color("241")).
 		Width(a.width)
 
-	help := "[1]Dash [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [7]Set [8]CB [9]Upd [?]Help [q]Quit"
+	help := "[1]Dash [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [7]Set [8]CB [9]Upd [0]Init [?]Help [q]"
 	if a.running {
 		help = "[RUNNING] " + a.runStatus + " | [s]Stop [q]Quit"
 	}
@@ -340,6 +352,7 @@ Navigation:
   7           Settings screen
   8           Circuit breaker screen
   9           Update screen
+  0           Initialize project screen
   ?           This help screen
   Esc         Back to previous screen
 
@@ -388,6 +401,10 @@ Circuit Breaker:
 Update:
   c           Check for updates
   u           Install update (when available)
+
+Init:
+  Tab         Navigate between fields
+  Space/Enter Initialize project
 
 Press any key to return...
 `
