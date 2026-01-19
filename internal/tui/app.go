@@ -39,6 +39,7 @@ const (
 	ScreenPrd
 	ScreenAddFeature
 	ScreenSettings
+	ScreenCircuit
 	ScreenHelp
 )
 
@@ -73,6 +74,7 @@ type App struct {
 	prd        *PrdModel
 	addFeature *AddFeatureModel
 	settings   *SettingsModel
+	circuit    *CircuitBreakerModel
 }
 
 // NewApp creates a new TUI application
@@ -96,6 +98,7 @@ func NewApp(basePath string) (*App, error) {
 		prd:        NewPrdModel(basePath),
 		addFeature: NewAddFeatureModel(basePath),
 		settings:   NewSettingsModel(basePath),
+		circuit:    NewCircuitBreakerModel(basePath),
 	}, nil
 }
 
@@ -130,6 +133,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.prd.SetSize(msg.Width, msg.Height-4)
 		a.addFeature.SetSize(msg.Width, msg.Height-4)
 		a.settings.SetSize(msg.Width, msg.Height-4)
+		a.circuit.SetSize(msg.Width, msg.Height-4)
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -149,6 +153,8 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.screen = ScreenAddFeature
 		case "7":
 			a.screen = ScreenSettings
+		case "8":
+			a.screen = ScreenCircuit
 		case "?":
 			a.screen = ScreenHelp
 		case "enter":
@@ -234,6 +240,10 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var model tea.Model
 		model, cmd = a.settings.Update(msg)
 		a.settings = model.(*SettingsModel)
+	case ScreenCircuit:
+		var model tea.Model
+		model, cmd = a.circuit.Update(msg)
+		a.circuit = model.(*CircuitBreakerModel)
 	}
 
 	return a, cmd
@@ -263,6 +273,8 @@ func (a App) View() string {
 		content = a.addFeature.View()
 	case ScreenSettings:
 		content = a.settings.View()
+	case ScreenCircuit:
+		content = a.circuit.View()
 	case ScreenHelp:
 		content = a.helpView()
 	}
@@ -292,7 +304,7 @@ func (a App) footerView() string {
 		Foreground(lipgloss.Color("241")).
 		Width(a.width)
 
-	help := "[1]Dashboard [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [7]Settings [?]Help [q]Quit"
+	help := "[1]Dash [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [7]Set [8]CB [?]Help [q]Quit"
 	if a.running {
 		help = "[RUNNING] " + a.runStatus + " | [s]Stop [q]Quit"
 	}
@@ -314,6 +326,7 @@ Navigation:
   5           PRD parser screen
   6           Add feature screen
   7           Settings screen
+  8           Circuit breaker screen
   ?           This help screen
   Esc         Back to previous screen
 
@@ -354,6 +367,10 @@ Add Feature:
 Settings:
   j/k         Navigate options
   Space/Enter Toggle value or save
+
+Circuit Breaker:
+  r           Refresh state
+  Space/Enter Reset breaker (when OPEN/HALF_OPEN)
 
 Press any key to return...
 `
