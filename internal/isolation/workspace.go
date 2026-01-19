@@ -110,7 +110,9 @@ func (w *Workspace) Cleanup() error {
 	// Prune worktrees
 	cmd = exec.Command("git", "worktree", "prune")
 	cmd.Dir = w.BasePath
-	cmd.Run() // Ignore errors
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: git worktree prune failed: %v\n", err)
+	}
 
 	return nil
 }
