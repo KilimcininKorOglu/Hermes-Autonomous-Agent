@@ -162,42 +162,52 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "1":
 			if !isTextInputScreen {
 				a.screen = ScreenDashboard
+				return a, nil
 			}
 		case "2":
 			if !isTextInputScreen {
 				a.screen = ScreenTasks
+				return a, nil
 			}
 		case "3":
 			if !isTextInputScreen {
 				a.screen = ScreenLogs
+				return a, nil
 			}
 		case "4":
 			if !isTextInputScreen {
 				a.screen = ScreenIdea
+				return a, nil
 			}
 		case "5":
 			if !isTextInputScreen {
 				a.screen = ScreenPrd
+				return a, nil
 			}
 		case "6":
 			if !isTextInputScreen {
 				a.screen = ScreenAddFeature
+				return a, nil
 			}
 		case "7":
 			if !isTextInputScreen {
 				a.screen = ScreenSettings
+				return a, nil
 			}
 		case "8":
 			if !isTextInputScreen {
 				a.screen = ScreenCircuit
+				return a, nil
 			}
 		case "9":
 			if !isTextInputScreen {
 				a.screen = ScreenUpdate
+				return a, nil
 			}
 		case "0":
 			if !isTextInputScreen {
 				a.screen = ScreenInit
+				return a, nil
 			}
 		case "?":
 			a.screen = ScreenHelp
