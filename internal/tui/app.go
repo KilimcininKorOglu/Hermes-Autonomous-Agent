@@ -152,45 +152,67 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.initProj.SetSize(msg.Width, msg.Height-4)
 
 	case tea.KeyMsg:
+		// Check if text input is focused on current screen
+		textInputFocused := false
+		switch a.screen {
+		case ScreenIdea:
+			textInputFocused = a.idea.focusIndex == 0
+		case ScreenPrd:
+			textInputFocused = a.prd.focusIndex == 0
+		case ScreenAddFeature:
+			textInputFocused = a.addFeature.focusIndex == 0
+		case ScreenInit:
+			textInputFocused = a.initProj.focusIndex == 0
+		}
+
+		// If text input is focused, let the submodel handle all keys except quit
+		if textInputFocused {
+			if msg.String() == "ctrl+c" {
+				return a, tea.Quit
+			}
+			// Don't handle other keys here, let them go to submodel
+		} else {
+			switch msg.String() {
+			case "q", "ctrl+c":
+				return a, tea.Quit
+			case "1":
+				a.screen = ScreenDashboard
+				return a, nil
+			case "2":
+				a.screen = ScreenTasks
+				return a, nil
+			case "3":
+				a.screen = ScreenLogs
+				return a, nil
+			case "4":
+				a.screen = ScreenIdea
+				return a, nil
+			case "5":
+				a.screen = ScreenPrd
+				return a, nil
+			case "6":
+				a.screen = ScreenAddFeature
+				return a, nil
+			case "7":
+				a.screen = ScreenSettings
+				return a, nil
+			case "8":
+				a.screen = ScreenCircuit
+				return a, nil
+			case "9":
+				a.screen = ScreenUpdate
+				return a, nil
+			case "0":
+				a.screen = ScreenInit
+				return a, nil
+			case "?":
+				a.screen = ScreenHelp
+				return a, nil
+			}
+		}
+
+		// Handle common keys for all screens
 		switch msg.String() {
-		case "q", "ctrl+c":
-			return a, tea.Quit
-		case "1":
-			a.screen = ScreenDashboard
-			return a, nil
-		case "2":
-			a.screen = ScreenTasks
-			return a, nil
-		case "3":
-			a.screen = ScreenLogs
-			return a, nil
-		case "4":
-			a.screen = ScreenIdea
-			a.idea.textInput.SetValue("")
-			return a, nil
-		case "5":
-			a.screen = ScreenPrd
-			a.prd.textInput.SetValue("")
-			return a, nil
-		case "6":
-			a.screen = ScreenAddFeature
-			a.addFeature.textInput.SetValue("")
-			return a, nil
-		case "7":
-			a.screen = ScreenSettings
-			return a, nil
-		case "8":
-			a.screen = ScreenCircuit
-			return a, nil
-		case "9":
-			a.screen = ScreenUpdate
-			return a, nil
-		case "0":
-			a.screen = ScreenInit
-			a.initProj.textInput.SetValue("")
-			return a, nil
-		case "?":
-			a.screen = ScreenHelp
 		case "enter":
 			// Open task detail from tasks screen
 			if a.screen == ScreenTasks {
