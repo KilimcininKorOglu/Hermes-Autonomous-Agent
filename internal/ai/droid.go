@@ -41,6 +41,7 @@ type droidStreamEvent struct {
 	ToolName   string                 `json:"toolName,omitempty"`
 	ToolID     string                 `json:"toolId,omitempty"`
 	Parameters map[string]interface{} `json:"parameters,omitempty"`
+	Value      string                 `json:"value,omitempty"`
 	Output     string                 `json:"output,omitempty"`
 	IsError    bool                   `json:"isError,omitempty"`
 	Error      string                 `json:"error,omitempty"`
@@ -243,11 +244,21 @@ func (p *DroidProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptions)
 					ToolInput: dEvent.Parameters,
 				}
 			case "tool_result":
+				// tool_result uses toolId as the name, not toolName
+				toolName := dEvent.ToolName
+				if toolName == "" {
+					toolName = dEvent.ToolID
+				}
+				// Use Value field if Output is empty
+				output := dEvent.Output
+				if output == "" {
+					output = dEvent.Value
+				}
 				events <- StreamEvent{
 					Type:       "tool_result",
-					ToolName:   dEvent.ToolName,
+					ToolName:   toolName,
 					ToolID:     dEvent.ToolID,
-					ToolOutput: dEvent.Output,
+					ToolOutput: output,
 					ToolError:  dEvent.Error,
 				}
 			case "completion":
