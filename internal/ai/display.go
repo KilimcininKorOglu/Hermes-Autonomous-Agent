@@ -81,9 +81,9 @@ func (d *StreamDisplay) Handle(event StreamEvent) {
 				toolName = d.lastToolName
 			}
 			if event.ToolError != "" {
-				errorColor.Printf(" [%s Error: %s]", toolName, event.ToolError)
+				errorColor.Printf(" [%s Error: %s]\n", toolName, event.ToolError)
 			} else {
-				toolColor.Printf(" [%s Done]", toolName)
+				toolColor.Printf(" [%s Done]\n", toolName)
 			}
 		}
 
