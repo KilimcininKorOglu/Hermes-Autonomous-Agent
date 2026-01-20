@@ -371,11 +371,7 @@ func writeTaskFilesForTUI(basePath, output string) ([]string, error) {
 	var files []string
 
 	if len(matches) == 0 {
-		filePath := filepath.Join(tasksDir, "001-tasks.md")
-		if err := os.WriteFile(filePath, []byte(output), 0644); err != nil {
-			return nil, err
-		}
-		return []string{filePath}, nil
+		return nil, fmt.Errorf("AI output did not contain valid file markers (---FILE: ... ---END_FILE---). Please try again")
 	}
 
 	for _, match := range matches {

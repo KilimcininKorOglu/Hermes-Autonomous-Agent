@@ -269,13 +269,8 @@ func writeTaskFiles(output string) error {
 	}
 
 	if len(matches) == 0 {
-		// No file markers at all, write single file
-		filePath := filepath.Join(tasksDir, "001-tasks.md")
-		if err := os.WriteFile(filePath, []byte(output), 0644); err != nil {
-			return err
-		}
-		fmt.Printf("Created: %s\n", filePath)
-		return nil
+		// No file markers found - AI didn't follow the format
+		return fmt.Errorf("AI output did not contain valid file markers (---FILE: ... ---END_FILE---). Please try again")
 	}
 
 	for _, match := range matches {
