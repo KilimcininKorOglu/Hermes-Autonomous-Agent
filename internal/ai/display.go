@@ -41,11 +41,33 @@ func (d *StreamDisplay) Handle(event StreamEvent) {
 	case "tool_use":
 		if d.showTools {
 			toolColor.Printf("\n[Tool: %s]", event.ToolName)
+			// Show brief info about what the tool is doing
+			if event.ToolInput != nil {
+				if file, ok := event.ToolInput["file_path"].(string); ok {
+					toolColor.Printf(" %s", file)
+				} else if cmd, ok := event.ToolInput["command"].(string); ok {
+					if len(cmd) > 50 {
+						cmd = cmd[:50] + "..."
+					}
+					toolColor.Printf(" %s", cmd)
+				} else if pattern, ok := event.ToolInput["pattern"].(string); ok {
+					toolColor.Printf(" %s", pattern)
+				} else if content, ok := event.ToolInput["content"].(string); ok {
+					if len(content) > 30 {
+						content = content[:30] + "..."
+					}
+					toolColor.Printf(" %s", content)
+				}
+			}
 		}
 
 	case "tool_result":
 		if d.showTools {
-			toolColor.Print(" [Done]")
+			if event.ToolError != "" {
+				errorColor.Printf(" [Error: %s]", event.ToolError)
+			} else {
+				toolColor.Print(" [Done]")
+			}
 		}
 
 	case "result":

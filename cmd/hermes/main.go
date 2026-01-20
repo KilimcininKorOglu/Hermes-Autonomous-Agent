@@ -8,7 +8,7 @@ import (
 	"hermes/internal/cmd"
 )
 
-var version = "2.3.5"
+var version = "2.4.1"
 
 func main() {
 	rootCmd := &cobra.Command{
