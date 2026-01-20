@@ -361,6 +361,20 @@ func writeTaskFilesForTUI(basePath, output string) ([]string, error) {
 		return nil, err
 	}
 
+	// Check if AI already created files using Create tool
+	entries, err := os.ReadDir(tasksDir)
+	if err == nil {
+		var existingFiles []string
+		for _, entry := range entries {
+			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".md") {
+				existingFiles = append(existingFiles, filepath.Join(tasksDir, entry.Name()))
+			}
+		}
+		if len(existingFiles) > 0 {
+			return existingFiles, nil
+		}
+	}
+
 	fileRegex := regexp.MustCompile(`---FILE:\s*(.+?)---\s*([\s\S]*?)---END_FILE---`)
 	matches := fileRegex.FindAllStringSubmatch(output, -1)
 

@@ -259,6 +259,21 @@ func writeTaskFiles(output string) error {
 		return err
 	}
 
+	// Check if AI already created files using Create tool
+	entries, err := os.ReadDir(tasksDir)
+	if err == nil {
+		mdFiles := 0
+		for _, entry := range entries {
+			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".md") {
+				mdFiles++
+			}
+		}
+		if mdFiles > 0 {
+			fmt.Printf("\nFound %d task files in %s (created by AI)\n", mdFiles, tasksDir)
+			return nil
+		}
+	}
+
 	// Try parsing with END_FILE markers first
 	fileRegex := regexp.MustCompile(`---FILE:\s*(.+?)---\s*([\s\S]*?)---END_FILE---`)
 	matches := fileRegex.FindAllStringSubmatch(output, -1)
@@ -269,7 +284,7 @@ func writeTaskFiles(output string) error {
 	}
 
 	if len(matches) == 0 {
-		// No file markers found - AI didn't follow the format
+		// No file markers and no files created by AI
 		return fmt.Errorf("AI output did not contain valid file markers (---FILE: ... ---END_FILE---). Please try again")
 	}
 
