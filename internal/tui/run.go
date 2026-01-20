@@ -304,10 +304,6 @@ func (m *RunModel) executeParallel() tea.Cmd {
 			return parallelCompleteMsg{err: fmt.Errorf("no AI provider available")}
 		}
 
-		if m.logger != nil {
-			m.logger.Info("Using AI provider: %s", provider.Name())
-		}
-
 		// Get all pending tasks
 		allTasks, err := m.taskReader.GetAllTasks()
 		if err != nil {
@@ -326,48 +322,26 @@ func (m *RunModel) executeParallel() tea.Cmd {
 			return parallelCompleteMsg{successful: 0, failed: 0}
 		}
 
-		if m.logger != nil {
-			m.logger.Info("Found %d pending tasks", len(pendingTasks))
-		}
-
-		// Create scheduler
+		// Create scheduler (nil logger for TUI - no stdout output)
 		workers := m.config.Parallel.MaxWorkers
 		if workers < 1 {
 			workers = 3
 		}
 
 		parallelCfg := &m.config.Parallel
-		sched := scheduler.New(parallelCfg, provider, m.basePath, m.logger)
+		sched := scheduler.New(parallelCfg, provider, m.basePath, nil)
 
-		if m.logger != nil {
-			m.logger.Info("Using %d parallel workers", workers)
-		}
-
-		// Initialize parallel logger
+		// Initialize parallel logger (writes to files only)
 		parallelLogger, err := scheduler.NewParallelLogger(m.basePath, workers)
-		if err != nil {
-			if m.logger != nil {
-				m.logger.Warn("Failed to initialize parallel logger: %v", err)
-			}
-		} else {
+		if err == nil {
 			defer parallelLogger.Close()
-			if m.logger != nil {
-				m.logger.Info("Logs will be written to: %s", parallelLogger.GetLogDirectory())
-			}
 			sched.SetParallelLogger(parallelLogger)
-		}
-
-		if m.logger != nil {
-			m.logger.Info("Starting parallel execution...")
 		}
 
 		// Execute
 		result, err := sched.Execute(ctx, pendingTasks)
 
 		if err != nil {
-			if m.logger != nil {
-				m.logger.Error("Parallel execution failed: %v", err)
-			}
 			successful := 0
 			failed := 0
 			if result != nil {
@@ -375,10 +349,6 @@ func (m *RunModel) executeParallel() tea.Cmd {
 				failed = result.Failed
 			}
 			return parallelCompleteMsg{successful: successful, failed: failed, err: err}
-		}
-
-		if m.logger != nil {
-			m.logger.Success("All %d tasks completed successfully!", result.Successful)
 		}
 
 		return parallelCompleteMsg{successful: result.Successful, failed: result.Failed}

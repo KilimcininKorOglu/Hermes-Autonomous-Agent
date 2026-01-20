@@ -216,17 +216,13 @@ func (s *Scheduler) executeBatch(ctx context.Context, graph *TaskGraph, batch []
 			if err := graph.MarkComplete(result.TaskID); err != nil {
 				s.logError("Failed to mark task %s as complete: %v", result.TaskID, err)
 			}
-			// Print completion message to console
-			fmt.Printf("[COMPLETED] %s %s (%.0fs)\n", result.TaskID, result.TaskName, result.Duration.Seconds())
-			s.logInfo("Task %s completed successfully in %v", result.TaskID, result.Duration)
+			s.logInfo("[COMPLETED] %s %s (%.0fs)", result.TaskID, result.TaskName, result.Duration.Seconds())
 			successfulTasks = append(successfulTasks, result.TaskID)
 		} else {
 			if err := graph.MarkFailed(result.TaskID); err != nil {
 				s.logError("Failed to mark task %s as failed: %v", result.TaskID, err)
 			}
-			// Print failure message to console
-			fmt.Printf("[FAILED] %s %s: %v\n", result.TaskID, result.TaskName, result.Error)
-			s.logError("Task %s failed: %v", result.TaskID, result.Error)
+			s.logError("[FAILED] %s %s: %v", result.TaskID, result.TaskName, result.Error)
 			batchErr = fmt.Errorf("task %s failed: %w", result.TaskID, result.Error)
 		}
 	}
