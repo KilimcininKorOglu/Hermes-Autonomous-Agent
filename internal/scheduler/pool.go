@@ -13,6 +13,19 @@ import (
 	"hermes/internal/task"
 )
 
+// ProgressEvent represents a progress update from worker pool
+type ProgressEvent struct {
+	WorkerID   int
+	TaskID     string
+	TaskName   string
+	Status     string // "started", "completed", "failed", "retrying"
+	Batch      int
+	TotalBatch int
+}
+
+// ProgressCallback is called when progress updates occur
+type ProgressCallback func(event ProgressEvent)
+
 // TaskResult represents the result of a task execution
 type TaskResult struct {
 	TaskID    string
@@ -29,30 +42,36 @@ type TaskResult struct {
 
 // WorkerPool manages multiple AI agent instances for parallel execution
 type WorkerPool struct {
-	workers        int
-	taskQueue      chan *task.Task
-	results        chan *TaskResult
-	ctx            context.Context
-	cancel         context.CancelFunc
-	wg             sync.WaitGroup
-	provider       ai.Provider
-	workDir        string
-	mu             sync.Mutex
-	running        int
-	useIsolation   bool
-	workspaces     map[string]*isolation.Workspace
-	logger         *ParallelLogger
-	streamOutput   bool
-	maxRetries     int
+	workers          int
+	taskQueue        chan *task.Task
+	results          chan *TaskResult
+	ctx              context.Context
+	cancel           context.CancelFunc
+	wg               sync.WaitGroup
+	provider         ai.Provider
+	workDir          string
+	mu               sync.Mutex
+	running          int
+	useIsolation     bool
+	workspaces       map[string]*isolation.Workspace
+	logger           *ParallelLogger
+	streamOutput     bool
+	maxRetries       int
+	progressCallback ProgressCallback
+	currentBatch     int
+	totalBatches     int
 }
 
 // WorkerPoolConfig contains configuration for the worker pool
 type WorkerPoolConfig struct {
-	Workers      int
-	UseIsolation bool
-	Logger       *ParallelLogger
-	StreamOutput bool
-	MaxRetries   int
+	Workers          int
+	UseIsolation     bool
+	Logger           *ParallelLogger
+	StreamOutput     bool
+	MaxRetries       int
+	ProgressCallback ProgressCallback
+	CurrentBatch     int
+	TotalBatches     int
 }
 
 // NewWorkerPool creates a new worker pool
@@ -72,18 +91,21 @@ func NewWorkerPoolWithConfig(ctx context.Context, provider ai.Provider, workDir 
 		maxRetries = 2 // Default retry count
 	}
 	return &WorkerPool{
-		workers:      cfg.Workers,
-		taskQueue:    make(chan *task.Task, cfg.Workers*2),
-		results:      make(chan *TaskResult, cfg.Workers*2),
-		ctx:          ctx,
-		cancel:       cancel,
-		provider:     provider,
-		workDir:      workDir,
-		useIsolation: cfg.UseIsolation,
-		workspaces:   make(map[string]*isolation.Workspace),
-		logger:       cfg.Logger,
-		streamOutput: cfg.StreamOutput,
-		maxRetries:   maxRetries,
+		workers:          cfg.Workers,
+		taskQueue:        make(chan *task.Task, cfg.Workers*2),
+		results:          make(chan *TaskResult, cfg.Workers*2),
+		ctx:              ctx,
+		cancel:           cancel,
+		provider:         provider,
+		workDir:          workDir,
+		useIsolation:     cfg.UseIsolation,
+		workspaces:       make(map[string]*isolation.Workspace),
+		logger:           cfg.Logger,
+		streamOutput:     cfg.StreamOutput,
+		maxRetries:       maxRetries,
+		progressCallback: cfg.ProgressCallback,
+		currentBatch:     cfg.CurrentBatch,
+		totalBatches:     cfg.TotalBatches,
 	}
 }
 
@@ -163,6 +185,20 @@ func (p *WorkerPool) GetRunningCount() int {
 	return p.running
 }
 
+// notifyProgress sends a progress event to the callback if set
+func (p *WorkerPool) notifyProgress(workerID int, taskID, taskName, status string) {
+	if p.progressCallback != nil {
+		p.progressCallback(ProgressEvent{
+			WorkerID:   workerID,
+			TaskID:     taskID,
+			TaskName:   taskName,
+			Status:     status,
+			Batch:      p.currentBatch,
+			TotalBatch: p.totalBatches,
+		})
+	}
+}
+
 // executeTask executes a single task and returns the result
 func (p *WorkerPool) executeTask(workerID int, t *task.Task, attempt int) *TaskResult {
 	startTime := time.Now()
@@ -174,8 +210,12 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task, attempt int) *TaskR
 		WorkerID:  workerID + 1, // 1-indexed for display
 	}
 
+	// Notify progress: started
+	p.notifyProgress(workerID+1, t.ID, t.Name, "started")
+
 	if attempt > 1 && p.logger != nil {
 		p.logger.Worker(workerID+1, "Task %s attempt %d/%d", t.ID, attempt, p.maxRetries)
+		p.notifyProgress(workerID+1, t.ID, t.Name, "retrying")
 	}
 
 	// Log task start
@@ -287,6 +327,7 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task, attempt int) *TaskR
 		if p.logger != nil {
 			p.logger.TaskComplete(workerID+1, t.ID, result.Duration)
 		}
+		p.notifyProgress(workerID+1, t.ID, t.Name, "completed")
 		// Remove task from PROMPT.md only on completion
 		injector.RemoveTask()
 	} else {
@@ -297,6 +338,7 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task, attempt int) *TaskR
 		if p.logger != nil {
 			p.logger.Worker(workerID+1, "Task %s not marked as complete by AI", t.ID)
 		}
+		p.notifyProgress(workerID+1, t.ID, t.Name, "failed")
 		return result
 	}
 

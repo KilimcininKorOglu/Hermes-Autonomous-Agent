@@ -38,10 +38,11 @@ type RunModel struct {
 	cancel      context.CancelFunc
 
 	// Parallel execution state
-	parallelRunning   bool
-	parallelBatch     int
+	parallelRunning    bool
+	parallelBatch      int
 	parallelTotalBatch int
-	workerStatus      []string
+	workerStatus       []string
+	progressChan       chan scheduler.ProgressEvent
 
 	// Components
 	taskReader *task.Reader
@@ -186,6 +187,10 @@ func (m *RunModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case runTickMsg:
 		if m.running && !m.paused {
+			// Check progress channel for updates (non-blocking)
+			if m.parallelRunning && m.progressChan != nil {
+				m.drainProgressChannel()
+			}
 			return m, m.runTickCmd()
 		}
 
@@ -331,6 +336,16 @@ func (m *RunModel) executeParallel() tea.Cmd {
 		parallelCfg := &m.config.Parallel
 		sched := scheduler.New(parallelCfg, provider, m.basePath, nil)
 
+		// Set up progress callback to update worker status
+		m.progressChan = make(chan scheduler.ProgressEvent, 100)
+		sched.SetProgressCallback(func(event scheduler.ProgressEvent) {
+			select {
+			case m.progressChan <- event:
+			default:
+				// Channel full, skip update
+			}
+		})
+
 		// Initialize parallel logger (writes to files only)
 		parallelLogger, err := scheduler.NewParallelLogger(m.basePath, workers)
 		if err == nil {
@@ -340,6 +355,9 @@ func (m *RunModel) executeParallel() tea.Cmd {
 
 		// Execute
 		result, err := sched.Execute(ctx, pendingTasks)
+
+		// Close progress channel
+		close(m.progressChan)
 
 		if err != nil {
 			successful := 0
@@ -463,6 +481,35 @@ func (m *RunModel) handleTaskComplete(msg runTaskCompleteMsg) {
 	// Keep only last 10 entries
 	if len(m.taskHistory) > 10 {
 		m.taskHistory = m.taskHistory[len(m.taskHistory)-10:]
+	}
+}
+
+// drainProgressChannel reads all pending progress events from the channel
+func (m *RunModel) drainProgressChannel() {
+	for {
+		select {
+		case event, ok := <-m.progressChan:
+			if !ok {
+				return
+			}
+			// Update worker status
+			if event.WorkerID > 0 && event.WorkerID <= len(m.workerStatus) {
+				statusText := event.Status
+				if event.TaskID != "" {
+					statusText = fmt.Sprintf("%s: %s", event.TaskID, event.Status)
+				}
+				m.workerStatus[event.WorkerID-1] = fmt.Sprintf("W%d: %s", event.WorkerID, statusText)
+			}
+			// Update batch info
+			if event.Batch > 0 {
+				m.parallelBatch = event.Batch
+				m.parallelTotalBatch = event.TotalBatch
+				m.status = fmt.Sprintf("Batch %d/%d", event.Batch, event.TotalBatch)
+			}
+		default:
+			// No more events
+			return
+		}
 	}
 }
 

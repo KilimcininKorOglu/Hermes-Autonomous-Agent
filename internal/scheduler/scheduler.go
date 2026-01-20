@@ -18,13 +18,16 @@ import (
 
 // Scheduler manages parallel task execution
 type Scheduler struct {
-	config         *config.ParallelConfig
-	provider       ai.Provider
-	workDir        string
-	logger         *ui.Logger
-	parallelLogger *ParallelLogger
-	breaker        *circuit.Breaker
-	mu             sync.Mutex
+	config           *config.ParallelConfig
+	provider         ai.Provider
+	workDir          string
+	logger           *ui.Logger
+	parallelLogger   *ParallelLogger
+	breaker          *circuit.Breaker
+	mu               sync.Mutex
+	progressCallback ProgressCallback
+	currentBatch     int
+	totalBatches     int
 }
 
 // ExecutionPlan represents the planned execution order
@@ -61,6 +64,11 @@ func New(cfg *config.ParallelConfig, provider ai.Provider, workDir string, logge
 // SetParallelLogger sets the parallel logger for per-worker logging
 func (s *Scheduler) SetParallelLogger(logger *ParallelLogger) {
 	s.parallelLogger = logger
+}
+
+// SetProgressCallback sets the callback for progress updates
+func (s *Scheduler) SetProgressCallback(callback ProgressCallback) {
+	s.progressCallback = callback
 }
 
 // GetExecutionPlan returns the planned execution order without executing
@@ -111,8 +119,14 @@ func (s *Scheduler) Execute(ctx context.Context, tasks []*task.Task) (*Execution
 		s.logInfo("  Batch %d: %v", i+1, taskIDs)
 	}
 
+	// Set total batches for progress tracking
+	s.totalBatches = len(batches)
+
 	// Execute each batch
 	for batchNum, batch := range batches {
+		// Update current batch for progress tracking
+		s.currentBatch = batchNum + 1
+
 		select {
 		case <-ctx.Done():
 			result.EndTime = time.Now()
@@ -187,11 +201,14 @@ func (s *Scheduler) executeBatch(ctx context.Context, graph *TaskGraph, batch []
 	}
 
 	pool := NewWorkerPoolWithConfig(ctx, s.provider, s.workDir, WorkerPoolConfig{
-		Workers:      workers,
-		UseIsolation: s.config.IsolatedWorkspaces,
-		Logger:       s.parallelLogger,
-		StreamOutput: false, // Parallel mode should not stream to avoid mixed output
-		MaxRetries:   s.config.MaxRetries,
+		Workers:          workers,
+		UseIsolation:     s.config.IsolatedWorkspaces,
+		Logger:           s.parallelLogger,
+		StreamOutput:     false, // Parallel mode should not stream to avoid mixed output
+		MaxRetries:       s.config.MaxRetries,
+		ProgressCallback: s.progressCallback,
+		CurrentBatch:     s.currentBatch,
+		TotalBatches:     s.totalBatches,
 	})
 	pool.Start()
 
