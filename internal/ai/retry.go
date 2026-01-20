@@ -78,11 +78,19 @@ func executeWithStreaming(ctx context.Context, provider Provider, opts *ExecuteO
 	}
 
 	var output string
+	display := NewStreamDisplay(true, true)
+
 	for event := range events {
 		switch event.Type {
-		case "text":
+		case "text", "assistant":
 			fmt.Print(event.Text)
 			output += event.Text
+		case "tool_use":
+			display.Handle(event)
+		case "tool_result":
+			display.Handle(event)
+		case "result":
+			display.Handle(event)
 		case "error":
 			return &ExecuteResult{Success: false, Output: output, Error: event.Text}, nil
 		case "done":
