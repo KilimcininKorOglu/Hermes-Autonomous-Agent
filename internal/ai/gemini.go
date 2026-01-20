@@ -247,9 +247,15 @@ func (p *GeminiProvider) ExecuteStream(ctx context.Context, opts *ExecuteOptions
 					ToolID:   gEvent.ToolID,
 				}
 			case "tool_result":
+				// Use ToolName, fallback to ToolID if empty
+				toolName := gEvent.ToolName
+				if toolName == "" {
+					toolName = gEvent.ToolID
+				}
 				events <- StreamEvent{
 					Type:     "tool_result",
-					ToolName: gEvent.ToolName,
+					ToolName: toolName,
+					ToolID:   gEvent.ToolID,
 				}
 			case "result":
 				events <- StreamEvent{
