@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.4.1-blue)
+![Version](https://img.shields.io/badge/version-v2.4.2-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -447,6 +447,13 @@ make test
 ```
 
 ## Changelog
+
+### v2.4.2
+
+- Fixed version display - now correctly shows git tag version
+- Improved tool display during AI execution (shows file paths, commands)
+- Removed 001-tasks.md fallback - PRD parsing now requires proper file markers
+- Tool errors now shown in red
 
 ### v2.4.1
 
