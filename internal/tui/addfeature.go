@@ -14,20 +14,22 @@ import (
 	"hermes/internal/ai"
 	"hermes/internal/analyzer"
 	"hermes/internal/config"
+	"hermes/internal/ui"
 )
 
 // AddFeatureModel is the model for the add feature screen
 type AddFeatureModel struct {
-	width       int
-	height      int
-	basePath    string
-	textInput   textinput.Model
-	dryRun      bool
-	adding      bool
-	result      string
-	filePath    string
-	err         error
-	focusIndex  int
+	width      int
+	height     int
+	basePath   string
+	textInput  textinput.Model
+	dryRun     bool
+	adding     bool
+	result     string
+	filePath   string
+	err        error
+	focusIndex int
+	logger     *ui.Logger
 }
 
 // addFeatureResultMsg is sent when feature addition completes
@@ -37,7 +39,7 @@ type addFeatureResultMsg struct {
 }
 
 // NewAddFeatureModel creates a new add feature model
-func NewAddFeatureModel(basePath string) *AddFeatureModel {
+func NewAddFeatureModel(basePath string, logger *ui.Logger) *AddFeatureModel {
 	ti := textinput.New()
 	ti.Placeholder = "Enter feature description..."
 	ti.Focus()
@@ -48,6 +50,7 @@ func NewAddFeatureModel(basePath string) *AddFeatureModel {
 		basePath:   basePath,
 		textInput:  ti,
 		focusIndex: 0,
+		logger:     logger,
 	}
 }
 
@@ -253,6 +256,10 @@ func (m *AddFeatureModel) addFeature() tea.Cmd {
 		}
 		if provider == nil {
 			return addFeatureResultMsg{err: fmt.Errorf("no AI provider available")}
+		}
+
+		if m.logger != nil {
+			m.logger.Info("Adding feature: %s", m.textInput.Value())
 		}
 
 		prompt := buildAddPromptForTUI(m.textInput.Value(), nextFeatureID, nextTaskID)

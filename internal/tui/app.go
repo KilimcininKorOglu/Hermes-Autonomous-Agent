@@ -8,6 +8,7 @@ import (
 	"hermes/internal/circuit"
 	"hermes/internal/config"
 	"hermes/internal/task"
+	"hermes/internal/ui"
 )
 
 // tickMsg is sent on each tick for auto-refresh
@@ -51,6 +52,7 @@ type App struct {
 	config     *config.Config
 	taskReader *task.Reader
 	breaker    *circuit.Breaker
+	logger     *ui.Logger
 
 	// Sub-models
 	dashboard  *DashboardModel
@@ -74,24 +76,27 @@ func NewApp(basePath string, version string) (*App, error) {
 		cfg = config.DefaultConfig()
 	}
 
+	logger, _ := ui.NewLogger(basePath, false)
+
 	return &App{
 		screen:     ScreenDashboard,
 		basePath:   basePath,
 		config:     cfg,
 		taskReader: task.NewReader(basePath),
 		breaker:    circuit.New(basePath),
+		logger:     logger,
 		dashboard:  NewDashboardModel(basePath),
 		tasks:      NewTasksModel(basePath),
 		taskDetail: NewTaskDetailModel(basePath),
 		logs:       NewLogsModel(basePath),
-		idea:       NewIdeaModel(basePath),
-		prd:        NewPrdModel(basePath),
-		addFeature: NewAddFeatureModel(basePath),
+		idea:       NewIdeaModel(basePath, logger),
+		prd:        NewPrdModel(basePath, logger),
+		addFeature: NewAddFeatureModel(basePath, logger),
 		settings:   NewSettingsModel(basePath),
 		circuit:    NewCircuitBreakerModel(basePath),
 		update:     NewUpdateModel(version),
 		initProj:   NewInitModel(),
-		run:        NewRunModel(basePath),
+		run:        NewRunModel(basePath, logger),
 	}, nil
 }
 

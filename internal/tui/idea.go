@@ -26,6 +26,7 @@ type IdeaModel struct {
 	result      string
 	err         error
 	focusIndex  int
+	logger      *ui.Logger
 }
 
 // ideaResultMsg is sent when PRD generation completes
@@ -35,7 +36,7 @@ type ideaResultMsg struct {
 }
 
 // NewIdeaModel creates a new idea model
-func NewIdeaModel(basePath string) *IdeaModel {
+func NewIdeaModel(basePath string, logger *ui.Logger) *IdeaModel {
 	ti := textinput.New()
 	ti.Placeholder = "Enter your idea description..."
 	ti.Focus()
@@ -47,6 +48,7 @@ func NewIdeaModel(basePath string) *IdeaModel {
 		textInput:  ti,
 		language:   "en",
 		focusIndex: 0,
+		logger:     logger,
 	}
 }
 
@@ -263,8 +265,11 @@ func (m *IdeaModel) generatePRD() tea.Cmd {
 			return ideaResultMsg{err: fmt.Errorf("no AI provider available")}
 		}
 
-		logger, _ := ui.NewLogger(m.basePath, false)
-		generator := idea.NewGenerator(provider, cfg, logger)
+		if m.logger != nil {
+			m.logger.Info("Generating PRD from idea: %s", m.textInput.Value())
+		}
+
+		generator := idea.NewGenerator(provider, cfg, m.logger)
 
 		opts := idea.GenerateOptions{
 			Idea:        m.textInput.Value(),

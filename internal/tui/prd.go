@@ -14,20 +14,22 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"hermes/internal/ai"
 	"hermes/internal/config"
+	"hermes/internal/ui"
 )
 
 // PrdModel is the model for the PRD parser screen
 type PrdModel struct {
-	width      int
-	height     int
-	basePath   string
-	textInput  textinput.Model
-	dryRun     bool
-	parsing    bool
-	result     string
+	width        int
+	height       int
+	basePath     string
+	textInput    textinput.Model
+	dryRun       bool
+	parsing      bool
+	result       string
 	filesCreated []string
-	err        error
-	focusIndex int
+	err          error
+	focusIndex   int
+	logger       *ui.Logger
 }
 
 // prdResultMsg is sent when PRD parsing completes
@@ -37,7 +39,7 @@ type prdResultMsg struct {
 }
 
 // NewPrdModel creates a new PRD model
-func NewPrdModel(basePath string) *PrdModel {
+func NewPrdModel(basePath string, logger *ui.Logger) *PrdModel {
 	ti := textinput.New()
 	ti.Placeholder = ".hermes/docs/PRD.md"
 	ti.Focus()
@@ -45,9 +47,10 @@ func NewPrdModel(basePath string) *PrdModel {
 	ti.Width = 50
 
 	return &PrdModel{
-		basePath:  basePath,
-		textInput: ti,
+		basePath:   basePath,
+		textInput:  ti,
 		focusIndex: 0,
+		logger:     logger,
 	}
 }
 
@@ -250,6 +253,10 @@ func (m *PrdModel) parsePRD(prdPath string) tea.Cmd {
 		}
 		if provider == nil {
 			return prdResultMsg{err: fmt.Errorf("no AI provider available")}
+		}
+
+		if m.logger != nil {
+			m.logger.Info("Parsing PRD file: %s", prdPath)
 		}
 
 		prompt := buildPrdPromptForTUI(string(prdContent))

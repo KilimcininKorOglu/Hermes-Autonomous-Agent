@@ -14,6 +14,7 @@ import (
 	"hermes/internal/config"
 	"hermes/internal/prompt"
 	"hermes/internal/task"
+	"hermes/internal/ui"
 )
 
 // RunModel is the model for the run screen
@@ -23,16 +24,17 @@ type RunModel struct {
 	basePath   string
 	config     *config.Config
 	focusIndex int
+	logger     *ui.Logger
 
 	// Run state
-	running    bool
-	paused     bool
-	loopCount  int
-	status     string
-	lastError  string
+	running     bool
+	paused      bool
+	loopCount   int
+	status      string
+	lastError   string
 	currentTask string
-	startTime  time.Time
-	cancel     context.CancelFunc
+	startTime   time.Time
+	cancel      context.CancelFunc
 
 	// Components
 	taskReader *task.Reader
@@ -58,7 +60,7 @@ type runTaskCompleteMsg struct {
 type runStoppedMsg struct{}
 
 // NewRunModel creates a new run model
-func NewRunModel(basePath string) *RunModel {
+func NewRunModel(basePath string, logger *ui.Logger) *RunModel {
 	cfg, err := config.Load(basePath)
 	if err != nil {
 		cfg = config.DefaultConfig()
@@ -85,6 +87,7 @@ func NewRunModel(basePath string) *RunModel {
 		config:         cfg,
 		taskReader:     reader,
 		breaker:        breaker,
+		logger:         logger,
 		totalTasks:     totalTasks,
 		completedTasks: completedTasks,
 		taskHistory:    make([]string, 0),
@@ -253,6 +256,10 @@ func (m *RunModel) executeNextTask() tea.Cmd {
 		m.loopCount++
 		m.currentTask = nextTask.ID
 		m.status = fmt.Sprintf("Loop #%d: %s", m.loopCount, nextTask.ID)
+
+		if m.logger != nil {
+			m.logger.Info("Starting task: %s - %s", nextTask.ID, nextTask.Name)
+		}
 
 		// Inject task into prompt
 		injector := prompt.NewInjector(m.basePath)
