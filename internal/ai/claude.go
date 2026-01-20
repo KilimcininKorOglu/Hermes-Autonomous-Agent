@@ -21,7 +21,7 @@ func NewClaudeProvider() *ClaudeProvider {
 
 // Name returns the provider name
 func (p *ClaudeProvider) Name() string {
-	return "claude"
+	return "Claude"
 }
 
 // IsAvailable checks if Claude CLI is installed

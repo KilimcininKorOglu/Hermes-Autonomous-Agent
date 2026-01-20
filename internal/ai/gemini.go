@@ -20,7 +20,7 @@ func NewGeminiProvider() *GeminiProvider {
 
 // Name returns the provider name
 func (p *GeminiProvider) Name() string {
-	return "gemini"
+	return "Gemini"
 }
 
 // IsAvailable checks if Gemini CLI is installed

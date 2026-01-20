@@ -22,7 +22,7 @@ func NewDroidProvider() *DroidProvider {
 
 // Name returns the provider name
 func (p *DroidProvider) Name() string {
-	return "droid"
+	return "Droid"
 }
 
 // IsAvailable checks if Droid CLI is installed

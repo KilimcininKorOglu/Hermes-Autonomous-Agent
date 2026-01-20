@@ -12,8 +12,8 @@ func TestGetProvider(t *testing.T) {
 	if p == nil {
 		t.Error("expected claude provider")
 	}
-	if p.Name() != "claude" {
-		t.Errorf("expected name 'claude', got %s", p.Name())
+	if p.Name() != "Claude" {
+		t.Errorf("expected name 'Claude', got %s", p.Name())
 	}
 
 	// Test unknown provider
@@ -26,15 +26,15 @@ func TestGetProvider(t *testing.T) {
 func TestAutoDetectProvider(t *testing.T) {
 	p := AutoDetectProvider()
 	// May or may not be available depending on system
-	if p != nil && p.Name() != "claude" {
-		t.Errorf("expected claude provider, got %s", p.Name())
+	if p != nil && p.Name() != "Claude" && p.Name() != "Droid" && p.Name() != "Gemini" && p.Name() != "OpenCode" {
+		t.Errorf("expected valid provider name, got %s", p.Name())
 	}
 }
 
 func TestClaudeProviderName(t *testing.T) {
 	p := NewClaudeProvider()
-	if p.Name() != "claude" {
-		t.Errorf("expected 'claude', got %s", p.Name())
+	if p.Name() != "Claude" {
+		t.Errorf("expected 'Claude', got %s", p.Name())
 	}
 }
 

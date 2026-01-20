@@ -20,7 +20,7 @@ func NewOpenCodeProvider() *OpenCodeProvider {
 
 // Name returns the provider name
 func (p *OpenCodeProvider) Name() string {
-	return "opencode"
+	return "OpenCode"
 }
 
 // IsAvailable checks if OpenCode CLI is installed
