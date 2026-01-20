@@ -295,7 +295,16 @@ Use this format for each feature file:
 # Feature N: Feature Name
 **Feature ID:** FXXX
 **Priority:** P1 - CRITICAL
+**Target Version:** v1.0.0
+**Estimated Duration:** X weeks
 **Status:** NOT_STARTED
+
+## Overview
+[Feature description]
+
+## Goals
+- Goal 1
+- Goal 2
 
 ## Tasks
 
@@ -305,18 +314,36 @@ Use this format for each feature file:
 **Estimated Effort:** X days
 
 #### Description
-[Task description]
+[Clear, detailed description of what this task accomplishes]
+
+#### Technical Details
+[Implementation notes, architecture decisions, code patterns to follow]
 
 #### Files to Touch
-- path/file.go (new)
+- ` + "`path/to/file.go`" + ` (new)
+- ` + "`path/to/existing.go`" + ` (update)
 
 #### Dependencies
-- None
+- TYYY (if depends on another task, use actual task ID like T001, T002)
+- None (if no dependencies)
+
+IMPORTANT: Dependencies MUST be valid task IDs (T001, T002, etc.) or "None".
+Do NOT use descriptions like "All backend features" or "Previous tasks".
 
 #### Success Criteria
 - [ ] Criterion 1
+- [ ] Criterion 2
 
 ---
+
+IMPORTANT RULES:
+1. Create 3-6 tasks per feature, each task should be 0.5-3 days of work
+2. Tasks should be atomic and independently testable
+3. Use realistic effort estimates based on complexity
+4. Dependencies MUST reference actual task IDs (T001, T002, etc.) or be "None"
+5. Do NOT use vague dependencies like "All backend features" or "Previous tasks"
+6. Success criteria must be specific and measurable
+7. Priority levels: P1=Critical, P2=High, P3=Medium, P4=Low
 
 Output format:
 ---FILE: .hermes/tasks/001-feature-name.md---

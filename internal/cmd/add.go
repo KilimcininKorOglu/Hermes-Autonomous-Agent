@@ -165,7 +165,10 @@ Create the feature file with this EXACT format:
 
 #### Dependencies
 
-- None
+- TYYY (if depends on another task, use actual task ID like T001, T002)
+- None (if no dependencies)
+
+IMPORTANT: Dependencies MUST be valid task IDs (T001, T002, etc.) or "None".
 
 #### Success Criteria
 
@@ -198,9 +201,10 @@ RULES:
 1. Create 3-5 tasks, each 0.5-2 days of work
 2. Tasks must be atomic and testable
 3. Include realistic effort estimates
-4. Set proper dependencies between tasks
-5. Success criteria must be specific and measurable
-6. Analyze the project structure to suggest correct file paths
+4. Dependencies MUST reference actual task IDs (T001, T002, etc.) or be "None"
+5. Do NOT use vague dependencies like "All backend features" or "Previous tasks"
+6. Success criteria must be specific and measurable
+7. Analyze the project structure to suggest correct file paths
 
 FILE CREATION RULES:
 - Create the feature file ONLY in .hermes/tasks/ directory

@@ -318,12 +318,20 @@ Create with this format:
 - path/file.go (new)
 
 #### Dependencies
-- None
+- TYYY (if depends on another task, use actual task ID like T001, T002)
+- None (if no dependencies)
+
+IMPORTANT: Dependencies MUST be valid task IDs (T001, T002, etc.) or "None".
 
 #### Success Criteria
 - [ ] Criterion 1
 
 ---
+
+RULES:
+1. Create 3-5 tasks, each 0.5-2 days of work
+2. Dependencies MUST reference actual task IDs or be "None"
+3. Do NOT use vague dependencies like "All backend features"
 
 Create 3-5 tasks. Output only markdown, no explanation.`, desc, featureID, taskID, featureID, featureID, taskID)
 }
