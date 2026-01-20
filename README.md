@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.4.4-blue)
+![Version](https://img.shields.io/badge/version-v2.4.5-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -447,6 +447,11 @@ make test
 ```
 
 ## Changelog
+
+### v2.4.5
+
+- Fixed PRD parsing when AI uses Create tool instead of file markers
+- Build timestamp now uses local time instead of UTC
 
 ### v2.4.4
 
