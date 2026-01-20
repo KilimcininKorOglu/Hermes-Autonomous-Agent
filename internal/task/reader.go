@@ -175,6 +175,13 @@ func (r *Reader) GetNextTask() (*Task, error) {
 		}
 	}
 
+	// First, check for IN_PROGRESS tasks - they should be continued first
+	for _, t := range tasks {
+		if t.Status == StatusInProgress {
+			return &t, nil
+		}
+	}
+
 	// Find first available task by priority
 	var candidates []Task
 	for _, t := range tasks {

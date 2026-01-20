@@ -355,7 +355,12 @@ func TestCanStart(t *testing.T) {
 	}
 
 	task3 := Task{ID: "T004", Status: StatusInProgress, Dependencies: nil}
-	if task3.CanStart(completed) {
-		t.Error("T004 should NOT be able to start (already in progress)")
+	if !task3.CanStart(completed) {
+		t.Error("T004 should be able to start (in progress tasks should continue)")
+	}
+
+	task4 := Task{ID: "T005", Status: StatusCompleted, Dependencies: nil}
+	if task4.CanStart(completed) {
+		t.Error("T005 should NOT be able to start (already completed)")
 	}
 }

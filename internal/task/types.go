@@ -80,6 +80,10 @@ func (t *Task) IsBlocked() bool {
 
 // CanStart returns true if task can be started
 func (t *Task) CanStart(completedTasks map[string]bool) bool {
+	// IN_PROGRESS tasks are already started, should continue
+	if t.Status == StatusInProgress {
+		return true
+	}
 	if t.Status != StatusNotStarted {
 		return false
 	}
