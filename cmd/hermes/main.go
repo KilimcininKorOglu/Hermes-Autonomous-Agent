@@ -8,16 +8,17 @@ import (
 	"hermes/internal/cmd"
 )
 
-var version = "2.4.1"
+// Version is set by -ldflags during build
+var Version = "dev"
 
 func main() {
 	rootCmd := &cobra.Command{
 		Use:     "hermes",
 		Short:   "Hermes Autonomous Agent",
 		Long:    "AI-powered autonomous application development system",
-		Version: version,
+		Version: Version,
 		Run: func(c *cobra.Command, args []string) {
-			fmt.Println("Hermes Autonomous Agent", version)
+			fmt.Println("Hermes Autonomous Agent", Version)
 			fmt.Println("Use 'hermes --help' for available commands")
 		},
 	}
@@ -36,7 +37,7 @@ func main() {
 	rootCmd.AddCommand(cmd.NewConvertPrdCmd())
 
 	// Set version for update command
-	cmd.SetUpdateVersion(version)
+	cmd.SetUpdateVersion(Version)
 	rootCmd.AddCommand(cmd.NewUpdateCmd())
 	rootCmd.AddCommand(cmd.NewInstallCmd())
 
