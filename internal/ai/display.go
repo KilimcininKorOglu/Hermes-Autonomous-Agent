@@ -22,6 +22,7 @@ type StreamDisplay struct {
 	showCost     bool
 	providerName string
 	textStarted  bool
+	lastToolName string
 }
 
 // NewStreamDisplay creates a new stream display
@@ -31,6 +32,7 @@ func NewStreamDisplay(showTools, showCost bool, providerName string) *StreamDisp
 		showCost:     showCost,
 		providerName: providerName,
 		textStarted:  false,
+		lastToolName: "",
 	}
 }
 
@@ -49,6 +51,7 @@ func (d *StreamDisplay) Handle(event StreamEvent) {
 
 	case "tool_use":
 		d.textStarted = false
+		d.lastToolName = event.ToolName
 		if d.showTools {
 			toolColor.Printf("\n[Tool: %s]", event.ToolName)
 			// Show brief info about what the tool is doing
@@ -73,10 +76,14 @@ func (d *StreamDisplay) Handle(event StreamEvent) {
 
 	case "tool_result":
 		if d.showTools {
+			toolName := event.ToolName
+			if toolName == "" {
+				toolName = d.lastToolName
+			}
 			if event.ToolError != "" {
-				errorColor.Printf(" [%s Error: %s]", event.ToolName, event.ToolError)
+				errorColor.Printf(" [%s Error: %s]", toolName, event.ToolError)
 			} else {
-				toolColor.Printf(" [%s Done]", event.ToolName)
+				toolColor.Printf(" [%s Done]", toolName)
 			}
 		}
 
