@@ -7,25 +7,30 @@ import (
 )
 
 var (
-	systemColor = color.New(color.FgHiBlack)
-	textColor   = color.New(color.FgWhite)
-	toolColor   = color.New(color.FgYellow)
-	resultColor = color.New(color.FgGreen)
-	costColor   = color.New(color.FgCyan)
-	errorColor  = color.New(color.FgRed)
+	systemColor   = color.New(color.FgHiBlack)
+	textColor     = color.New(color.FgWhite)
+	toolColor     = color.New(color.FgYellow)
+	resultColor   = color.New(color.FgGreen)
+	costColor     = color.New(color.FgCyan)
+	errorColor    = color.New(color.FgRed)
+	providerColor = color.New(color.FgCyan, color.Bold)
 )
 
 // StreamDisplay handles displaying stream events
 type StreamDisplay struct {
-	showTools bool
-	showCost  bool
+	showTools    bool
+	showCost     bool
+	providerName string
+	textStarted  bool
 }
 
 // NewStreamDisplay creates a new stream display
-func NewStreamDisplay(showTools, showCost bool) *StreamDisplay {
+func NewStreamDisplay(showTools, showCost bool, providerName string) *StreamDisplay {
 	return &StreamDisplay{
-		showTools: showTools,
-		showCost:  showCost,
+		showTools:    showTools,
+		showCost:     showCost,
+		providerName: providerName,
+		textStarted:  false,
 	}
 }
 
@@ -35,10 +40,15 @@ func (d *StreamDisplay) Handle(event StreamEvent) {
 	case "system":
 		systemColor.Printf("[Model: %s]\n", event.Model)
 
-	case "assistant":
+	case "text", "assistant":
+		if !d.textStarted && d.providerName != "" {
+			providerColor.Printf("[%s] ", d.providerName)
+			d.textStarted = true
+		}
 		textColor.Print(event.Text)
 
 	case "tool_use":
+		d.textStarted = false
 		if d.showTools {
 			toolColor.Printf("\n[Tool: %s]", event.ToolName)
 			// Show brief info about what the tool is doing

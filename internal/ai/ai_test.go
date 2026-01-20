@@ -104,16 +104,19 @@ func TestTaskExecutorBuildPrompt(t *testing.T) {
 }
 
 func TestStreamDisplay(t *testing.T) {
-	display := NewStreamDisplay(true, true)
+	display := NewStreamDisplay(true, true, "droid")
 	if !display.showTools {
 		t.Error("expected showTools = true")
 	}
 	if !display.showCost {
 		t.Error("expected showCost = true")
 	}
+	if display.providerName != "droid" {
+		t.Errorf("expected providerName = 'droid', got %s", display.providerName)
+	}
 
 	// Test with disabled options
-	display2 := NewStreamDisplay(false, false)
+	display2 := NewStreamDisplay(false, false, "")
 	if display2.showTools {
 		t.Error("expected showTools = false")
 	}
