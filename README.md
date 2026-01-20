@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.4.3-blue)
+![Version](https://img.shields.io/badge/version-v2.4.4-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -447,6 +447,12 @@ make test
 ```
 
 ## Changelog
+
+### v2.4.4
+
+- Fixed tool result display for all AI providers (Droid, Claude, Gemini, OpenCode)
+- Tool results now show correct tool name instead of empty brackets
+- Each tool call shows on separate line with proper formatting
 
 ### v2.4.3
 
