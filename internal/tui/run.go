@@ -13,6 +13,7 @@ import (
 	"hermes/internal/circuit"
 	"hermes/internal/config"
 	"hermes/internal/prompt"
+	"hermes/internal/scheduler"
 	"hermes/internal/task"
 	"hermes/internal/ui"
 )
@@ -36,6 +37,12 @@ type RunModel struct {
 	startTime   time.Time
 	cancel      context.CancelFunc
 
+	// Parallel execution state
+	parallelRunning   bool
+	parallelBatch     int
+	parallelTotalBatch int
+	workerStatus      []string
+
 	// Components
 	taskReader *task.Reader
 	breaker    *circuit.Breaker
@@ -58,6 +65,22 @@ type runTaskCompleteMsg struct {
 
 // runStoppedMsg when run is stopped
 type runStoppedMsg struct{}
+
+// parallelCompleteMsg when parallel execution completes
+type parallelCompleteMsg struct {
+	successful int
+	failed     int
+	err        error
+}
+
+// parallelProgressMsg for parallel execution progress updates
+type parallelProgressMsg struct {
+	batch       int
+	totalBatch  int
+	workerID    int
+	taskID      string
+	status      string
+}
 
 // NewRunModel creates a new run model
 func NewRunModel(basePath string, logger *ui.Logger) *RunModel {
@@ -91,6 +114,7 @@ func NewRunModel(basePath string, logger *ui.Logger) *RunModel {
 		totalTasks:     totalTasks,
 		completedTasks: completedTasks,
 		taskHistory:    make([]string, 0),
+		workerStatus:   make([]string, 0),
 	}
 }
 
@@ -134,11 +158,13 @@ func (m *RunModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "s", "esc":
 				return m, m.stopRun()
 			case "p":
-				m.paused = !m.paused
-				if m.paused {
-					m.status = "Paused"
-				} else {
-					m.status = "Running"
+				if !m.parallelRunning {
+					m.paused = !m.paused
+					if m.paused {
+						m.status = "Paused"
+					} else {
+						m.status = "Running"
+					}
 				}
 			}
 		} else {
@@ -165,12 +191,36 @@ func (m *RunModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case runTaskCompleteMsg:
 		m.handleTaskComplete(msg)
-		if m.running && !m.paused {
+		if m.running && !m.paused && !m.parallelRunning {
 			return m, m.executeNextTask()
+		}
+
+	case parallelProgressMsg:
+		m.parallelBatch = msg.batch
+		m.parallelTotalBatch = msg.totalBatch
+		if msg.workerID > 0 && msg.workerID <= len(m.workerStatus) {
+			m.workerStatus[msg.workerID-1] = fmt.Sprintf("W%d: %s - %s", msg.workerID, msg.taskID, msg.status)
+		}
+		m.status = fmt.Sprintf("Batch %d/%d", msg.batch, msg.totalBatch)
+
+	case parallelCompleteMsg:
+		m.running = false
+		m.parallelRunning = false
+		m.Refresh()
+		if msg.err != nil {
+			m.lastError = msg.err.Error()
+			m.status = "Failed"
+			entry := fmt.Sprintf("[ERROR] Parallel: %s", msg.err.Error())
+			m.taskHistory = append(m.taskHistory, entry)
+		} else {
+			m.status = fmt.Sprintf("Completed: %d success, %d failed", msg.successful, msg.failed)
+			entry := fmt.Sprintf("[DONE] Parallel: %d/%d tasks", msg.successful, msg.successful+msg.failed)
+			m.taskHistory = append(m.taskHistory, entry)
 		}
 
 	case runStoppedMsg:
 		m.running = false
+		m.parallelRunning = false
 		m.status = "Stopped"
 		m.currentTask = ""
 	}
@@ -209,10 +259,130 @@ func (m *RunModel) startRun() tea.Cmd {
 	m.lastError = ""
 	m.taskHistory = make([]string, 0)
 
+	if m.config.Parallel.Enabled {
+		return m.startParallelRun()
+	}
 	return tea.Batch(
 		m.executeNextTask(),
 		m.runTickCmd(),
 	)
+}
+
+func (m *RunModel) startParallelRun() tea.Cmd {
+	m.parallelRunning = true
+	m.status = "Starting parallel execution..."
+	
+	workers := m.config.Parallel.MaxWorkers
+	if workers < 1 {
+		workers = 3
+	}
+	m.workerStatus = make([]string, workers)
+	for i := range m.workerStatus {
+		m.workerStatus[i] = fmt.Sprintf("W%d: Idle", i+1)
+	}
+
+	return tea.Batch(
+		m.executeParallel(),
+		m.runTickCmd(),
+	)
+}
+
+func (m *RunModel) executeParallel() tea.Cmd {
+	return func() tea.Msg {
+		ctx, cancel := context.WithCancel(context.Background())
+		m.cancel = cancel
+
+		// Get provider
+		var provider ai.Provider
+		if m.config.AI.Coding != "" {
+			provider = ai.GetProvider(m.config.AI.Coding)
+		}
+		if provider == nil || !provider.IsAvailable() {
+			provider = ai.AutoDetectProvider()
+		}
+		if provider == nil {
+			return parallelCompleteMsg{err: fmt.Errorf("no AI provider available")}
+		}
+
+		if m.logger != nil {
+			m.logger.Info("Using AI provider: %s", provider.Name())
+		}
+
+		// Get all pending tasks
+		allTasks, err := m.taskReader.GetAllTasks()
+		if err != nil {
+			return parallelCompleteMsg{err: err}
+		}
+
+		// Filter pending tasks
+		var pendingTasks []*task.Task
+		for i := range allTasks {
+			if allTasks[i].Status == task.StatusNotStarted || allTasks[i].Status == task.StatusInProgress {
+				pendingTasks = append(pendingTasks, &allTasks[i])
+			}
+		}
+
+		if len(pendingTasks) == 0 {
+			return parallelCompleteMsg{successful: 0, failed: 0}
+		}
+
+		if m.logger != nil {
+			m.logger.Info("Found %d pending tasks", len(pendingTasks))
+		}
+
+		// Create scheduler
+		workers := m.config.Parallel.MaxWorkers
+		if workers < 1 {
+			workers = 3
+		}
+
+		parallelCfg := &m.config.Parallel
+		sched := scheduler.New(parallelCfg, provider, m.basePath, m.logger)
+
+		if m.logger != nil {
+			m.logger.Info("Using %d parallel workers", workers)
+		}
+
+		// Initialize parallel logger
+		parallelLogger, err := scheduler.NewParallelLogger(m.basePath, workers)
+		if err != nil {
+			if m.logger != nil {
+				m.logger.Warn("Failed to initialize parallel logger: %v", err)
+			}
+		} else {
+			defer parallelLogger.Close()
+			if m.logger != nil {
+				m.logger.Info("Logs will be written to: %s", parallelLogger.GetLogDirectory())
+			}
+			sched.SetParallelLogger(parallelLogger)
+		}
+
+		if m.logger != nil {
+			m.logger.Info("Starting parallel execution...")
+		}
+
+		// Execute
+		result, err := sched.Execute(ctx, pendingTasks)
+
+		if err != nil {
+			if m.logger != nil {
+				m.logger.Error("Parallel execution failed: %v", err)
+			}
+			successful := 0
+			failed := 0
+			if result != nil {
+				successful = result.Successful
+				failed = result.Failed
+			}
+			return parallelCompleteMsg{successful: successful, failed: failed, err: err}
+		}
+
+		if m.logger != nil {
+			m.logger.Success("All %d tasks completed successfully!", result.Successful)
+		}
+
+		return parallelCompleteMsg{successful: result.Successful, failed: result.Failed}
+	}
 }
 
 func (m *RunModel) stopRun() tea.Cmd {
@@ -367,6 +537,9 @@ func (m *RunModel) View() string {
 		Background(lipgloss.Color("196")).
 		Padding(0, 2)
 
+	workerStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("39"))
+
 	b.WriteString(titleStyle.Render("RUN TASKS"))
 	b.WriteString("\n\n")
 
@@ -383,9 +556,21 @@ func (m *RunModel) View() string {
 	// Status
 	if m.running {
 		elapsed := time.Since(m.startTime).Round(time.Second)
-		b.WriteString(fmt.Sprintf("  Status: %s | Elapsed: %v | Loop: %d\n", statusStyle.Render(m.status), elapsed, m.loopCount))
-		if m.currentTask != "" {
-			b.WriteString(fmt.Sprintf("  Current: %s\n", m.currentTask))
+		modeStr := "Sequential"
+		if m.parallelRunning {
+			modeStr = fmt.Sprintf("Parallel (%d workers)", m.config.Parallel.MaxWorkers)
+		}
+		b.WriteString(fmt.Sprintf("  Mode: %s | Status: %s | Elapsed: %v\n", modeStr, statusStyle.Render(m.status), elapsed))
+		
+		if m.parallelRunning && len(m.workerStatus) > 0 {
+			b.WriteString("\n")
+			b.WriteString(sectionStyle.Render("Workers"))
+			b.WriteString("\n")
+			for _, ws := range m.workerStatus {
+				b.WriteString(workerStyle.Render(fmt.Sprintf("  %s\n", ws)))
+			}
+		} else if m.currentTask != "" {
+			b.WriteString(fmt.Sprintf("  Current: %s | Loop: %d\n", m.currentTask, m.loopCount))
 		}
 	}
 	b.WriteString("\n")
@@ -415,16 +600,22 @@ func (m *RunModel) View() string {
 		} else {
 			b.WriteString("  ")
 		}
-		b.WriteString(buttonStyle.Render("Start Run"))
+		if m.config.Parallel.Enabled {
+			b.WriteString(buttonStyle.Render("Start Parallel Run"))
+		} else {
+			b.WriteString(buttonStyle.Render("Start Run"))
+		}
 	} else {
 		b.WriteString("  ")
 		b.WriteString(runningButtonStyle.Render("Stop Run (s/esc)"))
-		if m.paused {
-			b.WriteString("  ")
-			b.WriteString(valueStyle.Render("[PAUSED - press 'p' to resume]"))
-		} else {
-			b.WriteString("  ")
-			b.WriteString(valueStyle.Render("[press 'p' to pause]"))
+		if !m.parallelRunning {
+			if m.paused {
+				b.WriteString("  ")
+				b.WriteString(valueStyle.Render("[PAUSED - press 'p' to resume]"))
+			} else {
+				b.WriteString("  ")
+				b.WriteString(valueStyle.Render("[press 'p' to pause]"))
+			}
 		}
 	}
 	b.WriteString("\n\n")
@@ -456,7 +647,11 @@ func (m *RunModel) View() string {
 	// Help
 	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 	if m.running {
-		b.WriteString(helpStyle.Render("s/esc: Stop | p: Pause/Resume"))
+		if m.parallelRunning {
+			b.WriteString(helpStyle.Render("s/esc: Stop parallel execution"))
+		} else {
+			b.WriteString(helpStyle.Render("s/esc: Stop | p: Pause/Resume"))
+		}
 	} else {
 		b.WriteString(helpStyle.Render("j/k: Navigate | Space/Enter: Select | Start to begin execution"))
 	}
@@ -501,4 +696,5 @@ func (m *RunModel) Stop() {
 		m.cancel()
 	}
 	m.running = false
+	m.parallelRunning = false
 }

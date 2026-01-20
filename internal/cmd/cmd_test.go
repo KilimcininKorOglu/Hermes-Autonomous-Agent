@@ -141,22 +141,38 @@ func TestWriteTaskFilesNoMarkers(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(oldWd)
 
-	// Test without file markers
+	// Test without file markers - should return error
 	output := `# Feature 1: Test
 **Feature ID:** F001`
 
 	err = writeTaskFiles(output)
-	if err != nil {
-		t.Fatal(err)
+	if err == nil {
+		t.Error("expected error when no file markers and no existing files")
 	}
+}
 
-	// Check single file was created
-	content, err := os.ReadFile(filepath.Join(tmpDir, ".hermes", "tasks", "001-tasks.md"))
+func TestWriteTaskFilesWithExistingFiles(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "hermes-cmd-test-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(content), "Feature ID:") {
-		t.Error("expected content to contain Feature ID")
+	defer os.RemoveAll(tmpDir)
+
+	oldWd, _ := os.Getwd()
+	os.Chdir(tmpDir)
+	defer os.Chdir(oldWd)
+
+	// Create tasks directory with existing file (simulating AI Create tool)
+	tasksDir := filepath.Join(".hermes", "tasks")
+	os.MkdirAll(tasksDir, 0755)
+	os.WriteFile(filepath.Join(tasksDir, "001-feature.md"), []byte("# Feature 1"), 0644)
+
+	// Test with no markers but existing files - should succeed
+	output := `No file markers here, AI already created files`
+
+	err = writeTaskFiles(output)
+	if err != nil {
+		t.Fatalf("expected no error when files exist, got: %v", err)
 	}
 }
 
