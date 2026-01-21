@@ -9,21 +9,20 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"hermes/internal/config"
 	"hermes/internal/prompt"
 )
 
 // InitModel is the model for the init/project screen
 type InitModel struct {
-	width       int
-	height      int
-	textInput   textinput.Model
+	width        int
+	height       int
+	textInput    textinput.Model
 	initializing bool
-	result      string
-	createdDirs []string
-	err         error
-	focusIndex  int
+	result       string
+	createdDirs  []string
+	err          error
+	focusIndex   int
 }
 
 // initResultMsg is sent when initialization completes
@@ -112,36 +111,18 @@ func (m *InitModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *InitModel) View() string {
 	var b strings.Builder
 
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("86")).
-		MarginBottom(1)
-
-	labelStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241"))
-
-	selectedStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("212"))
-
-	buttonStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255")).
-		Background(lipgloss.Color("62")).
-		Padding(0, 2)
-
-	b.WriteString(titleStyle.Render("INITIALIZE PROJECT"))
-	b.WriteString("\n\n")
+	b.WriteString(RenderScreenTitle("INITIALIZE PROJECT"))
 
 	if m.initializing {
-		b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Render("Initializing project..."))
+		b.WriteString(WarningStyle.Render("Initializing project..."))
 		b.WriteString("\n")
 		return b.String()
 	}
 
-	b.WriteString(labelStyle.Render("Project Path (leave empty for current directory):"))
+	b.WriteString(LabelStyle.Render("Project Path (leave empty for current directory):"))
 	b.WriteString("\n")
 	if m.focusIndex == 0 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
@@ -149,54 +130,49 @@ func (m *InitModel) View() string {
 	b.WriteString("\n\n")
 
 	if m.focusIndex == 1 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
-	b.WriteString(buttonStyle.Render("Initialize Project"))
+	b.WriteString(ButtonStyle.Render("Initialize Project"))
 	b.WriteString("\n\n")
 
-	b.WriteString(labelStyle.Render("This will create:"))
+	b.WriteString(LabelStyle.Render("This will create:"))
 	b.WriteString("\n")
-	infoStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("248"))
-	b.WriteString(infoStyle.Render("  - .hermes/"))
+	b.WriteString(MutedStyle.Render("  - .hermes/"))
 	b.WriteString("\n")
-	b.WriteString(infoStyle.Render("  - .hermes/tasks/"))
+	b.WriteString(MutedStyle.Render("  - .hermes/tasks/"))
 	b.WriteString("\n")
-	b.WriteString(infoStyle.Render("  - .hermes/logs/"))
+	b.WriteString(MutedStyle.Render("  - .hermes/logs/"))
 	b.WriteString("\n")
-	b.WriteString(infoStyle.Render("  - .hermes/docs/"))
+	b.WriteString(MutedStyle.Render("  - .hermes/docs/"))
 	b.WriteString("\n")
-	b.WriteString(infoStyle.Render("  - .hermes/config.json"))
+	b.WriteString(MutedStyle.Render("  - .hermes/config.json"))
 	b.WriteString("\n")
-	b.WriteString(infoStyle.Render("  - .hermes/PROMPT.md"))
+	b.WriteString(MutedStyle.Render("  - .hermes/PROMPT.md"))
 	b.WriteString("\n")
-	b.WriteString(infoStyle.Render("  - .gitignore"))
+	b.WriteString(MutedStyle.Render("  - .gitignore"))
 	b.WriteString("\n\n")
 
 	if m.result != "" {
-		successStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("82"))
-		b.WriteString(successStyle.Render(m.result))
+		b.WriteString(SuccessStyle.Render(m.result))
 		b.WriteString("\n")
 
 		if len(m.createdDirs) > 0 {
-			fileStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("248"))
 			for _, d := range m.createdDirs {
-				b.WriteString(fileStyle.Render("  Created: " + d))
+				b.WriteString(MutedStyle.Render("  Created: " + d))
 				b.WriteString("\n")
 			}
 		}
 	}
 
 	if m.err != nil {
-		errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("196"))
-		b.WriteString(errorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
+		b.WriteString(ErrorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
 		b.WriteString("\n")
 	}
 
 	b.WriteString("\n")
-	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-	b.WriteString(helpStyle.Render("Tab: Navigate | Space/Enter: Select"))
+	b.WriteString(MutedStyle.Render("Tab: Navigate | Space/Enter: Select"))
 
 	return b.String()
 }
