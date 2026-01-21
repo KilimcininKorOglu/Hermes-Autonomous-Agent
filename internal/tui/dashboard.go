@@ -62,42 +62,44 @@ func (m *DashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the dashboard
 func (m *DashboardModel) View() string {
-	boxStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		Padding(0, 1)
+	var b strings.Builder
+
+	b.WriteString(RenderScreenTitle("DASHBOARD"))
 
 	// Progress box
 	progressContent := m.progressView()
-	progressBox := boxStyle.
+	progressBox := BoxStyle.
 		Width(m.width/2 - 4).
 		Render(progressContent)
 
 	// Circuit breaker box
 	circuitContent := m.circuitView()
-	circuitBox := boxStyle.
+	circuitBox := BoxStyle.
 		Width(m.width/2 - 4).
 		Render(circuitContent)
 
 	// Current task box
 	taskContent := m.currentTaskView()
-	taskBox := boxStyle.
+	taskBox := BoxStyle.
 		Width(m.width - 4).
 		Render(taskContent)
 
 	// Layout
 	topRow := lipgloss.JoinHorizontal(lipgloss.Top, progressBox, circuitBox)
 
-	return lipgloss.JoinVertical(
+	b.WriteString(lipgloss.JoinVertical(
 		lipgloss.Left,
 		topRow,
 		taskBox,
-	)
+	))
+
+	return b.String()
 }
 
 func (m *DashboardModel) progressView() string {
 	var sb strings.Builder
 
-	sb.WriteString(lipgloss.NewStyle().Bold(true).Render("Progress"))
+	sb.WriteString(SectionStyle.Render("Progress"))
 	sb.WriteString("\n\n")
 
 	if m.progress == nil {
@@ -105,22 +107,10 @@ func (m *DashboardModel) progressView() string {
 		return sb.String()
 	}
 
-	// Progress bar - dynamic width based on box width
-	barWidth := m.width/2 - 16 // Account for borders and padding
-	if barWidth < 10 {
-		barWidth = 10
-	}
-	if barWidth > 40 {
-		barWidth = 40
-	}
-	filled := int(m.progress.Percentage / 100 * float64(barWidth))
-	if filled > barWidth {
-		filled = barWidth
-	}
-	empty := barWidth - filled
-
-	bar := strings.Repeat("█", filled) + strings.Repeat("░", empty)
-	sb.WriteString(fmt.Sprintf("[%s] %.1f%%\n\n", bar, m.progress.Percentage))
+	// Progress bar
+	percent := int(m.progress.Percentage)
+	barWidth := m.width/2 - 16
+	sb.WriteString(fmt.Sprintf("%s %.1f%%\n\n", RenderProgressBar(percent, barWidth), m.progress.Percentage))
 
 	sb.WriteString(fmt.Sprintf("Total:       %d\n", m.progress.Total))
 	sb.WriteString(fmt.Sprintf("Completed:   %d\n", m.progress.Completed))
@@ -134,7 +124,7 @@ func (m *DashboardModel) progressView() string {
 func (m *DashboardModel) circuitView() string {
 	var sb strings.Builder
 
-	sb.WriteString(lipgloss.NewStyle().Bold(true).Render("Circuit Breaker"))
+	sb.WriteString(SectionStyle.Render("Circuit Breaker"))
 	sb.WriteString("\n\n")
 
 	if m.breaker == nil {
@@ -142,17 +132,17 @@ func (m *DashboardModel) circuitView() string {
 		return sb.String()
 	}
 
-	stateStyle := lipgloss.NewStyle()
 	stateIcon := "[OK]"
+	stateStyle := SuccessStyle
 
 	switch m.breaker.State {
 	case circuit.StateClosed:
-		stateStyle = stateStyle.Foreground(lipgloss.Color("42"))
+		stateStyle = SuccessStyle
 	case circuit.StateHalfOpen:
-		stateStyle = stateStyle.Foreground(lipgloss.Color("226"))
+		stateStyle = WarningStyle
 		stateIcon = "[!!]"
 	case circuit.StateOpen:
-		stateStyle = stateStyle.Foreground(lipgloss.Color("196"))
+		stateStyle = ErrorStyle
 		stateIcon = "[XX]"
 	}
 
@@ -166,10 +156,8 @@ func (m *DashboardModel) circuitView() string {
 
 func (m *DashboardModel) currentTaskView() string {
 	var sb strings.Builder
-	boldStyle := lipgloss.NewStyle().Bold(true)
-	labelStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
 
-	sb.WriteString(boldStyle.Render("Current Task"))
+	sb.WriteString(SectionStyle.Render("Current Task"))
 	sb.WriteString("\n\n")
 
 	if m.currentTask == nil {
@@ -180,11 +168,11 @@ func (m *DashboardModel) currentTaskView() string {
 	t := m.currentTask
 
 	// Task ID and Name
-	sb.WriteString(labelStyle.Render("ID:       "))
+	sb.WriteString(LabelStyle.Render("ID:       "))
 	sb.WriteString(fmt.Sprintf("%s\n", t.ID))
-	sb.WriteString(labelStyle.Render("Name:     "))
+	sb.WriteString(LabelStyle.Render("Name:     "))
 	sb.WriteString(fmt.Sprintf("%s\n", t.Name))
-	sb.WriteString(labelStyle.Render("Feature:  "))
+	sb.WriteString(LabelStyle.Render("Feature:  "))
 	sb.WriteString(t.FeatureID)
 	if m.currentFeature != nil && m.currentFeature.TargetVersion != "" {
 		sb.WriteString(fmt.Sprintf(" (%s)", m.currentFeature.TargetVersion))
@@ -192,35 +180,35 @@ func (m *DashboardModel) currentTaskView() string {
 	sb.WriteString("\n")
 
 	// Priority with color
-	sb.WriteString(labelStyle.Render("Priority: "))
+	sb.WriteString(LabelStyle.Render("Priority: "))
 	priorityStyle := lipgloss.NewStyle()
 	switch t.Priority {
 	case task.PriorityP1:
-		priorityStyle = priorityStyle.Foreground(lipgloss.Color("196"))
+		priorityStyle = ErrorStyle
 	case task.PriorityP2:
-		priorityStyle = priorityStyle.Foreground(lipgloss.Color("226"))
+		priorityStyle = WarningStyle
 	case task.PriorityP3:
-		priorityStyle = priorityStyle.Foreground(lipgloss.Color("86"))
+		priorityStyle = SuccessStyle
 	case task.PriorityP4:
-		priorityStyle = priorityStyle.Foreground(lipgloss.Color("241"))
+		priorityStyle = MutedStyle
 	}
 	sb.WriteString(priorityStyle.Render(string(t.Priority)))
 	sb.WriteString("\n")
 
 	// Estimated Effort
 	if t.EstimatedEffort != "" {
-		sb.WriteString(labelStyle.Render("Effort:   "))
+		sb.WriteString(LabelStyle.Render("Effort:   "))
 		sb.WriteString(fmt.Sprintf("%s\n", t.EstimatedEffort))
 	}
 
 	// Status
-	sb.WriteString(labelStyle.Render("Status:   "))
+	sb.WriteString(LabelStyle.Render("Status:   "))
 	sb.WriteString(fmt.Sprintf("%s\n", t.Status))
 
 	// Description (truncated)
 	if t.Description != "" {
 		sb.WriteString("\n")
-		sb.WriteString(boldStyle.Render("Description"))
+		sb.WriteString(SectionStyle.Render("Description"))
 		sb.WriteString("\n")
 		desc := t.Description
 		if len(desc) > 200 {
@@ -233,7 +221,7 @@ func (m *DashboardModel) currentTaskView() string {
 	// Files to Touch
 	if len(t.FilesToTouch) > 0 {
 		sb.WriteString("\n")
-		sb.WriteString(boldStyle.Render("Files to Touch"))
+		sb.WriteString(SectionStyle.Render("Files to Touch"))
 		sb.WriteString("\n")
 		maxFiles := 5
 		for i, f := range t.FilesToTouch {
