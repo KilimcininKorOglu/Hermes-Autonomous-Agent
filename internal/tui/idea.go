@@ -7,7 +7,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"hermes/internal/ai"
 	"hermes/internal/config"
 	"hermes/internal/idea"
@@ -131,51 +130,28 @@ func (m *IdeaModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *IdeaModel) View() string {
 	var b strings.Builder
 
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("86")).
-		MarginBottom(1)
-
-	labelStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241"))
-
-	selectedStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("212"))
-
-	buttonStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255")).
-		Background(lipgloss.Color("62")).
-		Padding(0, 2)
-
-	disabledButtonStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("240")).
-		Background(lipgloss.Color("236")).
-		Padding(0, 2)
-
-	b.WriteString(titleStyle.Render("IDEA TO PRD GENERATOR"))
-	b.WriteString("\n\n")
+	b.WriteString(RenderScreenTitle("IDEA TO PRD GENERATOR"))
 
 	if m.generating {
-		b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Render("Generating PRD..."))
+		b.WriteString(WarningStyle.Render("Generating PRD..."))
 		b.WriteString("\n")
 		return b.String()
 	}
 
-	b.WriteString(labelStyle.Render("Idea Description:"))
+	b.WriteString(LabelStyle.Render("Idea Description:"))
 	b.WriteString("\n")
 	if m.focusIndex == 0 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
 	b.WriteString(m.textInput.View())
 	b.WriteString("\n\n")
 
-	b.WriteString(labelStyle.Render("Language:"))
+	b.WriteString(LabelStyle.Render("Language:"))
 	b.WriteString(" ")
 	if m.focusIndex == 1 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
@@ -186,10 +162,10 @@ func (m *IdeaModel) View() string {
 	}
 	b.WriteString("\n\n")
 
-	b.WriteString(labelStyle.Render("Interactive Mode:"))
+	b.WriteString(LabelStyle.Render("Interactive Mode:"))
 	b.WriteString(" ")
 	if m.focusIndex == 2 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
@@ -201,32 +177,29 @@ func (m *IdeaModel) View() string {
 	b.WriteString("\n\n")
 
 	if m.focusIndex == 3 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
 	if m.textInput.Value() != "" {
-		b.WriteString(buttonStyle.Render("Generate PRD"))
+		b.WriteString(ButtonStyle.Render("Generate PRD"))
 	} else {
-		b.WriteString(disabledButtonStyle.Render("Generate PRD"))
+		b.WriteString(MutedStyle.Render("[ Generate PRD ]"))
 	}
 	b.WriteString("\n\n")
 
 	if m.result != "" {
-		successStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("82"))
-		b.WriteString(successStyle.Render(m.result))
+		b.WriteString(SuccessStyle.Render(m.result))
 		b.WriteString("\n")
 	}
 
 	if m.err != nil {
-		errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("196"))
-		b.WriteString(errorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
+		b.WriteString(ErrorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
 		b.WriteString("\n")
 	}
 
 	b.WriteString("\n")
-	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-	b.WriteString(helpStyle.Render("Tab: Navigate | Space/Enter: Select | l: Toggle language"))
+	b.WriteString(MutedStyle.Render("Tab: Navigate | Space/Enter: Select | l: Toggle language"))
 
 	return b.String()
 }
@@ -253,7 +226,6 @@ func (m *IdeaModel) generatePRD() tea.Cmd {
 			cfg = config.DefaultConfig()
 		}
 
-		// Get provider from config
 		var provider ai.Provider
 		if cfg.AI.Planning != "" && cfg.AI.Planning != "auto" {
 			provider = ai.GetProvider(cfg.AI.Planning)
