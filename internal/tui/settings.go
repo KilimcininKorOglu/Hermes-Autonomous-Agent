@@ -234,98 +234,78 @@ func (m *SettingsModel) cycleIntOption(current *int, options []int) {
 func (m *SettingsModel) View() string {
 	var b strings.Builder
 
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("86")).
-		MarginBottom(1)
+	b.WriteString(RenderScreenTitle("SETTINGS"))
 
 	labelStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("241")).
 		Width(28)
 
-	selectedStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("212"))
-
 	valueStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("255"))
 
-	sectionStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("214")).
-		MarginTop(1)
-
-	buttonStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255")).
-		Background(lipgloss.Color("62")).
-		Padding(0, 2)
-
-	b.WriteString(titleStyle.Render("SETTINGS"))
-	b.WriteString("\n\n")
-
 	// AI Configuration
-	b.WriteString(sectionStyle.Render("AI Configuration"))
+	b.WriteString(SectionStyle.Render("AI Configuration"))
 	b.WriteString("\n")
-	m.renderOption(&b, 0, labelStyle, selectedStyle, valueStyle, "Planning Provider:", m.config.AI.Planning)
-	m.renderOption(&b, 1, labelStyle, selectedStyle, valueStyle, "Coding Provider:", m.config.AI.Coding)
-	m.renderBoolOption(&b, 2, labelStyle, selectedStyle, "Stream Output:", m.config.AI.StreamOutput)
-	m.renderOption(&b, 3, labelStyle, selectedStyle, valueStyle, "Timeout:", fmt.Sprintf("%ds", m.config.AI.Timeout))
-	m.renderOption(&b, 4, labelStyle, selectedStyle, valueStyle, "PRD Timeout:", fmt.Sprintf("%ds", m.config.AI.PrdTimeout))
-	m.renderOption(&b, 5, labelStyle, selectedStyle, valueStyle, "Max Retries:", fmt.Sprintf("%d", m.config.AI.MaxRetries))
-	m.renderOption(&b, 6, labelStyle, selectedStyle, valueStyle, "Retry Delay:", fmt.Sprintf("%ds", m.config.AI.RetryDelay))
+	m.renderOption(&b, 0, labelStyle, SelectedStyle, valueStyle, "Planning Provider:", m.config.AI.Planning)
+	m.renderOption(&b, 1, labelStyle, SelectedStyle, valueStyle, "Coding Provider:", m.config.AI.Coding)
+	m.renderBoolOption(&b, 2, labelStyle, SelectedStyle, "Stream Output:", m.config.AI.StreamOutput)
+	m.renderOption(&b, 3, labelStyle, SelectedStyle, valueStyle, "Timeout:", fmt.Sprintf("%ds", m.config.AI.Timeout))
+	m.renderOption(&b, 4, labelStyle, SelectedStyle, valueStyle, "PRD Timeout:", fmt.Sprintf("%ds", m.config.AI.PrdTimeout))
+	m.renderOption(&b, 5, labelStyle, SelectedStyle, valueStyle, "Max Retries:", fmt.Sprintf("%d", m.config.AI.MaxRetries))
+	m.renderOption(&b, 6, labelStyle, SelectedStyle, valueStyle, "Retry Delay:", fmt.Sprintf("%ds", m.config.AI.RetryDelay))
 
 	// Task Mode
 	b.WriteString("\n")
-	b.WriteString(sectionStyle.Render("Task Mode"))
+	b.WriteString(SectionStyle.Render("Task Mode"))
 	b.WriteString("\n")
-	m.renderBoolOption(&b, 7, labelStyle, selectedStyle, "Auto Branch:", m.config.TaskMode.AutoBranch)
-	m.renderBoolOption(&b, 8, labelStyle, selectedStyle, "Auto Commit:", m.config.TaskMode.AutoCommit)
-	m.renderBoolOption(&b, 9, labelStyle, selectedStyle, "Autonomous:", m.config.TaskMode.Autonomous)
-	m.renderOption(&b, 10, labelStyle, selectedStyle, valueStyle, "Max Consecutive Errors:", fmt.Sprintf("%d", m.config.TaskMode.MaxConsecutiveErrors))
+	m.renderBoolOption(&b, 7, labelStyle, SelectedStyle, "Auto Branch:", m.config.TaskMode.AutoBranch)
+	m.renderBoolOption(&b, 8, labelStyle, SelectedStyle, "Auto Commit:", m.config.TaskMode.AutoCommit)
+	m.renderBoolOption(&b, 9, labelStyle, SelectedStyle, "Autonomous:", m.config.TaskMode.Autonomous)
+	m.renderOption(&b, 10, labelStyle, SelectedStyle, valueStyle, "Max Consecutive Errors:", fmt.Sprintf("%d", m.config.TaskMode.MaxConsecutiveErrors))
 
 	// Loop Configuration
 	b.WriteString("\n")
-	b.WriteString(sectionStyle.Render("Loop Configuration"))
+	b.WriteString(SectionStyle.Render("Loop Configuration"))
 	b.WriteString("\n")
-	m.renderOption(&b, 11, labelStyle, selectedStyle, valueStyle, "Max Calls Per Hour:", fmt.Sprintf("%d", m.config.Loop.MaxCallsPerHour))
-	m.renderOption(&b, 12, labelStyle, selectedStyle, valueStyle, "Timeout Minutes:", fmt.Sprintf("%d", m.config.Loop.TimeoutMinutes))
-	m.renderOption(&b, 13, labelStyle, selectedStyle, valueStyle, "Error Delay:", fmt.Sprintf("%ds", m.config.Loop.ErrorDelay))
+	m.renderOption(&b, 11, labelStyle, SelectedStyle, valueStyle, "Max Calls Per Hour:", fmt.Sprintf("%d", m.config.Loop.MaxCallsPerHour))
+	m.renderOption(&b, 12, labelStyle, SelectedStyle, valueStyle, "Timeout Minutes:", fmt.Sprintf("%d", m.config.Loop.TimeoutMinutes))
+	m.renderOption(&b, 13, labelStyle, SelectedStyle, valueStyle, "Error Delay:", fmt.Sprintf("%ds", m.config.Loop.ErrorDelay))
 
 	// Paths Configuration
 	b.WriteString("\n")
-	b.WriteString(sectionStyle.Render("Paths"))
+	b.WriteString(SectionStyle.Render("Paths"))
 	b.WriteString("\n")
-	m.renderOption(&b, 14, labelStyle, selectedStyle, valueStyle, "Hermes Dir:", m.config.Paths.HermesDir)
-	m.renderOption(&b, 15, labelStyle, selectedStyle, valueStyle, "Tasks Dir:", m.config.Paths.TasksDir)
-	m.renderOption(&b, 16, labelStyle, selectedStyle, valueStyle, "Logs Dir:", m.config.Paths.LogsDir)
-	m.renderOption(&b, 17, labelStyle, selectedStyle, valueStyle, "Docs Dir:", m.config.Paths.DocsDir)
+	m.renderOption(&b, 14, labelStyle, SelectedStyle, valueStyle, "Hermes Dir:", m.config.Paths.HermesDir)
+	m.renderOption(&b, 15, labelStyle, SelectedStyle, valueStyle, "Tasks Dir:", m.config.Paths.TasksDir)
+	m.renderOption(&b, 16, labelStyle, SelectedStyle, valueStyle, "Logs Dir:", m.config.Paths.LogsDir)
+	m.renderOption(&b, 17, labelStyle, SelectedStyle, valueStyle, "Docs Dir:", m.config.Paths.DocsDir)
 
 	// Parallel Execution
 	b.WriteString("\n")
-	b.WriteString(sectionStyle.Render("Parallel Execution"))
+	b.WriteString(SectionStyle.Render("Parallel Execution"))
 	b.WriteString("\n")
-	m.renderBoolOption(&b, 18, labelStyle, selectedStyle, "Enabled:", m.config.Parallel.Enabled)
-	m.renderOption(&b, 19, labelStyle, selectedStyle, valueStyle, "Max Workers:", fmt.Sprintf("%d", m.config.Parallel.MaxWorkers))
-	m.renderOption(&b, 20, labelStyle, selectedStyle, valueStyle, "Strategy:", m.config.Parallel.Strategy)
-	m.renderOption(&b, 21, labelStyle, selectedStyle, valueStyle, "Conflict Resolution:", m.config.Parallel.ConflictResolution)
-	m.renderBoolOption(&b, 22, labelStyle, selectedStyle, "Isolated Workspaces:", m.config.Parallel.IsolatedWorkspaces)
-	m.renderOption(&b, 23, labelStyle, selectedStyle, valueStyle, "Merge Strategy:", m.config.Parallel.MergeStrategy)
+	m.renderBoolOption(&b, 18, labelStyle, SelectedStyle, "Enabled:", m.config.Parallel.Enabled)
+	m.renderOption(&b, 19, labelStyle, SelectedStyle, valueStyle, "Max Workers:", fmt.Sprintf("%d", m.config.Parallel.MaxWorkers))
+	m.renderOption(&b, 20, labelStyle, SelectedStyle, valueStyle, "Strategy:", m.config.Parallel.Strategy)
+	m.renderOption(&b, 21, labelStyle, SelectedStyle, valueStyle, "Conflict Resolution:", m.config.Parallel.ConflictResolution)
+	m.renderBoolOption(&b, 22, labelStyle, SelectedStyle, "Isolated Workspaces:", m.config.Parallel.IsolatedWorkspaces)
+	m.renderOption(&b, 23, labelStyle, SelectedStyle, valueStyle, "Merge Strategy:", m.config.Parallel.MergeStrategy)
 	costStr := "No Limit"
 	if m.config.Parallel.MaxCostPerHour > 0 {
 		costStr = fmt.Sprintf("$%.0f", m.config.Parallel.MaxCostPerHour)
 	}
-	m.renderOption(&b, 24, labelStyle, selectedStyle, valueStyle, "Max Cost Per Hour:", costStr)
-	m.renderOption(&b, 25, labelStyle, selectedStyle, valueStyle, "Failure Strategy:", m.config.Parallel.FailureStrategy)
-	m.renderOption(&b, 26, labelStyle, selectedStyle, valueStyle, "Max Retries:", fmt.Sprintf("%d", m.config.Parallel.MaxRetries))
+	m.renderOption(&b, 24, labelStyle, SelectedStyle, valueStyle, "Max Cost Per Hour:", costStr)
+	m.renderOption(&b, 25, labelStyle, SelectedStyle, valueStyle, "Failure Strategy:", m.config.Parallel.FailureStrategy)
+	m.renderOption(&b, 26, labelStyle, SelectedStyle, valueStyle, "Max Retries:", fmt.Sprintf("%d", m.config.Parallel.MaxRetries))
 
 	// Save Button
 	b.WriteString("\n\n")
 	if m.focusIndex == 27 || m.focusIndex == 28 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
-	b.WriteString(buttonStyle.Render("Save Configuration"))
+	b.WriteString(ButtonStyle.Render("Save Configuration"))
 	b.WriteString("\n\n")
 
 	if m.saved {
@@ -347,9 +327,9 @@ func (m *SettingsModel) View() string {
 	return b.String()
 }
 
-func (m *SettingsModel) renderOption(b *strings.Builder, index int, labelStyle, selectedStyle, valueStyle lipgloss.Style, label, value string) {
+func (m *SettingsModel) renderOption(b *strings.Builder, index int, labelStyle, SelectedStyle, valueStyle lipgloss.Style, label, value string) {
 	if m.focusIndex == index {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
@@ -358,9 +338,9 @@ func (m *SettingsModel) renderOption(b *strings.Builder, index int, labelStyle, 
 	b.WriteString("\n")
 }
 
-func (m *SettingsModel) renderBoolOption(b *strings.Builder, index int, labelStyle, selectedStyle lipgloss.Style, label string, value bool) {
+func (m *SettingsModel) renderBoolOption(b *strings.Builder, index int, labelStyle, SelectedStyle lipgloss.Style, label string, value bool) {
 	if m.focusIndex == index {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
