@@ -11,7 +11,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"hermes/internal/ai"
 	"hermes/internal/config"
 	"hermes/internal/ui"
@@ -131,46 +130,28 @@ func (m *PrdModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *PrdModel) View() string {
 	var b strings.Builder
 
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("86")).
-		MarginBottom(1)
-
-	labelStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241"))
-
-	selectedStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("212"))
-
-	buttonStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255")).
-		Background(lipgloss.Color("62")).
-		Padding(0, 2)
-
-	b.WriteString(titleStyle.Render("PRD PARSER"))
-	b.WriteString("\n\n")
+	b.WriteString(RenderScreenTitle("PRD PARSER"))
 
 	if m.parsing {
-		b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Render("Parsing PRD..."))
+		b.WriteString(WarningStyle.Render("Parsing PRD..."))
 		b.WriteString("\n")
 		return b.String()
 	}
 
-	b.WriteString(labelStyle.Render("PRD File Path:"))
+	b.WriteString(LabelStyle.Render("PRD File Path:"))
 	b.WriteString("\n")
 	if m.focusIndex == 0 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
 	b.WriteString(m.textInput.View())
 	b.WriteString("\n\n")
 
-	b.WriteString(labelStyle.Render("Options:"))
+	b.WriteString(LabelStyle.Render("Options:"))
 	b.WriteString(" ")
 	if m.focusIndex == 1 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
@@ -182,36 +163,32 @@ func (m *PrdModel) View() string {
 	b.WriteString("\n\n")
 
 	if m.focusIndex == 2 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
-	b.WriteString(buttonStyle.Render("Parse PRD"))
+	b.WriteString(ButtonStyle.Render("Parse PRD"))
 	b.WriteString("\n\n")
 
 	if m.result != "" {
-		successStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("82"))
-		b.WriteString(successStyle.Render(m.result))
+		b.WriteString(SuccessStyle.Render(m.result))
 		b.WriteString("\n")
-		
+
 		if len(m.filesCreated) > 0 {
-			fileStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("248"))
 			for _, f := range m.filesCreated {
-				b.WriteString(fileStyle.Render("  - " + f))
+				b.WriteString(MutedStyle.Render("  - " + f))
 				b.WriteString("\n")
 			}
 		}
 	}
 
 	if m.err != nil {
-		errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("196"))
-		b.WriteString(errorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
+		b.WriteString(ErrorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
 		b.WriteString("\n")
 	}
 
 	b.WriteString("\n")
-	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-	b.WriteString(helpStyle.Render("Tab: Navigate | Space/Enter: Select | Default: .hermes/docs/PRD.md"))
+	b.WriteString(MutedStyle.Render("Tab: Navigate | Space/Enter: Select | Default: .hermes/docs/PRD.md"))
 
 	return b.String()
 }
@@ -243,7 +220,6 @@ func (m *PrdModel) parsePRD(prdPath string) tea.Cmd {
 			return prdResultMsg{err: fmt.Errorf("failed to read PRD: %w", err)}
 		}
 
-		// Get provider from config
 		var provider ai.Provider
 		if cfg.AI.Planning != "" && cfg.AI.Planning != "auto" {
 			provider = ai.GetProvider(cfg.AI.Planning)
@@ -320,8 +296,8 @@ Use this format for each feature file:
 [Implementation notes, architecture decisions, code patterns to follow]
 
 #### Files to Touch
-- ` + "`path/to/file.go`" + ` (new)
-- ` + "`path/to/existing.go`" + ` (update)
+- `+"`path/to/file.go`"+` (new)
+- `+"`path/to/existing.go`"+` (update)
 
 #### Dependencies
 - TYYY (if depends on another task, use actual task ID like T001, T002)
@@ -361,7 +337,6 @@ func writeTaskFilesForTUI(basePath, output string) ([]string, error) {
 		return nil, err
 	}
 
-	// Check if AI already created files using Create tool
 	entries, err := os.ReadDir(tasksDir)
 	if err == nil {
 		var existingFiles []string
