@@ -23,7 +23,7 @@ type TasksModel struct {
 func NewTasksModel(basePath string) *TasksModel {
 	m := &TasksModel{
 		basePath: basePath,
-		filter:   "", // All tasks
+		filter:   "",
 	}
 	m.Refresh()
 	return m
@@ -60,7 +60,7 @@ func (m *TasksModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor--
 			}
 		case "a":
-			m.filter = "" // All
+			m.filter = ""
 			m.cursor = 0
 		case "c":
 			m.filter = task.StatusCompleted
@@ -83,8 +83,9 @@ func (m *TasksModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *TasksModel) View() string {
 	var sb strings.Builder
 
+	sb.WriteString(RenderScreenTitle("TASKS"))
+
 	// Calculate dynamic column widths
-	// ID(6) + Status(12) + Priority(8) + Effort(10) + Feature(6) + separators(~24)
 	nameWidth := m.width - 66
 	if nameWidth < 20 {
 		nameWidth = 20
@@ -94,15 +95,11 @@ func (m *TasksModel) View() string {
 	}
 
 	// Filter bar
-	filterStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		MarginBottom(1)
-
 	filterBar := "[a]All [c]Completed [p]In Progress [n]Not Started [b]Blocked"
 	if m.filter != "" {
 		filterBar += fmt.Sprintf(" | Filter: %s", m.filter)
 	}
-	sb.WriteString(filterStyle.Render(filterBar))
+	sb.WriteString(MutedStyle.Render(filterBar))
 	sb.WriteString("\n\n")
 
 	// Header
@@ -111,7 +108,7 @@ func (m *TasksModel) View() string {
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderBottom(true)
 
-	headerFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
+	headerFmt := fmt.Sprintf("%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
 	header := fmt.Sprintf(headerFmt, "ID", "Name", "Status", "Priority", "Effort", "Feature")
 	sb.WriteString(headerStyle.Render(header))
 	sb.WriteString("\n")
@@ -124,7 +121,7 @@ func (m *TasksModel) View() string {
 	}
 
 	// Calculate visible rows based on height
-	maxRows := m.height - 8 // Account for header, filter bar, footer
+	maxRows := m.height - 10
 	if maxRows < 5 {
 		maxRows = 5
 	}
@@ -139,7 +136,7 @@ func (m *TasksModel) View() string {
 		endIdx = len(tasks)
 	}
 
-	rowFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
+	rowFmt := fmt.Sprintf("%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
 
 	for i := startIdx; i < endIdx; i++ {
 		t := tasks[i]
@@ -160,24 +157,19 @@ func (m *TasksModel) View() string {
 
 		rowStyle := lipgloss.NewStyle()
 		if i == m.cursor {
-			rowStyle = rowStyle.
-				Background(lipgloss.Color("62")).
-				Foreground(lipgloss.Color("255"))
+			rowStyle = SelectedStyle.Background(lipgloss.Color("62"))
 		} else {
-			// Color by status
 			switch t.Status {
 			case task.StatusCompleted:
-				rowStyle = rowStyle.Foreground(lipgloss.Color("42"))
+				rowStyle = SuccessStyle
 			case task.StatusInProgress:
-				rowStyle = rowStyle.Foreground(lipgloss.Color("226"))
-			case task.StatusBlocked:
-				rowStyle = rowStyle.Foreground(lipgloss.Color("196"))
-			case task.StatusAtRisk:
-				rowStyle = rowStyle.Foreground(lipgloss.Color("208"))
+				rowStyle = WarningStyle
+			case task.StatusBlocked, task.StatusAtRisk:
+				rowStyle = ErrorStyle
 			case task.StatusPaused:
-				rowStyle = rowStyle.Foreground(lipgloss.Color("141"))
+				rowStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("141"))
 			case task.StatusNotStarted:
-				rowStyle = rowStyle.Foreground(lipgloss.Color("241"))
+				rowStyle = MutedStyle
 			}
 		}
 
@@ -186,10 +178,11 @@ func (m *TasksModel) View() string {
 	}
 
 	// Footer with scroll info
+	sb.WriteString("\n")
 	if len(tasks) > maxRows {
-		sb.WriteString(fmt.Sprintf("\nShowing %d-%d of %d tasks (j/k to scroll)", startIdx+1, endIdx, len(tasks)))
+		sb.WriteString(MutedStyle.Render(fmt.Sprintf("Showing %d-%d of %d tasks (j/k to scroll)", startIdx+1, endIdx, len(tasks))))
 	} else {
-		sb.WriteString(fmt.Sprintf("\nShowing %d tasks", len(tasks)))
+		sb.WriteString(MutedStyle.Render(fmt.Sprintf("Showing %d tasks", len(tasks))))
 	}
 
 	return sb.String()
