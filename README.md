@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.4.12-blue)
+![Version](https://img.shields.io/badge/version-v2.4.13-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -402,6 +402,7 @@ Priority: CLI flag > Project config > Global config (~/.hermes/config.json) > De
 | r       | Run tasks screen                    |
 | ?       | Help screen                         |
 | s       | Stop execution (when running)       |
+| x       | Reset circuit breaker (Run screen)  |
 | Shift+R | Refresh                             |
 | j/k     | Scroll down/up                      |
 | q       | Quit                                |
@@ -416,6 +417,8 @@ The Run screen (`r` key) provides:
 - Workers count setting
 - Auto Branch/Commit toggles
 - Real-time task history (last 10 operations)
+- Circuit breaker warning banner (when OPEN)
+- Press 'x' to reset circuit breaker without leaving TUI
 
 ## Circuit Breaker
 
@@ -447,6 +450,12 @@ make test
 ```
 
 ## Changelog
+
+### v2.4.13
+
+- TUI screens refactored with common styles (styles.go)
+- Consistent visual design across all 11 TUI screens
+- Fixed tasks table format string issues
 
 ### v2.4.12
 

@@ -618,6 +618,8 @@ Gösterir:
 - **Kontroller**: Başlat, Durdur, Duraklat/Devam düğmeleri
 - **Seçenekler**: Paralel mod, Çalışan sayısı, Otomatik Dal, Otomatik Commit
 - **Görev Geçmişi**: Son 10 işlemin gerçek zamanlı görünümü
+- **Devre Kesici Uyarısı**: Devre kesici AÇIK olduğunda kırmızı banner
+- **Hızlı Sıfırlama**: TUI'dan çıkmadan devre kesiciyi sıfırlamak için 'x' tuşuna basın
 
 Tab ile seçenekler arası gezinin, Space/Enter ile değiştirin veya çalıştırın.
 
@@ -656,6 +658,7 @@ Değişiklikler hemen kaydedilir ve sonraki işlemde geçerli olur.
 | r       | Çalıştır ekranı                   |
 | ?       | Yardım ekranı                     |
 | s       | Yürütmeyi durdur (çalışırken)     |
+| x       | Devre kesiciyi sıfırla (Çalıştır) |
 | Shift+R | Manuel yenile                     |
 | Enter   | Görev detayını aç / Çalıştır      |
 | Esc     | Önceki ekrana dön                 |

@@ -642,6 +642,8 @@ The Run screen provides a visual interface for task execution:
 - **Controls**: Start, Stop, Pause/Resume buttons
 - **Options**: Parallel mode, Workers count, Auto Branch, Auto Commit
 - **Task History**: Real-time display of last 10 operations
+- **Circuit Breaker Warning**: Red banner when circuit breaker is OPEN
+- **Quick Reset**: Press 'x' to reset circuit breaker without leaving TUI
 
 Navigate with Tab between options, Space/Enter to toggle or execute.
 
@@ -680,6 +682,7 @@ Changes are saved immediately and take effect on next operation.
 | r       | Run screen                     |
 | ?       | Help screen                    |
 | s       | Stop execution (when running)  |
+| x       | Reset circuit breaker (Run)    |
 | Shift+R | Manual refresh                 |
 | Enter   | Open task detail / Execute     |
 | Esc     | Back to previous screen        |
