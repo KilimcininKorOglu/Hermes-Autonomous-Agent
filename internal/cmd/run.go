@@ -238,9 +238,9 @@ func runExecute(cmd *cobra.Command, args []string) error {
 		}
 
 		// Analyze response
-		analysis := respAnalyzer.Analyze(result.Output)
-		logger.Debug("Analysis: progress=%v complete=%v blocked=%v atRisk=%v paused=%v confidence=%.2f",
-			analysis.HasProgress, analysis.IsComplete, analysis.IsBlocked, analysis.IsAtRisk, analysis.IsPaused, analysis.Confidence)
+		analysis := respAnalyzer.AnalyzeWithCriteria(result.Output, nextTask.SuccessCriteria)
+		logger.Debug("Analysis: progress=%v complete=%v blocked=%v atRisk=%v paused=%v confidence=%.2f criteria=%d/%d",
+			analysis.HasProgress, analysis.IsComplete, analysis.IsBlocked, analysis.IsAtRisk, analysis.IsPaused, analysis.Confidence, analysis.CriteriaMet, analysis.CriteriaTotal)
 
 		// Update circuit breaker
 		breaker.AddLoopResult(analysis.HasProgress, false, loopNumber)

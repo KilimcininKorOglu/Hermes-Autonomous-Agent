@@ -17,6 +17,9 @@ type AnalysisResult struct {
 	OutputLength      int     `json:"outputLength"`
 	ErrorCount        int     `json:"errorCount"`
 	CompletionKeyword string  `json:"completionKeyword"`
+	// Success Criteria tracking
+	CriteriaMet   int `json:"criteriaMet"`
+	CriteriaTotal int `json:"criteriaTotal"`
 }
 
 // ExitSignals tracks exit signals across loops

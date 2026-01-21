@@ -283,11 +283,11 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task, attempt int) *TaskR
 
 	// Analyze AI response to determine if task is truly complete
 	respAnalyzer := analyzer.NewResponseAnalyzer()
-	analysis := respAnalyzer.Analyze(execResult.Output)
+	analysis := respAnalyzer.AnalyzeWithCriteria(execResult.Output, t.SuccessCriteria)
 
 	if p.logger != nil {
-		p.logger.Worker(workerID+1, "Analysis: complete=%v blocked=%v atRisk=%v paused=%v progress=%v confidence=%.2f",
-			analysis.IsComplete, analysis.IsBlocked, analysis.IsAtRisk, analysis.IsPaused, analysis.HasProgress, analysis.Confidence)
+		p.logger.Worker(workerID+1, "Analysis: complete=%v blocked=%v atRisk=%v paused=%v progress=%v confidence=%.2f criteria=%d/%d",
+			analysis.IsComplete, analysis.IsBlocked, analysis.IsAtRisk, analysis.IsPaused, analysis.HasProgress, analysis.Confidence, analysis.CriteriaMet, analysis.CriteriaTotal)
 	}
 
 	// Handle blocked status

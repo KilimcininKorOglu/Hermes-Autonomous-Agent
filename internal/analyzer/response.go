@@ -179,3 +179,66 @@ func (a *ResponseAnalyzer) ExtractStatusBlock(output string) string {
 	}
 	return ""
 }
+
+// AnalyzeWithCriteria analyzes an AI response and checks success criteria
+func (a *ResponseAnalyzer) AnalyzeWithCriteria(output string, successCriteria []string) *AnalysisResult {
+	result := a.Analyze(output)
+
+	if len(successCriteria) == 0 {
+		return result
+	}
+
+	outputLower := strings.ToLower(output)
+	result.CriteriaTotal = len(successCriteria)
+	result.CriteriaMet = 0
+
+	// Check each criterion - look for keywords from the criterion in the output
+	for _, criterion := range successCriteria {
+		criterionLower := strings.ToLower(criterion)
+		// Extract key words from criterion (words longer than 4 chars)
+		words := strings.Fields(criterionLower)
+		matchCount := 0
+		significantWords := 0
+
+		for _, word := range words {
+			// Skip common words
+			if len(word) <= 4 || isCommonWord(word) {
+				continue
+			}
+			significantWords++
+			if strings.Contains(outputLower, word) {
+				matchCount++
+			}
+		}
+
+		// Consider criterion met if more than 50% of significant words are found
+		if significantWords > 0 && float64(matchCount)/float64(significantWords) >= 0.5 {
+			result.CriteriaMet++
+		}
+	}
+
+	// If all criteria are met and no explicit status, boost confidence
+	if result.CriteriaMet == result.CriteriaTotal && result.CriteriaTotal > 0 {
+		result.Confidence += 0.15
+		// If AI didn't provide status block but all criteria met, consider it complete
+		if !result.ExitSignal && result.Status == "" && result.CompletionKeyword != "" {
+			result.IsComplete = true
+			result.Confidence = 0.75 // High confidence but not 100%
+		}
+	}
+
+	return result
+}
+
+// isCommonWord checks if a word is a common word to skip
+func isCommonWord(word string) bool {
+	commonWords := map[string]bool{
+		"should": true, "would": true, "could": true, "about": true,
+		"their": true, "there": true, "these": true, "those": true,
+		"which": true, "where": true, "while": true, "being": true,
+		"having": true, "doing": true, "after": true, "before": true,
+		"during": true, "under": true, "above": true, "below": true,
+		"between": true, "through": true, "against": true, "without": true,
+	}
+	return commonWords[word]
+}
