@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.4.9-blue)
+![Version](https://img.shields.io/badge/version-v2.4.10-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -447,6 +447,11 @@ make test
 ```
 
 ## Changelog
+
+### v2.4.10
+
+- Run screen shows red warning banner when circuit breaker is OPEN
+- Press 'x' in Run screen to reset circuit breaker without leaving TUI
 
 ### v2.4.9
 
