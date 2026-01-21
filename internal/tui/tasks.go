@@ -108,8 +108,8 @@ func (m *TasksModel) View() string {
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderBottom(true)
 
-	headerFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
-	header := fmt.Sprintf(headerFmt, "ID", "Name", "Status", "Priority", "Effort", "Feature")
+	// Fixed width columns
+	header := fmt.Sprintf("%-6s | %-*s | %-12s | %-8s | %-10s | %-6s", "ID", nameWidth, "Name", "Status", "Priority", "Effort", "Feature")
 	sb.WriteString(headerStyle.Render(header))
 	sb.WriteString("\n")
 
@@ -136,8 +136,6 @@ func (m *TasksModel) View() string {
 		endIdx = len(tasks)
 	}
 
-	rowFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
-
 	for i := startIdx; i < endIdx; i++ {
 		t := tasks[i]
 		name := t.Name
@@ -153,7 +151,7 @@ func (m *TasksModel) View() string {
 			effort = effort[:7] + "..."
 		}
 
-		row := fmt.Sprintf(rowFmt, t.ID, name, t.Status, t.Priority, effort, t.FeatureID)
+		row := fmt.Sprintf("%-6s | %-*s | %-12s | %-8s | %-10s | %-6s", t.ID, nameWidth, name, string(t.Status), string(t.Priority), effort, t.FeatureID)
 
 		rowStyle := lipgloss.NewStyle()
 		if i == m.cursor {
