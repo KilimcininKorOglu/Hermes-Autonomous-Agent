@@ -334,10 +334,19 @@ func (a App) View() string {
 		content = a.helpView()
 	}
 
+	// Wrap content in a container with proper sizing
+	contentHeight := a.height - 4 // Account for header and footer
+	if contentHeight < 10 {
+		contentHeight = 10
+	}
+	contentStyle := lipgloss.NewStyle().
+		Width(a.width).
+		Height(contentHeight)
+
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		a.headerView(),
-		content,
+		contentStyle.Render(content),
 		a.footerView(),
 	)
 }
