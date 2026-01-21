@@ -561,51 +561,13 @@ func (m *RunModel) drainProgressChannel() {
 func (m *RunModel) View() string {
 	var b strings.Builder
 
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("86")).
-		MarginBottom(1)
-
-	sectionStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("214"))
-
-	labelStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		Width(20)
-
-	selectedStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("212"))
-
-	valueStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255"))
-
-	statusStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("82"))
-
-	errorStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("196"))
-
-	buttonStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255")).
-		Background(lipgloss.Color("62")).
-		Padding(0, 2)
-
-	runningButtonStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255")).
-		Background(lipgloss.Color("196")).
-		Padding(0, 2)
-
 	workerStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("39"))
 
-	b.WriteString(titleStyle.Render("RUN TASKS"))
-	b.WriteString("\n\n")
+	b.WriteString(RenderScreenTitle("RUN TASKS"))
 
 	// Progress
-	b.WriteString(sectionStyle.Render("Progress"))
+	b.WriteString(SectionStyle.Render("Progress"))
 	b.WriteString("\n")
 	progressPercent := 0
 	if m.totalTasks > 0 {
@@ -624,7 +586,7 @@ func (m *RunModel) View() string {
 		b.WriteString("\n")
 		b.WriteString(warningStyle.Render("CIRCUIT BREAKER OPEN - Execution halted due to no progress"))
 		b.WriteString("\n")
-		b.WriteString(errorStyle.Render("  Press 'x' to reset and continue"))
+		b.WriteString(ErrorStyle.Render("  Press 'x' to reset and continue"))
 		b.WriteString("\n")
 	}
 
@@ -635,11 +597,11 @@ func (m *RunModel) View() string {
 		if m.parallelRunning {
 			modeStr = fmt.Sprintf("Parallel (%d workers)", m.config.Parallel.MaxWorkers)
 		}
-		b.WriteString(fmt.Sprintf("  Mode: %s | Status: %s | Elapsed: %v\n", modeStr, statusStyle.Render(m.status), elapsed))
+		b.WriteString(fmt.Sprintf("  Mode: %s | Status: %s | Elapsed: %v\n", modeStr, SuccessStyle.Render(m.status), elapsed))
 		
 		if m.parallelRunning && len(m.workerStatus) > 0 {
 			b.WriteString("\n")
-			b.WriteString(sectionStyle.Render("Workers"))
+			b.WriteString(SectionStyle.Render("Workers"))
 			b.WriteString("\n")
 			for _, ws := range m.workerStatus {
 				b.WriteString(workerStyle.Render(fmt.Sprintf("  %s\n", ws)))
@@ -651,14 +613,14 @@ func (m *RunModel) View() string {
 	b.WriteString("\n")
 
 	// Options (only editable when not running)
-	b.WriteString(sectionStyle.Render("Options"))
+	b.WriteString(SectionStyle.Render("Options"))
 	b.WriteString("\n")
 
 	if !m.running {
-		m.renderOption(&b, 0, labelStyle, selectedStyle, "Parallel Mode:", m.boolToStr(m.config.Parallel.Enabled))
-		m.renderOption(&b, 1, labelStyle, selectedStyle, "Workers:", fmt.Sprintf("%d", m.config.Parallel.MaxWorkers))
-		m.renderOption(&b, 2, labelStyle, selectedStyle, "Auto Branch:", m.boolToStr(m.config.TaskMode.AutoBranch))
-		m.renderOption(&b, 3, labelStyle, selectedStyle, "Auto Commit:", m.boolToStr(m.config.TaskMode.AutoCommit))
+		m.renderOption(&b, 0, LabelStyle, SelectedStyle, "Parallel Mode:", m.boolToStr(m.config.Parallel.Enabled))
+		m.renderOption(&b, 1, LabelStyle, SelectedStyle, "Workers:", fmt.Sprintf("%d", m.config.Parallel.MaxWorkers))
+		m.renderOption(&b, 2, LabelStyle, SelectedStyle, "Auto Branch:", m.boolToStr(m.config.TaskMode.AutoBranch))
+		m.renderOption(&b, 3, LabelStyle, SelectedStyle, "Auto Commit:", m.boolToStr(m.config.TaskMode.AutoCommit))
 	} else {
 		b.WriteString(fmt.Sprintf("  Parallel: %s | Workers: %d | Branch: %s | Commit: %s\n",
 			m.boolToStr(m.config.Parallel.Enabled),
@@ -671,25 +633,25 @@ func (m *RunModel) View() string {
 	// Start/Stop button
 	if !m.running {
 		if m.focusIndex == 4 {
-			b.WriteString(selectedStyle.Render("> "))
+			b.WriteString(SelectedStyle.Render("> "))
 		} else {
 			b.WriteString("  ")
 		}
 		if m.config.Parallel.Enabled {
-			b.WriteString(buttonStyle.Render("Start Parallel Run"))
+			b.WriteString(ButtonStyle.Render("Start Parallel Run"))
 		} else {
-			b.WriteString(buttonStyle.Render("Start Run"))
+			b.WriteString(ButtonStyle.Render("Start Run"))
 		}
 	} else {
 		b.WriteString("  ")
-		b.WriteString(runningButtonStyle.Render("Stop Run (s/esc)"))
+		b.WriteString(ActiveButtonStyle.Render("Stop Run (s/esc)"))
 		if !m.parallelRunning {
 			if m.paused {
 				b.WriteString("  ")
-				b.WriteString(valueStyle.Render("[PAUSED - press 'p' to resume]"))
+				b.WriteString(ValueStyle.Render("[PAUSED - press 'p' to resume]"))
 			} else {
 				b.WriteString("  ")
-				b.WriteString(valueStyle.Render("[press 'p' to pause]"))
+				b.WriteString(ValueStyle.Render("[press 'p' to pause]"))
 			}
 		}
 	}
@@ -697,23 +659,23 @@ func (m *RunModel) View() string {
 
 	// Error display
 	if m.lastError != "" {
-		b.WriteString(sectionStyle.Render("Last Error"))
+		b.WriteString(SectionStyle.Render("Last Error"))
 		b.WriteString("\n")
-		b.WriteString(errorStyle.Render(fmt.Sprintf("  %s", m.lastError)))
+		b.WriteString(ErrorStyle.Render(fmt.Sprintf("  %s", m.lastError)))
 		b.WriteString("\n\n")
 	}
 
 	// Task history
 	if len(m.taskHistory) > 0 {
-		b.WriteString(sectionStyle.Render("Recent Activity"))
+		b.WriteString(SectionStyle.Render("Recent Activity"))
 		b.WriteString("\n")
 		for _, entry := range m.taskHistory {
 			if strings.HasPrefix(entry, "[DONE]") {
-				b.WriteString(statusStyle.Render(fmt.Sprintf("  %s\n", entry)))
+				b.WriteString(SuccessStyle.Render(fmt.Sprintf("  %s\n", entry)))
 			} else if strings.HasPrefix(entry, "[ERROR]") {
-				b.WriteString(errorStyle.Render(fmt.Sprintf("  %s\n", entry)))
+				b.WriteString(ErrorStyle.Render(fmt.Sprintf("  %s\n", entry)))
 			} else {
-				b.WriteString(valueStyle.Render(fmt.Sprintf("  %s\n", entry)))
+				b.WriteString(ValueStyle.Render(fmt.Sprintf("  %s\n", entry)))
 			}
 		}
 		b.WriteString("\n")
@@ -734,13 +696,13 @@ func (m *RunModel) View() string {
 	return b.String()
 }
 
-func (m *RunModel) renderOption(b *strings.Builder, index int, labelStyle, selectedStyle lipgloss.Style, label, value string) {
+func (m *RunModel) renderOption(b *strings.Builder, index int, LabelStyle, SelectedStyle lipgloss.Style, label, value string) {
 	if m.focusIndex == index {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
-	b.WriteString(labelStyle.Render(label))
+	b.WriteString(LabelStyle.Render(label))
 	b.WriteString(value)
 	b.WriteString("\n")
 }
