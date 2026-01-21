@@ -328,6 +328,12 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task, attempt int) *TaskR
 			p.logger.TaskComplete(workerID+1, t.ID, result.Duration)
 		}
 		p.notifyProgress(workerID+1, t.ID, t.Name, "completed")
+		// Update task status to COMPLETED in main project directory
+		if err := statusUpdater.UpdateTaskStatus(t.ID, task.StatusCompleted); err != nil {
+			if p.logger != nil {
+				p.logger.Worker(workerID+1, "Failed to set task COMPLETED: %v", err)
+			}
+		}
 		// Remove task from PROMPT.md only on completion
 		injector.RemoveTask()
 	} else {
