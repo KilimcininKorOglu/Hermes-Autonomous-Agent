@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"hermes/internal/updater"
 )
 
@@ -107,86 +106,56 @@ func (m *UpdateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *UpdateModel) View() string {
 	var b strings.Builder
 
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("86")).
-		MarginBottom(1)
-
-	labelStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		Width(20)
-
-	valueStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255"))
-
-	buttonStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255")).
-		Background(lipgloss.Color("62")).
-		Padding(0, 2)
-
-	disabledButtonStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("240")).
-		Background(lipgloss.Color("236")).
-		Padding(0, 2)
-
-	b.WriteString(titleStyle.Render("UPDATE"))
-	b.WriteString("\n\n")
+	b.WriteString(RenderScreenTitle("UPDATE"))
 
 	if m.checking {
-		b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Render("Checking for updates..."))
+		b.WriteString(WarningStyle.Render("Checking for updates..."))
 		b.WriteString("\n")
 		return b.String()
 	}
 
 	if m.updating {
-		b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Render("Downloading and installing update..."))
+		b.WriteString(WarningStyle.Render("Downloading and installing update..."))
 		b.WriteString("\n")
 		return b.String()
 	}
 
-	b.WriteString(labelStyle.Render("Current Version:"))
-	b.WriteString(valueStyle.Render(m.currentVersion))
+	b.WriteString(LabelStyle.Render("Current Version:"))
+	b.WriteString(ValueStyle.Render(m.currentVersion))
 	b.WriteString("\n\n")
 
 	if m.release != nil && m.hasUpdate {
-		newVersionStyle := lipgloss.NewStyle().
-			Bold(true).
-			Foreground(lipgloss.Color("82"))
-
-		b.WriteString(labelStyle.Render("New Version:"))
-		b.WriteString(newVersionStyle.Render(m.release.TagName))
+		b.WriteString(LabelStyle.Render("New Version:"))
+		b.WriteString(SuccessStyle.Render(m.release.TagName))
 		b.WriteString("\n")
 
-		b.WriteString(labelStyle.Render("Release Name:"))
-		b.WriteString(valueStyle.Render(m.release.Name))
+		b.WriteString(LabelStyle.Render("Release Name:"))
+		b.WriteString(ValueStyle.Render(m.release.Name))
 		b.WriteString("\n\n")
 	}
 
-	b.WriteString(buttonStyle.Render("Check for Updates (c)"))
+	b.WriteString(ButtonStyle.Render("Check for Updates (c)"))
 	b.WriteString("  ")
 
 	if m.hasUpdate {
-		b.WriteString(buttonStyle.Render("Install Update (u)"))
+		b.WriteString(ButtonStyle.Render("Install Update (u)"))
 	} else {
-		b.WriteString(disabledButtonStyle.Render("Install Update"))
+		b.WriteString(MutedStyle.Render("[ Install Update ]"))
 	}
 	b.WriteString("\n\n")
 
 	if m.message != "" {
-		successStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("82"))
-		b.WriteString(successStyle.Render(m.message))
+		b.WriteString(SuccessStyle.Render(m.message))
 		b.WriteString("\n")
 	}
 
 	if m.err != nil {
-		errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("196"))
-		b.WriteString(errorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
+		b.WriteString(ErrorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
 		b.WriteString("\n")
 	}
 
 	b.WriteString("\n")
-	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-	b.WriteString(helpStyle.Render("c: Check for updates | u: Install update"))
+	b.WriteString(MutedStyle.Render("c: Check for updates | u: Install update"))
 
 	return b.String()
 }
