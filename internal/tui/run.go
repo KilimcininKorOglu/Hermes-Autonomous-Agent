@@ -182,6 +182,13 @@ func (m *RunModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case " ", "enter":
 				return m, m.handleSelect()
+			case "x":
+				// Reset circuit breaker
+				if m.isCircuitBreakerOpen() {
+					m.breaker.Reset("Manual reset from TUI")
+					m.lastError = ""
+					m.Refresh()
+				}
 			}
 		}
 
@@ -406,6 +413,15 @@ func (m *RunModel) GetStatus() (running bool, parallel bool, status string, comp
 	return m.running, m.parallelRunning, m.status, m.completedTasks, m.totalTasks
 }
 
+// isCircuitBreakerOpen checks if the circuit breaker is open
+func (m *RunModel) isCircuitBreakerOpen() bool {
+	state, err := m.breaker.GetState()
+	if err != nil {
+		return false
+	}
+	return state.State == "OPEN"
+}
+
 func (m *RunModel) runTickCmd() tea.Cmd {
 	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
 		return runTickMsg(t)
@@ -597,6 +613,20 @@ func (m *RunModel) View() string {
 	}
 	progressBar := m.renderProgressBar(progressPercent, 40)
 	b.WriteString(fmt.Sprintf("  %s %d/%d tasks (%d%%)\n", progressBar, m.completedTasks, m.totalTasks, progressPercent))
+
+	// Circuit Breaker Warning
+	if m.isCircuitBreakerOpen() {
+		warningStyle := lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("196")).
+			Background(lipgloss.Color("52")).
+			Padding(0, 1)
+		b.WriteString("\n")
+		b.WriteString(warningStyle.Render("CIRCUIT BREAKER OPEN - Execution halted due to no progress"))
+		b.WriteString("\n")
+		b.WriteString(errorStyle.Render("  Press 'x' to reset and continue"))
+		b.WriteString("\n")
+	}
 
 	// Status
 	if m.running {
