@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.4.8-blue)
+![Version](https://img.shields.io/badge/version-v2.4.9-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -447,6 +447,13 @@ make test
 ```
 
 ## Changelog
+
+### v2.4.9
+
+- TUI screen navigation now works during any background execution
+- Dashboard shows live run status with progress bar during parallel execution
+- Fixed progress bar not updating (completedTasks now incremented via callback)
+- All screens accessible via 1-9 keys while tasks are running
 
 ### v2.4.8
 
