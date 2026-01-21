@@ -30,8 +30,7 @@ func NewTaskDetailModel(basePath string) *TaskDetailModel {
 func (m *TaskDetailModel) SetTask(t *task.Task) {
 	m.task = t
 	m.scroll = 0
-	
-	// Load feature info
+
 	if t != nil {
 		reader := task.NewReader(m.basePath)
 		m.feature, _ = reader.GetFeatureByID(t.FeatureID)
@@ -74,23 +73,15 @@ func (m *TaskDetailModel) View() string {
 	var sb strings.Builder
 	t := m.task
 
-	// Title
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("86")).
-		MarginBottom(1)
-	sb.WriteString(titleStyle.Render(fmt.Sprintf("Task: %s", t.ID)))
-	sb.WriteString("\n\n")
+	sb.WriteString(RenderScreenTitle(fmt.Sprintf("TASK: %s", t.ID)))
 
 	// Task info box
-	boxStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
+	infoBox := BoxStyle.
 		Padding(1, 2).
 		Width(m.width - 4)
 
 	var info strings.Builder
 	boldStyle := lipgloss.NewStyle().Bold(true)
-	sectionStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("86"))
 
 	// Name
 	info.WriteString(boldStyle.Render("Name: "))
@@ -99,36 +90,30 @@ func (m *TaskDetailModel) View() string {
 
 	// Status with color
 	info.WriteString(boldStyle.Render("Status: "))
-	statusStyle := lipgloss.NewStyle()
+	statusStyle := MutedStyle
 	switch t.Status {
 	case task.StatusCompleted:
-		statusStyle = statusStyle.Foreground(lipgloss.Color("42"))
+		statusStyle = SuccessStyle
 	case task.StatusInProgress:
-		statusStyle = statusStyle.Foreground(lipgloss.Color("226"))
-	case task.StatusBlocked:
-		statusStyle = statusStyle.Foreground(lipgloss.Color("196"))
-	case task.StatusAtRisk:
-		statusStyle = statusStyle.Foreground(lipgloss.Color("208"))
+		statusStyle = WarningStyle
+	case task.StatusBlocked, task.StatusAtRisk:
+		statusStyle = ErrorStyle
 	case task.StatusPaused:
-		statusStyle = statusStyle.Foreground(lipgloss.Color("141"))
-	case task.StatusNotStarted:
-		statusStyle = statusStyle.Foreground(lipgloss.Color("241"))
+		statusStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("141"))
 	}
 	info.WriteString(statusStyle.Render(string(t.Status)))
 	info.WriteString("\n\n")
 
 	// Priority and Effort on same line
 	info.WriteString(boldStyle.Render("Priority: "))
-	priorityStyle := lipgloss.NewStyle()
+	priorityStyle := MutedStyle
 	switch t.Priority {
 	case task.PriorityP1:
-		priorityStyle = priorityStyle.Foreground(lipgloss.Color("196"))
+		priorityStyle = ErrorStyle
 	case task.PriorityP2:
-		priorityStyle = priorityStyle.Foreground(lipgloss.Color("226"))
+		priorityStyle = WarningStyle
 	case task.PriorityP3:
-		priorityStyle = priorityStyle.Foreground(lipgloss.Color("86"))
-	case task.PriorityP4:
-		priorityStyle = priorityStyle.Foreground(lipgloss.Color("241"))
+		priorityStyle = SuccessStyle
 	}
 	info.WriteString(priorityStyle.Render(string(t.Priority)))
 	if t.EstimatedEffort != "" {
@@ -151,7 +136,7 @@ func (m *TaskDetailModel) View() string {
 
 	// Description
 	if t.Description != "" {
-		info.WriteString(sectionStyle.Render("Description"))
+		info.WriteString(SectionStyle.Render("Description"))
 		info.WriteString("\n")
 		info.WriteString(t.Description)
 		info.WriteString("\n\n")
@@ -159,7 +144,7 @@ func (m *TaskDetailModel) View() string {
 
 	// Technical Details
 	if t.TechnicalDetails != "" {
-		info.WriteString(sectionStyle.Render("Technical Details"))
+		info.WriteString(SectionStyle.Render("Technical Details"))
 		info.WriteString("\n")
 		info.WriteString(t.TechnicalDetails)
 		info.WriteString("\n\n")
@@ -167,7 +152,7 @@ func (m *TaskDetailModel) View() string {
 
 	// Files to Touch
 	if len(t.FilesToTouch) > 0 {
-		info.WriteString(sectionStyle.Render("Files to Touch"))
+		info.WriteString(SectionStyle.Render("Files to Touch"))
 		info.WriteString("\n")
 		for _, f := range t.FilesToTouch {
 			info.WriteString(fmt.Sprintf("  - %s\n", f))
@@ -177,7 +162,7 @@ func (m *TaskDetailModel) View() string {
 
 	// Dependencies
 	if len(t.Dependencies) > 0 {
-		info.WriteString(sectionStyle.Render("Dependencies"))
+		info.WriteString(SectionStyle.Render("Dependencies"))
 		info.WriteString("\n")
 		for _, d := range t.Dependencies {
 			info.WriteString(fmt.Sprintf("  - %s\n", d))
@@ -187,19 +172,17 @@ func (m *TaskDetailModel) View() string {
 
 	// Success Criteria
 	if len(t.SuccessCriteria) > 0 {
-		info.WriteString(sectionStyle.Render("Success Criteria"))
+		info.WriteString(SectionStyle.Render("Success Criteria"))
 		info.WriteString("\n")
 		for _, c := range t.SuccessCriteria {
 			info.WriteString(fmt.Sprintf("  [ ] %s\n", c))
 		}
 	}
 
-	sb.WriteString(boxStyle.Render(info.String()))
+	sb.WriteString(infoBox.Render(info.String()))
 	sb.WriteString("\n\n")
 
-	// Footer
-	footerStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-	sb.WriteString(footerStyle.Render("[Esc] Back to tasks | [j/k] Scroll"))
+	sb.WriteString(MutedStyle.Render("[Esc] Back to tasks | [j/k] Scroll"))
 
 	return sb.String()
 }
