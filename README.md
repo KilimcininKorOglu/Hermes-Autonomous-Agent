@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.4.11-blue)
+![Version](https://img.shields.io/badge/version-v2.4.12-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -447,6 +447,12 @@ make test
 ```
 
 ## Changelog
+
+### v2.4.12
+
+- CRITICAL FIX: Task status now correctly updated to COMPLETED in parallel execution
+- Previously tasks remained IN_PROGRESS even after successful completion
+- This fix resolves progress bar staying at 0% and circuit breaker false triggers
 
 ### v2.4.11
 
