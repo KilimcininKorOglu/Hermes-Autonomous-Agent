@@ -108,7 +108,7 @@ func (m *TasksModel) View() string {
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderBottom(true)
 
-	headerFmt := fmt.Sprintf("%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
+	headerFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
 	header := fmt.Sprintf(headerFmt, "ID", "Name", "Status", "Priority", "Effort", "Feature")
 	sb.WriteString(headerStyle.Render(header))
 	sb.WriteString("\n")
@@ -136,7 +136,7 @@ func (m *TasksModel) View() string {
 		endIdx = len(tasks)
 	}
 
-	rowFmt := fmt.Sprintf("%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
+	rowFmt := fmt.Sprintf("%%-6s | %%-%ds | %%-12s | %%-8s | %%-10s | %%-6s", nameWidth)
 
 	for i := startIdx; i < endIdx; i++ {
 		t := tasks[i]
