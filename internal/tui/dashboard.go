@@ -19,6 +19,12 @@ type DashboardModel struct {
 	breaker        *circuit.BreakerState
 	currentTask    *task.Task
 	currentFeature *task.Feature
+	// Run status (updated from App)
+	runActive      bool
+	runParallel    bool
+	runStatus      string
+	runCompleted   int
+	runTotal       int
 }
 
 // NewDashboardModel creates a new dashboard model
@@ -48,6 +54,15 @@ func (m *DashboardModel) Refresh() {
 func (m *DashboardModel) SetSize(width, height int) {
 	m.width = width
 	m.height = height
+}
+
+// SetRunStatus updates the run status display
+func (m *DashboardModel) SetRunStatus(active, parallel bool, status string, completed, total int) {
+	m.runActive = active
+	m.runParallel = parallel
+	m.runStatus = status
+	m.runCompleted = completed
+	m.runTotal = total
 }
 
 // Init initializes the dashboard
@@ -84,8 +99,27 @@ func (m *DashboardModel) View() string {
 		Width(m.width - 4).
 		Render(taskContent)
 
+	// Run status box (if running)
+	var runStatusBox string
+	if m.runActive {
+		runContent := m.runStatusView()
+		runStatusBox = boxStyle.
+			Width(m.width - 4).
+			BorderForeground(lipgloss.Color("214")).
+			Render(runContent)
+	}
+
 	// Layout
 	topRow := lipgloss.JoinHorizontal(lipgloss.Top, progressBox, circuitBox)
+
+	if m.runActive {
+		return lipgloss.JoinVertical(
+			lipgloss.Left,
+			runStatusBox,
+			topRow,
+			taskBox,
+		)
+	}
 
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
@@ -244,6 +278,37 @@ func (m *DashboardModel) currentTaskView() string {
 			sb.WriteString(fmt.Sprintf("  - %s\n", f))
 		}
 	}
+
+	return sb.String()
+}
+
+func (m *DashboardModel) runStatusView() string {
+	var sb strings.Builder
+
+	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("214"))
+	
+	if m.runParallel {
+		sb.WriteString(titleStyle.Render("Parallel Execution Running"))
+	} else {
+		sb.WriteString(titleStyle.Render("Execution Running"))
+	}
+	sb.WriteString("\n\n")
+
+	// Progress bar
+	if m.runTotal > 0 {
+		percent := float64(m.runCompleted) / float64(m.runTotal)
+		barWidth := 40
+		filled := int(percent * float64(barWidth))
+		bar := strings.Repeat("=", filled) + strings.Repeat("-", barWidth-filled)
+		sb.WriteString(fmt.Sprintf("[%s] %d/%d (%.0f%%)\n", bar, m.runCompleted, m.runTotal, percent*100))
+	}
+
+	// Status
+	if m.runStatus != "" {
+		sb.WriteString(fmt.Sprintf("Status: %s\n", m.runStatus))
+	}
+
+	sb.WriteString("\nPress 's' to stop, 'r' to go to Run screen")
 
 	return sb.String()
 }

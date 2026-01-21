@@ -117,6 +117,15 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.dashboard.Refresh()
 		a.tasks.Refresh()
 		a.logs.Refresh()
+		// Update Run progress even when not on Run screen
+		if a.run.IsRunning() {
+			a.run.DrainProgress()
+			// Update dashboard with run status
+			running, parallel, status, completed, total := a.run.GetStatus()
+			a.dashboard.SetRunStatus(running, parallel, status, completed, total)
+		} else {
+			a.dashboard.SetRunStatus(false, false, "", 0, 0)
+		}
 		return a, tickCmd() // Schedule next tick
 
 	case ConfigSavedMsg:

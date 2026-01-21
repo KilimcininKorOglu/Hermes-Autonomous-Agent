@@ -382,6 +382,30 @@ func (m *RunModel) stopRun() tea.Cmd {
 	}
 }
 
+// IsRunning returns true if the run is active
+func (m *RunModel) IsRunning() bool {
+	return m.running
+}
+
+// Stop stops the current run
+func (m *RunModel) Stop() {
+	if m.cancel != nil {
+		m.cancel()
+	}
+}
+
+// DrainProgress drains progress events from the channel (called by App on tick)
+func (m *RunModel) DrainProgress() {
+	if m.parallelRunning && m.progressChan != nil {
+		m.drainProgressChannel()
+	}
+}
+
+// GetStatus returns the current run status for display in other screens
+func (m *RunModel) GetStatus() (running bool, parallel bool, status string, completed int, total int) {
+	return m.running, m.parallelRunning, m.status, m.completedTasks, m.totalTasks
+}
+
 func (m *RunModel) runTickCmd() tea.Cmd {
 	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
 		return runTickMsg(t)
@@ -505,6 +529,10 @@ func (m *RunModel) drainProgressChannel() {
 				m.parallelBatch = event.Batch
 				m.parallelTotalBatch = event.TotalBatch
 				m.status = fmt.Sprintf("Batch %d/%d", event.Batch, event.TotalBatch)
+			}
+			// Update completed tasks count
+			if event.Status == "completed" {
+				m.completedTasks++
 			}
 		default:
 			// No more events
@@ -700,18 +728,4 @@ func (m *RunModel) boolToStr(v bool) string {
 		return "On"
 	}
 	return "Off"
-}
-
-// IsRunning returns whether the run is active
-func (m *RunModel) IsRunning() bool {
-	return m.running
-}
-
-// Stop stops the current run
-func (m *RunModel) Stop() {
-	if m.cancel != nil {
-		m.cancel()
-	}
-	m.running = false
-	m.parallelRunning = false
 }
