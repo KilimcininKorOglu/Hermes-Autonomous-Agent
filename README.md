@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.4.10-blue)
+![Version](https://img.shields.io/badge/version-v2.4.11-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -447,6 +447,13 @@ make test
 ```
 
 ## Changelog
+
+### v2.4.11
+
+- PROMPT.md now strongly emphasizes HERMES_STATUS block is MANDATORY
+- Task completion now checks Success Criteria from task definition
+- Improved analysis logs show criteria met/total count
+- Better keyword matching for success criteria validation
 
 ### v2.4.10
 
