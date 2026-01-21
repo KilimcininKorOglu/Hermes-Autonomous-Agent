@@ -10,7 +10,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"hermes/internal/ai"
 	"hermes/internal/analyzer"
 	"hermes/internal/config"
@@ -125,51 +124,28 @@ func (m *AddFeatureModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *AddFeatureModel) View() string {
 	var b strings.Builder
 
-	titleStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("86")).
-		MarginBottom(1)
-
-	labelStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241"))
-
-	selectedStyle := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("212"))
-
-	buttonStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("255")).
-		Background(lipgloss.Color("62")).
-		Padding(0, 2)
-
-	disabledButtonStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("240")).
-		Background(lipgloss.Color("236")).
-		Padding(0, 2)
-
-	b.WriteString(titleStyle.Render("ADD FEATURE"))
-	b.WriteString("\n\n")
+	b.WriteString(RenderScreenTitle("ADD FEATURE"))
 
 	if m.adding {
-		b.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("214")).Render("Adding feature..."))
+		b.WriteString(WarningStyle.Render("Adding feature..."))
 		b.WriteString("\n")
 		return b.String()
 	}
 
-	b.WriteString(labelStyle.Render("Feature Description:"))
+	b.WriteString(LabelStyle.Render("Feature Description:"))
 	b.WriteString("\n")
 	if m.focusIndex == 0 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
 	b.WriteString(m.textInput.View())
 	b.WriteString("\n\n")
 
-	b.WriteString(labelStyle.Render("Options:"))
+	b.WriteString(LabelStyle.Render("Options:"))
 	b.WriteString(" ")
 	if m.focusIndex == 1 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
@@ -181,38 +157,34 @@ func (m *AddFeatureModel) View() string {
 	b.WriteString("\n\n")
 
 	if m.focusIndex == 2 {
-		b.WriteString(selectedStyle.Render("> "))
+		b.WriteString(SelectedStyle.Render("> "))
 	} else {
 		b.WriteString("  ")
 	}
 	if m.textInput.Value() != "" {
-		b.WriteString(buttonStyle.Render("Add Feature"))
+		b.WriteString(ButtonStyle.Render("Add Feature"))
 	} else {
-		b.WriteString(disabledButtonStyle.Render("Add Feature"))
+		b.WriteString(MutedStyle.Render("[ Add Feature ]"))
 	}
 	b.WriteString("\n\n")
 
 	if m.result != "" {
-		successStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("82"))
-		b.WriteString(successStyle.Render(m.result))
+		b.WriteString(SuccessStyle.Render(m.result))
 		b.WriteString("\n")
-		
+
 		if m.filePath != "" {
-			fileStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("248"))
-			b.WriteString(fileStyle.Render("  Created: " + m.filePath))
+			b.WriteString(MutedStyle.Render("  Created: " + m.filePath))
 			b.WriteString("\n")
 		}
 	}
 
 	if m.err != nil {
-		errorStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("196"))
-		b.WriteString(errorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
+		b.WriteString(ErrorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
 		b.WriteString("\n")
 	}
 
 	b.WriteString("\n")
-	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-	b.WriteString(helpStyle.Render("Tab: Navigate | Space/Enter: Select"))
+	b.WriteString(MutedStyle.Render("Tab: Navigate | Space/Enter: Select"))
 
 	return b.String()
 }
@@ -246,7 +218,6 @@ func (m *AddFeatureModel) addFeature() tea.Cmd {
 			nextTaskID = 1
 		}
 
-		// Get provider from config
 		var provider ai.Provider
 		if cfg.AI.Planning != "" && cfg.AI.Planning != "auto" {
 			provider = ai.GetProvider(cfg.AI.Planning)
