@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.4.13-blue)
+![Version](https://img.shields.io/badge/version-v2.4.14-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -450,6 +450,11 @@ make test
 ```
 
 ## Changelog
+
+### v2.4.14
+
+- Fixed 'depends on non-existent task' error when resuming parallel execution
+- Scheduler now receives all tasks for correct dependency resolution
 
 ### v2.4.13
 
