@@ -322,15 +322,21 @@ func (m *RunModel) executeParallel() tea.Cmd {
 			return parallelCompleteMsg{err: err}
 		}
 
-		// Filter pending tasks
-		var pendingTasks []*task.Task
+		// Convert to pointer slice for scheduler (scheduler needs all tasks for dependency resolution)
+		var allTaskPtrs []*task.Task
 		for i := range allTasks {
-			if allTasks[i].Status == task.StatusNotStarted || allTasks[i].Status == task.StatusInProgress {
-				pendingTasks = append(pendingTasks, &allTasks[i])
+			allTaskPtrs = append(allTaskPtrs, &allTasks[i])
+		}
+
+		// Count pending tasks
+		pendingCount := 0
+		for _, t := range allTasks {
+			if t.Status == task.StatusNotStarted || t.Status == task.StatusInProgress {
+				pendingCount++
 			}
 		}
 
-		if len(pendingTasks) == 0 {
+		if pendingCount == 0 {
 			return parallelCompleteMsg{successful: 0, failed: 0}
 		}
 
@@ -360,8 +366,8 @@ func (m *RunModel) executeParallel() tea.Cmd {
 			sched.SetParallelLogger(parallelLogger)
 		}
 
-		// Execute
-		result, err := sched.Execute(ctx, pendingTasks)
+		// Execute (pass all tasks so scheduler can resolve dependencies correctly)
+		result, err := sched.Execute(ctx, allTaskPtrs)
 
 		// Close progress channel
 		close(m.progressChan)
