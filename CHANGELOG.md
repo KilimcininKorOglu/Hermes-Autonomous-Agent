@@ -2,6 +2,12 @@
 
 All notable changes to Hermes Autonomous Agent are documented in this file.
 
+## v2.4.16
+
+- Worktrees now cleaned up on execution cancel or completion
+- Workers displayed on separate lines in TUI Run screen
+- Worker status shows task name: T028 (Database Schema): started
+
 ## v2.4.15
 
 - Fixed parallel logs being deleted on restart (removed os.RemoveAll in logger)
