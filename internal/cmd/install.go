@@ -39,13 +39,6 @@ func installExecute() error {
 		return err
 	}
 
-	// Check if already installed
-	if inst.IsInstalled() {
-		color.Yellow("Hermes is already installed at: %s", inst.GetInstallPath())
-		fmt.Println("Use 'hermes update' to update to latest version.")
-		return nil
-	}
-
 	// Check for elevation
 	if inst.NeedsElevation() {
 		if runtime.GOOS == "windows" {
@@ -58,13 +51,22 @@ func installExecute() error {
 		return fmt.Errorf("insufficient privileges")
 	}
 
-	fmt.Printf("Installing Hermes to: %s\n", inst.GetInstallPath())
+	updating := inst.IsInstalled()
+	if updating {
+		fmt.Printf("Updating Hermes at: %s\n", inst.GetInstallPath())
+	} else {
+		fmt.Printf("Installing Hermes to: %s\n", inst.GetInstallPath())
+	}
 
 	if err := inst.Install(); err != nil {
 		return err
 	}
 
-	color.Green("Hermes installed successfully!")
+	if updating {
+		color.Green("Hermes updated successfully!")
+	} else {
+		color.Green("Hermes installed successfully!")
+	}
 
 	if runtime.GOOS == "windows" {
 		fmt.Println("\nPATH has been updated. Please restart your terminal to use 'hermes' globally.")

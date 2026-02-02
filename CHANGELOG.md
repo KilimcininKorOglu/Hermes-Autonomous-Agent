@@ -2,6 +2,13 @@
 
 All notable changes to Hermes Autonomous Agent are documented in this file.
 
+## v2.4.15
+
+- Fixed parallel logs being deleted on restart (removed os.RemoveAll in logger)
+- TUI footer now shows consistent navigation menu on all screens during execution
+- Removed duplicate help text from individual screens (run.go, settings.go)
+- Install command now updates existing installation instead of refusing
+
 ## v2.4.14
 
 - Fixed 'depends on non-existent task' error when resuming parallel execution

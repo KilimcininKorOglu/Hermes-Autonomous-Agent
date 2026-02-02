@@ -368,9 +368,9 @@ func (a App) footerView() string {
 		Foreground(lipgloss.Color("241")).
 		Width(a.width)
 
-	help := "[1]Dash [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [7]Set [8]CB [9]Upd [0]Init [r]Run [?]Help [q]"
+	help := "[1]Dash [2]Tasks [3]Logs [4]Idea [5]PRD [6]Add [7]Set [8]CB [9]Upd [0]Init [r]Run [?]Help [q]Quit"
 	if a.run.IsRunning() {
-		help = "[RUNNING] " + a.run.status + " | [s]Stop [q]Quit"
+		help = "[RUNNING:" + a.run.status + "] " + help
 	}
 	return style.Render(help)
 }

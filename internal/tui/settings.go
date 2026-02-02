@@ -320,10 +320,6 @@ func (m *SettingsModel) View() string {
 		b.WriteString("\n")
 	}
 
-	b.WriteString("\n")
-	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-	b.WriteString(helpStyle.Render("j/k: Navigate | Space/Enter: Toggle/Select | Scroll for more"))
-
 	return b.String()
 }
 

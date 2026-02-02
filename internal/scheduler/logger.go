@@ -81,8 +81,7 @@ func (w *LogWriter) GetWriter() io.Writer {
 func NewParallelLogger(basePath string, workers int) (*ParallelLogger, error) {
 	logDir := filepath.Join(basePath, ".hermes", "logs", "parallel")
 
-	// Clean old parallel logs
-	os.RemoveAll(logDir)
+	// Create log directory if not exists (never delete existing logs)
 	if err := os.MkdirAll(logDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create parallel log directory: %w", err)
 	}

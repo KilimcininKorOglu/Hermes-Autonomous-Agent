@@ -155,6 +155,8 @@ func (m *RunModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if m.running {
+			// Only handle run-specific keys when running
+			// Let other keys (1-9, 0, q, etc.) pass through to app.go for screen navigation
 			switch msg.String() {
 			case "s", "esc":
 				return m, m.stopRun()
@@ -168,27 +170,29 @@ func (m *RunModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			}
-		} else {
-			switch msg.String() {
-			case "j", "down":
-				m.focusIndex++
-				if m.focusIndex > 4 {
-					m.focusIndex = 0
-				}
-			case "k", "up":
-				m.focusIndex--
-				if m.focusIndex < 0 {
-					m.focusIndex = 4
-				}
-			case " ", "enter":
-				return m, m.handleSelect()
-			case "x":
-				// Reset circuit breaker
-				if m.isCircuitBreakerOpen() {
-					m.breaker.Reset("Manual reset from TUI")
-					m.lastError = ""
-					m.Refresh()
-				}
+			// Don't block other keys - let them pass to app.go
+			return m, nil
+		}
+		// Not running - handle navigation keys
+		switch msg.String() {
+		case "j", "down":
+			m.focusIndex++
+			if m.focusIndex > 4 {
+				m.focusIndex = 0
+			}
+		case "k", "up":
+			m.focusIndex--
+			if m.focusIndex < 0 {
+				m.focusIndex = 4
+			}
+		case " ", "enter":
+			return m, m.handleSelect()
+		case "x":
+			// Reset circuit breaker
+			if m.isCircuitBreakerOpen() {
+				m.breaker.Reset("Manual reset from TUI")
+				m.lastError = ""
+				m.Refresh()
 			}
 		}
 
@@ -685,18 +689,6 @@ func (m *RunModel) View() string {
 			}
 		}
 		b.WriteString("\n")
-	}
-
-	// Help
-	helpStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("241"))
-	if m.running {
-		if m.parallelRunning {
-			b.WriteString(helpStyle.Render("s/esc: Stop parallel execution"))
-		} else {
-			b.WriteString(helpStyle.Render("s/esc: Stop | p: Pause/Resume"))
-		}
-	} else {
-		b.WriteString(helpStyle.Render("j/k: Navigate | Space/Enter: Select | Start to begin execution"))
 	}
 
 	return b.String()
