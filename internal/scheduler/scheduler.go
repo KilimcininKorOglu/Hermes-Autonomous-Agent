@@ -98,6 +98,9 @@ func (s *Scheduler) Execute(ctx context.Context, tasks []*task.Task) (*Execution
 		StartTime: startTime,
 	}
 
+	// Cleanup worktrees on exit (cancelled or completed)
+	defer s.cleanupWorktrees()
+
 	// Build task graph
 	graph, err := NewTaskGraph(tasks)
 	if err != nil {
@@ -129,6 +132,7 @@ func (s *Scheduler) Execute(ctx context.Context, tasks []*task.Task) (*Execution
 
 		select {
 		case <-ctx.Done():
+			s.logInfo("Execution cancelled, cleaning up...")
 			result.EndTime = time.Now()
 			result.TotalTime = result.EndTime.Sub(startTime)
 			return result, ctx.Err()
@@ -318,6 +322,39 @@ func (s *Scheduler) countResults(result *ExecutionResult) {
 			result.Failed++
 		}
 	}
+}
+
+// cleanupWorktrees removes all hermes worktrees
+func (s *Scheduler) cleanupWorktrees() {
+	s.logInfo("Cleaning up worktrees...")
+	
+	// List worktrees
+	cmd := exec.Command("git", "worktree", "list", "--porcelain")
+	cmd.Dir = s.workDir
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		s.logError("Failed to list worktrees: %v", err)
+		return
+	}
+
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, "worktree ") && strings.Contains(line, "wt-") {
+			path := strings.TrimPrefix(line, "worktree ")
+			cmd := exec.Command("git", "worktree", "remove", path, "--force")
+			cmd.Dir = s.workDir
+			if err := cmd.Run(); err != nil {
+				s.logError("Failed to remove worktree %s: %v", path, err)
+			} else {
+				s.logInfo("Removed worktree: %s", path)
+			}
+		}
+	}
+
+	// Prune worktrees
+	cmd = exec.Command("git", "worktree", "prune")
+	cmd.Dir = s.workDir
+	cmd.Run()
 }
 
 func (s *Scheduler) logInfo(format string, args ...interface{}) {
