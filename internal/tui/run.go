@@ -546,7 +546,11 @@ func (m *RunModel) drainProgressChannel() {
 			if event.WorkerID > 0 && event.WorkerID <= len(m.workerStatus) {
 				statusText := event.Status
 				if event.TaskID != "" {
-					statusText = fmt.Sprintf("%s: %s", event.TaskID, event.Status)
+					if event.TaskName != "" {
+						statusText = fmt.Sprintf("%s (%s): %s", event.TaskID, event.TaskName, event.Status)
+					} else {
+						statusText = fmt.Sprintf("%s: %s", event.TaskID, event.Status)
+					}
 				}
 				m.workerStatus[event.WorkerID-1] = fmt.Sprintf("W%d: %s", event.WorkerID, statusText)
 			}
@@ -614,7 +618,7 @@ func (m *RunModel) View() string {
 			b.WriteString(SectionStyle.Render("Workers"))
 			b.WriteString("\n")
 			for _, ws := range m.workerStatus {
-				b.WriteString(workerStyle.Render(fmt.Sprintf("  %s\n", ws)))
+				b.WriteString(fmt.Sprintf("  %s\n", workerStyle.Render(ws)))
 			}
 		} else if m.currentTask != "" {
 			b.WriteString(fmt.Sprintf("  Current: %s | Loop: %d\n", m.currentTask, m.loopCount))
