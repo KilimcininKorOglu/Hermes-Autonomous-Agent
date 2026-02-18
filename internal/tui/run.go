@@ -166,8 +166,14 @@ func (m *RunModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.paused = !m.paused
 					if m.paused {
 						m.status = "Paused"
+						if m.logger != nil {
+							m.logger.Info("Execution paused by user")
+						}
 					} else {
 						m.status = "Running"
+						if m.logger != nil {
+							m.logger.Info("Execution resumed by user")
+						}
 					}
 				}
 			}
@@ -395,6 +401,9 @@ func (m *RunModel) executeParallel() tea.Cmd {
 func (m *RunModel) stopRun() tea.Cmd {
 	if m.cancel != nil {
 		m.cancel()
+	}
+	if m.logger != nil {
+		m.logger.Info("Execution stopped by user")
 	}
 	return func() tea.Msg {
 		return runStoppedMsg{}
@@ -782,13 +791,15 @@ func (m *RunModel) View() string {
 		b.WriteString(SectionStyle.Render("Recent Activity"))
 		b.WriteString("\n")
 		for _, entry := range m.taskHistory {
+			line := fmt.Sprintf("  %s", entry)
 			if strings.HasPrefix(entry, "[DONE]") {
-				b.WriteString(SuccessStyle.Render(fmt.Sprintf("  %s\n", entry)))
+				b.WriteString(SuccessStyle.Render(line))
 			} else if strings.HasPrefix(entry, "[ERROR]") {
-				b.WriteString(ErrorStyle.Render(fmt.Sprintf("  %s\n", entry)))
+				b.WriteString(ErrorStyle.Render(line))
 			} else {
-				b.WriteString(ValueStyle.Render(fmt.Sprintf("  %s\n", entry)))
+				b.WriteString(ValueStyle.Render(line))
 			}
+			b.WriteString("\n")
 		}
 		b.WriteString("\n")
 	}
