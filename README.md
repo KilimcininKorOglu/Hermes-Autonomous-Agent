@@ -387,25 +387,25 @@ Priority: CLI flag > Project config > Global config (~/.hermes/config.json) > De
 
 ## TUI Keyboard Shortcuts
 
-| Key     | Action                              |
-|---------|-------------------------------------|
-| 1       | Dashboard screen                    |
-| 2       | Tasks screen                        |
-| 3       | Logs screen                         |
-| 4       | Idea generator screen               |
-| 5       | PRD parser screen                   |
-| 6       | Add feature screen                  |
-| 7       | Settings screen                     |
-| 8       | Circuit breaker screen              |
-| 9       | Update screen                       |
-| 0       | Initialize project screen           |
-| r       | Run tasks screen                    |
-| ?       | Help screen                         |
-| s       | Stop execution (when running)       |
-| x       | Reset circuit breaker (Run screen)  |
-| Shift+R | Refresh                             |
-| j/k     | Scroll down/up                      |
-| q       | Quit                                |
+| Key     | Action                             |
+|---------|------------------------------------|
+| 1       | Dashboard screen                   |
+| 2       | Tasks screen                       |
+| 3       | Logs screen                        |
+| 4       | Idea generator screen              |
+| 5       | PRD parser screen                  |
+| 6       | Add feature screen                 |
+| 7       | Settings screen                    |
+| 8       | Circuit breaker screen             |
+| 9       | Update screen                      |
+| 0       | Initialize project screen          |
+| r       | Run tasks screen                   |
+| ?       | Help screen                        |
+| s       | Stop execution (when running)      |
+| x       | Reset circuit breaker (Run screen) |
+| Shift+R | Refresh                            |
+| j/k     | Scroll down/up                     |
+| q       | Quit                               |
 
 ### TUI Run Screen
 
