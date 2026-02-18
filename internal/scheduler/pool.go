@@ -57,6 +57,7 @@ type WorkerPool struct {
 	logger           *ParallelLogger
 	streamOutput     bool
 	maxRetries       int
+	taskTimeout      time.Duration
 	progressCallback ProgressCallback
 	currentBatch     int
 	totalBatches     int
@@ -69,6 +70,7 @@ type WorkerPoolConfig struct {
 	Logger           *ParallelLogger
 	StreamOutput     bool
 	MaxRetries       int
+	TaskTimeout      time.Duration
 	ProgressCallback ProgressCallback
 	CurrentBatch     int
 	TotalBatches     int
@@ -90,6 +92,10 @@ func NewWorkerPoolWithConfig(ctx context.Context, provider ai.Provider, workDir 
 	if maxRetries <= 0 {
 		maxRetries = 2 // Default retry count
 	}
+	taskTimeout := cfg.TaskTimeout
+	if taskTimeout <= 0 {
+		taskTimeout = 5 * time.Minute // Default 5 minute timeout per task
+	}
 	return &WorkerPool{
 		workers:          cfg.Workers,
 		taskQueue:        make(chan *task.Task, cfg.Workers*2),
@@ -103,6 +109,7 @@ func NewWorkerPoolWithConfig(ctx context.Context, provider ai.Provider, workDir 
 		logger:           cfg.Logger,
 		streamOutput:     cfg.StreamOutput,
 		maxRetries:       maxRetries,
+		taskTimeout:      taskTimeout,
 		progressCallback: cfg.ProgressCallback,
 		currentBatch:     cfg.CurrentBatch,
 		totalBatches:     cfg.TotalBatches,
@@ -264,8 +271,10 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task, attempt int) *TaskR
 	// Read prompt content (includes injected task)
 	promptContent, _ := injector.Read()
 
-	// Execute the task
-	execResult, err := executor.ExecuteTask(p.ctx, t, promptContent, p.streamOutput)
+	// Execute the task with timeout
+	taskCtx, taskCancel := context.WithTimeout(p.ctx, p.taskTimeout)
+	defer taskCancel()
+	execResult, err := executor.ExecuteTask(taskCtx, t, promptContent, p.streamOutput)
 
 	result.EndTime = time.Now()
 	result.Duration = result.EndTime.Sub(startTime)

@@ -28,6 +28,7 @@ type Scheduler struct {
 	progressCallback ProgressCallback
 	currentBatch     int
 	totalBatches     int
+	taskTimeout      time.Duration
 }
 
 // ExecutionPlan represents the planned execution order
@@ -53,12 +54,20 @@ func New(cfg *config.ParallelConfig, provider ai.Provider, workDir string, logge
 	breaker.Initialize()
 	
 	return &Scheduler{
-		config:   cfg,
-		provider: provider,
-		workDir:  workDir,
-		logger:   logger,
-		breaker:  breaker,
+		config:      cfg,
+		provider:    provider,
+		workDir:     workDir,
+		logger:      logger,
+		breaker:     breaker,
+		taskTimeout: 5 * time.Minute, // Default timeout
 	}
+}
+
+// NewWithTimeout creates a new scheduler with custom task timeout
+func NewWithTimeout(cfg *config.ParallelConfig, provider ai.Provider, workDir string, logger *ui.Logger, timeout time.Duration) *Scheduler {
+	s := New(cfg, provider, workDir, logger)
+	s.taskTimeout = timeout
+	return s
 }
 
 // SetParallelLogger sets the parallel logger for per-worker logging
@@ -210,6 +219,7 @@ func (s *Scheduler) executeBatch(ctx context.Context, graph *TaskGraph, batch []
 		Logger:           s.parallelLogger,
 		StreamOutput:     false, // Parallel mode should not stream to avoid mixed output
 		MaxRetries:       s.config.MaxRetries,
+		TaskTimeout:      s.taskTimeout,
 		ProgressCallback: s.progressCallback,
 		CurrentBatch:     s.currentBatch,
 		TotalBatches:     s.totalBatches,

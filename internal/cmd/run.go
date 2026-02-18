@@ -368,8 +368,9 @@ func runParallel(ctx context.Context, cfg *config.Config, provider ai.Provider, 
 	parallelCfg := cfg.Parallel
 	parallelCfg.MaxWorkers = workers
 
-	// Create scheduler
-	sched := scheduler.New(&parallelCfg, provider, ".", logger)
+	// Create scheduler with task timeout from config
+	taskTimeout := time.Duration(cfg.AI.Timeout) * time.Second
+	sched := scheduler.NewWithTimeout(&parallelCfg, provider, ".", logger, taskTimeout)
 
 	// Get execution plan (uses all tasks for dependency resolution, but only executes pending)
 	plan, err := sched.GetExecutionPlan(allTaskPtrs)

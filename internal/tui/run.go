@@ -352,7 +352,8 @@ func (m *RunModel) executeParallel() tea.Cmd {
 		}
 
 		parallelCfg := &m.config.Parallel
-		sched := scheduler.New(parallelCfg, provider, m.basePath, nil)
+		taskTimeout := time.Duration(m.config.AI.Timeout) * time.Second
+		sched := scheduler.NewWithTimeout(parallelCfg, provider, m.basePath, nil, taskTimeout)
 
 		// Set up progress callback to update worker status
 		m.progressChan = make(chan scheduler.ProgressEvent, 100)
