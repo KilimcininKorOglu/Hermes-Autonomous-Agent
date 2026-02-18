@@ -441,8 +441,10 @@ func (m *RunModel) runTickCmd() tea.Cmd {
 
 func (m *RunModel) executeNextTask() tea.Cmd {
 	return func() tea.Msg {
-		ctx, cancel := context.WithCancel(context.Background())
+		timeout := time.Duration(m.config.AI.Timeout) * time.Second
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		m.cancel = cancel
+		defer cancel()
 
 		// Check circuit breaker
 		canExecute, _ := m.breaker.CanExecute()
