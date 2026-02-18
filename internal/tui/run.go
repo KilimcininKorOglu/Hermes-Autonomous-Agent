@@ -12,6 +12,7 @@ import (
 	"hermes/internal/analyzer"
 	"hermes/internal/circuit"
 	"hermes/internal/config"
+	"hermes/internal/git"
 	"hermes/internal/prompt"
 	"hermes/internal/scheduler"
 	"hermes/internal/task"
@@ -465,8 +466,28 @@ func (m *RunModel) executeNextTask() tea.Cmd {
 		m.currentTask = nextTask.ID
 		m.status = fmt.Sprintf("Loop #%d: %s", m.loopCount, nextTask.ID)
 
+		// Set task status to IN_PROGRESS before starting
+		statusUpdater := task.NewStatusUpdater(m.basePath)
+		if err := statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusInProgress); err != nil {
+			if m.logger != nil {
+				m.logger.Warn("Failed to set task IN_PROGRESS: %v", err)
+			}
+		}
+
 		if m.logger != nil {
 			m.logger.Info("Starting task: %s - %s", nextTask.ID, nextTask.Name)
+		}
+
+		// Handle branching
+		gitOps := git.New(m.basePath)
+		if m.config.TaskMode.AutoBranch && gitOps.IsRepository() {
+			feature, _ := m.taskReader.GetFeatureByID(nextTask.FeatureID)
+			if feature != nil {
+				branchName, err := gitOps.CreateFeatureBranch(feature.ID, feature.Name)
+				if err == nil && m.logger != nil {
+					m.logger.Info("On branch: %s", branchName)
+				}
+			}
 		}
 
 		// Inject task into prompt
@@ -498,16 +519,76 @@ func (m *RunModel) executeNextTask() tea.Cmd {
 
 		// Analyze response
 		respAnalyzer := analyzer.NewResponseAnalyzer()
-		analysis := respAnalyzer.Analyze(result.Output)
+		analysis := respAnalyzer.AnalyzeWithCriteria(result.Output, nextTask.SuccessCriteria)
 
 		// Update circuit breaker
 		m.breaker.AddLoopResult(analysis.HasProgress, false, m.loopCount)
 
+		// Handle blocked status
+		if analysis.IsBlocked {
+			if m.logger != nil {
+				m.logger.Warn("Task %s is BLOCKED: %s", nextTask.ID, analysis.Recommendation)
+			}
+			statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusBlocked)
+			injector.RemoveTask()
+			return runTaskCompleteMsg{taskID: nextTask.ID, success: false}
+		}
+
+		// Handle at-risk status
+		if analysis.IsAtRisk {
+			if m.logger != nil {
+				m.logger.Warn("Task %s is AT RISK: %s", nextTask.ID, analysis.Recommendation)
+			}
+			statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusAtRisk)
+		}
+
+		// Handle paused status
+		if analysis.IsPaused {
+			if m.logger != nil {
+				m.logger.Info("Task %s is PAUSED: %s", nextTask.ID, analysis.Recommendation)
+			}
+			statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusPaused)
+			injector.RemoveTask()
+			return runTaskCompleteMsg{taskID: nextTask.ID, success: false}
+		}
+
 		// Update task status if complete
 		if analysis.IsComplete {
-			statusUpdater := task.NewStatusUpdater(m.basePath)
-			statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusCompleted)
 			injector.RemoveTask()
+			statusUpdater.UpdateTaskStatus(nextTask.ID, task.StatusCompleted)
+
+			// Auto-commit
+			if m.config.TaskMode.AutoCommit && gitOps.HasUncommittedChanges() {
+				if err := gitOps.StageAll(); err == nil {
+					if err := gitOps.CommitTask(nextTask.ID, nextTask.Name); err != nil {
+						if m.logger != nil {
+							m.logger.Warn("Failed to commit: %v", err)
+						}
+					} else if m.logger != nil {
+						m.logger.Success("Committed task %s", nextTask.ID)
+					}
+				}
+			}
+
+			// Check if feature is complete and create tag
+			if featureComplete, _ := m.taskReader.IsFeatureComplete(nextTask.FeatureID); featureComplete {
+				feature, _ := m.taskReader.GetFeatureByID(nextTask.FeatureID)
+				if feature != nil {
+					if m.logger != nil {
+						m.logger.Success("Feature %s completed: %s", feature.ID, feature.Name)
+					}
+					if feature.TargetVersion != "" && gitOps.IsRepository() {
+						if err := gitOps.CreateFeatureTag(feature.ID, feature.Name, feature.TargetVersion); err != nil {
+							if m.logger != nil {
+								m.logger.Warn("Failed to create tag: %v", err)
+							}
+						} else if m.logger != nil {
+							m.logger.Success("Created tag: %s", feature.TargetVersion)
+						}
+					}
+				}
+			}
+
 			m.completedTasks++
 		}
 
@@ -520,9 +601,15 @@ func (m *RunModel) handleTaskComplete(msg runTaskCompleteMsg) {
 		m.lastError = msg.err.Error()
 		entry := fmt.Sprintf("[ERROR] %s: %s", msg.taskID, msg.err.Error())
 		m.taskHistory = append(m.taskHistory, entry)
+		if m.logger != nil {
+			m.logger.Error("Task %s failed: %s", msg.taskID, msg.err.Error())
+		}
 	} else if msg.success {
 		entry := fmt.Sprintf("[DONE] %s", msg.taskID)
 		m.taskHistory = append(m.taskHistory, entry)
+		if m.logger != nil {
+			m.logger.Success("Task %s completed", msg.taskID)
+		}
 	} else {
 		entry := fmt.Sprintf("[PROGRESS] %s", msg.taskID)
 		m.taskHistory = append(m.taskHistory, entry)
