@@ -167,6 +167,7 @@ func runExecute(cmd *cobra.Command, args []string) error {
 	}
 
 	// Sequential execution (original behavior)
+	logger.Info("Starting sequential execution")
 	loopNumber := 0
 	for {
 		select {
@@ -184,6 +185,8 @@ func runExecute(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		if !canExecute {
+			state, _ := breaker.GetState()
+			logger.Error("Circuit breaker OPEN: %s", state.Reason)
 			breaker.PrintHaltMessage()
 			return nil
 		}
@@ -230,7 +233,7 @@ func runExecute(cmd *cobra.Command, args []string) error {
 
 		if err != nil {
 			logger.Error("AI execution failed: %v", err)
-			breaker.AddLoopResult(false, true, loopNumber)
+			breaker.AddLoopResultWithErrorLimit(false, true, loopNumber, cfg.TaskMode.MaxConsecutiveErrors)
 
 			// Wait before retry
 			time.Sleep(time.Duration(cfg.Loop.ErrorDelay) * time.Second)
@@ -243,7 +246,7 @@ func runExecute(cmd *cobra.Command, args []string) error {
 			analysis.HasProgress, analysis.IsComplete, analysis.IsBlocked, analysis.IsAtRisk, analysis.IsPaused, analysis.Confidence, analysis.CriteriaMet, analysis.CriteriaTotal)
 
 		// Update circuit breaker
-		breaker.AddLoopResult(analysis.HasProgress, false, loopNumber)
+		breaker.AddLoopResultWithErrorLimit(analysis.HasProgress, false, loopNumber, cfg.TaskMode.MaxConsecutiveErrors)
 
 		// Handle blocked status
 		if analysis.IsBlocked {
@@ -459,6 +462,7 @@ func runParallel(ctx context.Context, cfg *config.Config, provider ai.Provider, 
 
 	// Print results
 	sched.PrintExecutionResult(result)
+	logger.Info("Parallel execution completed: %d successful, %d failed", result.Successful, result.Failed)
 
 	// Log completion
 	if parallelLogger != nil {
@@ -472,6 +476,7 @@ func runParallel(ctx context.Context, cfg *config.Config, provider ai.Provider, 
 	}
 
 	// Print timing
+	logger.Info("Total execution time: %v", executionTime.Round(time.Second))
 	fmt.Printf("\n⏱️  Total execution time: %v\n", executionTime.Round(time.Second))
 
 	// Update task statuses and check for feature completion

@@ -232,24 +232,32 @@ func TestErrorTracking(t *testing.T) {
 	b := New(tmpDir)
 	b.Initialize()
 
-	// Add results with errors
-	b.AddLoopResult(true, true, 1)
+	// Add results with errors (no progress)
+	b.AddLoopResult(false, true, 1)
 	state, _ := b.GetState()
 	if state.ConsecutiveErrors != 1 {
 		t.Errorf("expected ConsecutiveErrors = 1, got %d", state.ConsecutiveErrors)
 	}
 
-	b.AddLoopResult(true, true, 2)
+	b.AddLoopResult(false, true, 2)
 	state, _ = b.GetState()
 	if state.ConsecutiveErrors != 2 {
 		t.Errorf("expected ConsecutiveErrors = 2, got %d", state.ConsecutiveErrors)
 	}
 
 	// No error resets counter
-	b.AddLoopResult(true, false, 3)
+	b.AddLoopResult(false, false, 3)
 	state, _ = b.GetState()
 	if state.ConsecutiveErrors != 0 {
 		t.Errorf("expected ConsecutiveErrors = 0, got %d", state.ConsecutiveErrors)
+	}
+
+	// Progress also resets error counter
+	b.AddLoopResult(false, true, 4)
+	b.AddLoopResult(true, false, 5)
+	state, _ = b.GetState()
+	if state.ConsecutiveErrors != 0 {
+		t.Errorf("expected ConsecutiveErrors = 0 after progress, got %d", state.ConsecutiveErrors)
 	}
 }
 
@@ -279,5 +287,35 @@ func TestTotalOpens(t *testing.T) {
 	state, _ = b.GetState()
 	if state.TotalOpens != 2 {
 		t.Errorf("expected TotalOpens = 2, got %d", state.TotalOpens)
+	}
+}
+
+func TestConsecutiveErrorLimit(t *testing.T) {
+	tmpDir, cleanup := setupTestDir(t)
+	defer cleanup()
+
+	b := New(tmpDir)
+	b.Initialize()
+
+	// Add errors up to limit (maxConsecutiveErrors = 3)
+	b.AddLoopResultWithErrorLimit(false, true, 1, 3)
+	state, _ := b.GetState()
+	if state.State != StateClosed {
+		t.Errorf("expected state CLOSED after 1 error, got %s", state.State)
+	}
+
+	b.AddLoopResultWithErrorLimit(false, true, 2, 3)
+	state, _ = b.GetState()
+	if state.State != StateHalfOpen {
+		t.Errorf("expected state HALF_OPEN after 2 errors (no progress), got %s", state.State)
+	}
+
+	b.AddLoopResultWithErrorLimit(false, true, 3, 3)
+	state, _ = b.GetState()
+	if state.State != StateOpen {
+		t.Errorf("expected state OPEN after 3 consecutive errors, got %s", state.State)
+	}
+	if state.ConsecutiveErrors != 3 {
+		t.Errorf("expected ConsecutiveErrors = 3, got %d", state.ConsecutiveErrors)
 	}
 }

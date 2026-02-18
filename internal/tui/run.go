@@ -448,7 +448,11 @@ func (m *RunModel) executeNextTask() tea.Cmd {
 		canExecute, _ := m.breaker.CanExecute()
 		if !canExecute {
 			m.running = false
-			return runTaskCompleteMsg{err: fmt.Errorf("circuit breaker open")}
+			state, _ := m.breaker.GetState()
+			if m.logger != nil {
+				m.logger.Error("Circuit breaker OPEN: %s", state.Reason)
+			}
+			return runTaskCompleteMsg{err: fmt.Errorf("circuit breaker open: %s", state.Reason)}
 		}
 
 		// Get next task
@@ -513,7 +517,7 @@ func (m *RunModel) executeNextTask() tea.Cmd {
 		result, err := executor.ExecuteTask(ctx, nextTask, promptContent, false)
 
 		if err != nil {
-			m.breaker.AddLoopResult(false, true, m.loopCount)
+			m.breaker.AddLoopResultWithErrorLimit(false, true, m.loopCount, m.config.TaskMode.MaxConsecutiveErrors)
 			return runTaskCompleteMsg{taskID: nextTask.ID, err: err}
 		}
 
@@ -522,7 +526,7 @@ func (m *RunModel) executeNextTask() tea.Cmd {
 		analysis := respAnalyzer.AnalyzeWithCriteria(result.Output, nextTask.SuccessCriteria)
 
 		// Update circuit breaker
-		m.breaker.AddLoopResult(analysis.HasProgress, false, m.loopCount)
+		m.breaker.AddLoopResultWithErrorLimit(analysis.HasProgress, false, m.loopCount, m.config.TaskMode.MaxConsecutiveErrors)
 
 		// Handle blocked status
 		if analysis.IsBlocked {

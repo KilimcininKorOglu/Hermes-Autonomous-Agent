@@ -92,6 +92,11 @@ func (b *Breaker) CanExecute() (bool, error) {
 
 // AddLoopResult records a loop result and updates state
 func (b *Breaker) AddLoopResult(hasProgress, hasError bool, loopNumber int) (bool, error) {
+	return b.AddLoopResultWithErrorLimit(hasProgress, hasError, loopNumber, 0)
+}
+
+// AddLoopResultWithErrorLimit records a loop result with configurable error limit
+func (b *Breaker) AddLoopResultWithErrorLimit(hasProgress, hasError bool, loopNumber int, maxConsecutiveErrors int) (bool, error) {
 	state, err := b.GetState()
 	if err != nil {
 		return false, err
@@ -103,6 +108,7 @@ func (b *Breaker) AddLoopResult(hasProgress, hasError bool, loopNumber int) (boo
 	if hasProgress {
 		// Progress detected - reset counters and close circuit
 		state.ConsecutiveNoProgress = 0
+		state.ConsecutiveErrors = 0
 		state.LastProgress = loopNumber
 		if state.State != StateClosed {
 			state.State = StateClosed
@@ -128,6 +134,14 @@ func (b *Breaker) AddLoopResult(hasProgress, hasError bool, loopNumber int) (boo
 
 	if hasError {
 		state.ConsecutiveErrors++
+		// Check consecutive error limit
+		if maxConsecutiveErrors > 0 && state.ConsecutiveErrors >= maxConsecutiveErrors {
+			if state.State != StateOpen {
+				state.State = StateOpen
+				state.TotalOpens++
+				state.Reason = fmt.Sprintf("Too many consecutive errors (%d), opening circuit", state.ConsecutiveErrors)
+			}
+		}
 	} else {
 		state.ConsecutiveErrors = 0
 	}
