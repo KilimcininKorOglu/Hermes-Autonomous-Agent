@@ -77,6 +77,9 @@ func NewApp(basePath string, version string) (*App, error) {
 	}
 
 	logger, _ := ui.NewLogger(basePath, false)
+	if logger != nil {
+		logger.SetSilent(true) // TUI mode: only write to file, not console
+	}
 
 	return &App{
 		screen:     ScreenDashboard,
@@ -341,7 +344,8 @@ func (a App) View() string {
 	}
 	contentStyle := lipgloss.NewStyle().
 		Width(a.width).
-		Height(contentHeight)
+		Height(contentHeight).
+		MaxHeight(contentHeight)
 
 	return lipgloss.JoinVertical(
 		lipgloss.Left,

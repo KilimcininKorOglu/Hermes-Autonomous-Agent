@@ -695,7 +695,7 @@ func (m *RunModel) View() string {
 		b.WriteString("\n")
 	}
 
-	// Status
+	// Status line (always show to maintain consistent layout)
 	if m.running {
 		elapsed := time.Since(m.startTime).Round(time.Second)
 		modeStr := "Sequential"
@@ -714,6 +714,10 @@ func (m *RunModel) View() string {
 		} else if m.currentTask != "" {
 			b.WriteString(fmt.Sprintf("  Current: %s | Loop: %d\n", m.currentTask, m.loopCount))
 		}
+	} else {
+		// Show idle status when not running
+		b.WriteString(fmt.Sprintf("  Mode: - | Status: %s | Elapsed: -\n", MutedStyle.Render("Idle")))
+		b.WriteString("  \n") // Placeholder for Current line
 	}
 	b.WriteString("\n")
 

@@ -34,6 +34,7 @@ type Logger struct {
 	logPath  string
 	minLevel LogLevel
 	debug    bool
+	silent   bool // When true, only write to file (for TUI mode)
 }
 
 // NewLogger creates a new logger
@@ -69,6 +70,11 @@ func (l *Logger) Close() {
 	}
 }
 
+// SetSilent enables or disables console output (for TUI mode)
+func (l *Logger) SetSilent(silent bool) {
+	l.silent = silent
+}
+
 func (l *Logger) log(level LogLevel, levelStr string, format string, args ...interface{}) {
 	if level < l.minLevel {
 		return
@@ -76,22 +82,24 @@ func (l *Logger) log(level LogLevel, levelStr string, format string, args ...int
 
 	msg := fmt.Sprintf(format, args...)
 
-	// Console output with color
-	var c *color.Color
-	switch level {
-	case LogDebug:
-		c = debugColor
-	case LogInfo:
-		c = infoColor
-	case LogWarn:
-		c = warnColor
-	case LogError:
-		c = errorColor
-	case LogSuccess:
-		c = successColor
-	}
+	// Console output with color (skip if silent mode)
+	if !l.silent {
+		var c *color.Color
+		switch level {
+		case LogDebug:
+			c = debugColor
+		case LogInfo:
+			c = infoColor
+		case LogWarn:
+			c = warnColor
+		case LogError:
+			c = errorColor
+		case LogSuccess:
+			c = successColor
+		}
 
-	c.Printf("[%s] %s\n", levelStr, msg)
+		c.Printf("[%s] %s\n", levelStr, msg)
+	}
 
 	// File output
 	if l.logFile != nil {
