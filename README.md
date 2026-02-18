@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.4.14-blue)
+![Version](https://img.shields.io/badge/version-v2.5.0-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -453,12 +453,14 @@ make test
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-### Recent Changes (v2.4.14)
+### Recent Changes (v2.5.0)
 
-- Fixed 'depends on non-existent task' error when resuming parallel execution
-- TUI screens refactored with common styles
-- Task status correctly updated to COMPLETED in parallel execution
-- Circuit breaker warning and reset shortcut in TUI
+- TUI now matches CLI behavior: IN_PROGRESS status, auto-branch, auto-commit, feature tags
+- Circuit breaker opens after consecutive errors (configurable MaxConsecutiveErrors)
+- Task timeout prevents infinite execution (configurable AI.Timeout)
+- Logger silent mode for TUI prevents console corruption
+- Pause/resume/stop events logged to file
+- Fixed duplicate lines and Recent Activity alignment in TUI
 
 ## License
 

@@ -2,17 +2,19 @@
 
 All notable changes to Hermes Autonomous Agent are documented in this file.
 
-## v2.4.17
+## v2.5.0
 
 - TUI now matches CLI run behavior: IN_PROGRESS status, auto-branch, auto-commit, feature tags
 - Added BLOCKED/AT_RISK/PAUSED status handling in TUI
 - Circuit breaker now opens after consecutive errors (MaxConsecutiveErrors config, default: 5)
+- Task timeout prevents infinite execution (AI.Timeout config, default: 300s)
 - Logger silent mode for TUI prevents console output corruption
 - Fixed duplicate status lines in TUI Run screen
 - All critical events now logged to file (circuit breaker state, execution times)
-- Task completion and error events logged in TUI mode
+- Task completion, error, pause, resume, and stop events logged in TUI mode
+- Fixed Recent Activity alignment in TUI
 
-## v2.4.16
+## v2.4.17
 
 - Worktrees now cleaned up on execution cancel or completion
 - Workers displayed on separate lines in TUI Run screen
