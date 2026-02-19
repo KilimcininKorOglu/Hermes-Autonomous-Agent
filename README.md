@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.5.0-blue)
+![Version](https://img.shields.io/badge/version-v2.5.1-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -453,14 +453,13 @@ make test
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-### Recent Changes (v2.5.0)
+### Recent Changes (v2.5.1)
 
-- TUI now matches CLI behavior: IN_PROGRESS status, auto-branch, auto-commit, feature tags
-- Circuit breaker opens after consecutive errors (configurable MaxConsecutiveErrors)
-- Task timeout prevents infinite execution (configurable AI.Timeout)
-- Logger silent mode for TUI prevents console corruption
-- Pause/resume/stop events logged to file
-- Fixed duplicate lines and Recent Activity alignment in TUI
+- Fixed task status not updating to COMPLETED in parallel execution with isolated workspaces
+- Added circuit breaker state change logging to hermes.log
+- Added merge operation logging to merge.log
+- Feature branches now merge to main on completion in sequential mode
+- Fixed TUI parallel execution logging
 
 ## License
 

@@ -2,6 +2,17 @@
 
 All notable changes to Hermes Autonomous Agent are documented in this file.
 
+## v2.5.1
+
+- Fixed task status not updating to COMPLETED in parallel execution with isolated workspaces
+- Task status now updated after successful merge (not in worktree where .hermes is gitignored)
+- Added circuit breaker state change logging to hermes.log
+- Added merge operation logging to merge.log (BatchStart, BatchComplete, ConflictDetected, ConflictResolved)
+- Added MergeFeatureBranch for sequential mode - feature branches now merge to main on completion
+- Fixed TUI parallel execution not logging (scheduler logger was nil)
+- Added execution start/stop/interrupt logging
+- Reordered CLI initialization for proper signal handler logging
+
 ## v2.5.0
 
 - TUI now matches CLI run behavior: IN_PROGRESS status, auto-branch, auto-commit, feature tags
