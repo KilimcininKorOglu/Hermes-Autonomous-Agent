@@ -54,16 +54,7 @@ func runExecute(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Handle Ctrl+C
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-sigChan
-		fmt.Println("\nReceived interrupt, shutting down...")
-		cancel()
-	}()
-
-	// Load config
+	// Load config first
 	cfg, err := config.Load(".")
 	if err != nil {
 		cfg = config.DefaultConfig()
@@ -88,12 +79,22 @@ func runExecute(cmd *cobra.Command, args []string) error {
 		debug, _ = cmd.Flags().GetBool("debug")
 	}
 
-	// Initialize logger
+	// Initialize logger early so it can be used in signal handler
 	logger, err := ui.NewLogger(".", debug)
 	if err != nil {
 		return err
 	}
 	defer logger.Close()
+
+	// Handle Ctrl+C
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-sigChan
+		fmt.Println("\nReceived interrupt, shutting down...")
+		logger.Info("Execution interrupted by user (SIGINT/SIGTERM)")
+		cancel()
+	}()
 
 	ui.PrintBanner(GetVersion())
 	ui.PrintHeader("Task Execution Loop")
@@ -109,6 +110,11 @@ func runExecute(cmd *cobra.Command, args []string) error {
 	if err := breaker.Initialize(); err != nil {
 		return err
 	}
+
+	// Set up circuit breaker state change logging
+	breaker.SetStateChangeCallback(func(fromState, toState circuit.State, reason string) {
+		logger.Info("Circuit breaker: %s -> %s (%s)", fromState, toState, reason)
+	})
 
 	// Check for tasks
 	if !reader.HasTasks() {
@@ -305,6 +311,15 @@ func runExecute(cmd *cobra.Command, args []string) error {
 				feature, _ := reader.GetFeatureByID(nextTask.FeatureID)
 				if feature != nil {
 					logger.Success("Feature %s completed: %s", feature.ID, feature.Name)
+
+					// Merge feature branch to main if auto-branch is enabled
+					if autoBranch && gitOps.IsRepository() {
+						if err := gitOps.MergeFeatureBranch(feature.ID, feature.Name); err != nil {
+							logger.Warn("Failed to merge feature branch: %v", err)
+						} else {
+							logger.Success("Merged feature branch to %s", gitOps.GetMainBranch())
+						}
+					}
 
 					// Create git tag if TargetVersion is set
 					if feature.TargetVersion != "" && gitOps.IsRepository() {

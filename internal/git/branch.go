@@ -105,6 +105,37 @@ func (g *Git) ForceDeleteBranch(name string) error {
 	return err
 }
 
+// MergeBranch merges a branch into the current branch
+func (g *Git) MergeBranch(branchName string) error {
+	_, err := g.run("merge", branchName, "--no-edit")
+	return err
+}
+
+// MergeFeatureBranch merges a feature branch into main and returns to main
+func (g *Git) MergeFeatureBranch(featureID, featureName string) error {
+	branchName := g.GetFeatureBranchName(featureID, featureName)
+	
+	// Check if branch exists
+	if !g.BranchExists(branchName) {
+		return nil // Nothing to merge
+	}
+	
+	// Get main branch
+	mainBranch := g.GetMainBranch()
+	
+	// Checkout main
+	if err := g.CheckoutBranch(mainBranch); err != nil {
+		return fmt.Errorf("failed to checkout %s: %w", mainBranch, err)
+	}
+	
+	// Merge feature branch
+	if err := g.MergeBranch(branchName); err != nil {
+		return fmt.Errorf("failed to merge %s: %w", branchName, err)
+	}
+	
+	return nil
+}
+
 // ListBranches returns all local branches
 func (g *Git) ListBranches() ([]string, error) {
 	output, err := g.run("branch", "--list", "--format=%(refname:short)")

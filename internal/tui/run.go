@@ -94,6 +94,13 @@ func NewRunModel(basePath string, logger *ui.Logger) *RunModel {
 	breaker := circuit.New(basePath)
 	reader := task.NewReader(basePath)
 
+	// Set up circuit breaker state change logging
+	if logger != nil {
+		breaker.SetStateChangeCallback(func(fromState, toState circuit.State, reason string) {
+			logger.Info("Circuit breaker: %s -> %s (%s)", fromState, toState, reason)
+		})
+	}
+
 	// Count tasks
 	features, _ := reader.GetAllFeatures()
 	totalTasks := 0
@@ -282,6 +289,15 @@ func (m *RunModel) startRun() tea.Cmd {
 	m.lastError = ""
 	m.taskHistory = make([]string, 0)
 
+	if m.logger != nil {
+		m.logger.Info("Execution started (mode: %s)", func() string {
+			if m.config.Parallel.Enabled {
+				return fmt.Sprintf("parallel, workers: %d", m.config.Parallel.MaxWorkers)
+			}
+			return "sequential"
+		}())
+	}
+
 	if m.config.Parallel.Enabled {
 		return m.startParallelRun()
 	}
@@ -359,7 +375,7 @@ func (m *RunModel) executeParallel() tea.Cmd {
 
 		parallelCfg := &m.config.Parallel
 		taskTimeout := time.Duration(m.config.AI.Timeout) * time.Second
-		sched := scheduler.NewWithTimeout(parallelCfg, provider, m.basePath, nil, taskTimeout)
+		sched := scheduler.NewWithTimeout(parallelCfg, provider, m.basePath, m.logger, taskTimeout)
 
 		// Set up progress callback to update worker status
 		m.progressChan = make(chan scheduler.ProgressEvent, 100)
@@ -593,6 +609,19 @@ func (m *RunModel) executeNextTask() tea.Cmd {
 					if m.logger != nil {
 						m.logger.Success("Feature %s completed: %s", feature.ID, feature.Name)
 					}
+
+					// Merge feature branch to main if auto-branch is enabled
+					if m.config.TaskMode.AutoBranch && gitOps.IsRepository() {
+						if err := gitOps.MergeFeatureBranch(feature.ID, feature.Name); err != nil {
+							if m.logger != nil {
+								m.logger.Warn("Failed to merge feature branch: %v", err)
+							}
+						} else if m.logger != nil {
+							m.logger.Success("Merged feature branch to %s", gitOps.GetMainBranch())
+						}
+					}
+
+					// Create git tag if TargetVersion is set
 					if feature.TargetVersion != "" && gitOps.IsRepository() {
 						if err := gitOps.CreateFeatureTag(feature.ID, feature.Name, feature.TargetVersion); err != nil {
 							if m.logger != nil {

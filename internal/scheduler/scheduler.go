@@ -162,6 +162,10 @@ func (s *Scheduler) Execute(ctx context.Context, tasks []*task.Task) (*Execution
 		}
 
 		s.logInfo("Starting batch %d/%d with %d tasks", batchNum+1, len(batches), len(batch))
+		if s.parallelLogger != nil {
+			s.parallelLogger.BatchStart(batchNum+1, len(batches), len(batch))
+		}
+		batchStartTime := time.Now()
 
 		batchResults, err := s.executeBatch(ctx, graph, batch)
 		
@@ -197,6 +201,9 @@ func (s *Scheduler) Execute(ctx context.Context, tasks []*task.Task) (*Execution
 
 		result.Results = append(result.Results, batchResults...)
 		s.logInfo("Batch %d completed", batchNum+1)
+		if s.parallelLogger != nil {
+			s.parallelLogger.BatchComplete(batchNum+1, time.Since(batchStartTime))
+		}
 	}
 
 	result.EndTime = time.Now()
@@ -295,6 +302,11 @@ func (s *Scheduler) mergeBranch(workspace *isolation.Workspace) error {
 	}
 	baseBranch := strings.TrimSpace(string(output))
 
+	// Log merge start
+	if s.parallelLogger != nil {
+		s.parallelLogger.Merge("Starting merge of branch %s (task %s) into %s", workspace.GetBranch(), workspace.TaskID, baseBranch)
+	}
+
 	// Merge the task branch
 	cmd = exec.Command("git", "merge", workspace.GetBranch(), "--no-edit", "-m", 
 		fmt.Sprintf("Merge branch '%s' (task %s)", workspace.GetBranch(), workspace.TaskID))
@@ -303,20 +315,35 @@ func (s *Scheduler) mergeBranch(workspace *isolation.Workspace) error {
 		// Check if it's a merge conflict
 		if strings.Contains(string(output), "CONFLICT") {
 			s.logError("Merge conflict detected for %s, attempting auto-resolution...", workspace.TaskID)
+			if s.parallelLogger != nil {
+				s.parallelLogger.ConflictDetected(workspace.GetBranch(), []string{workspace.TaskID}, "git-merge")
+			}
 			// Try to abort and use theirs strategy
 			exec.Command("git", "merge", "--abort").Run()
 			cmd = exec.Command("git", "merge", workspace.GetBranch(), "--no-edit", "-X", "theirs", "-m",
 				fmt.Sprintf("Merge branch '%s' (task %s) with auto-resolution", workspace.GetBranch(), workspace.TaskID))
 			cmd.Dir = s.workDir
 			if output, err := cmd.CombinedOutput(); err != nil {
+				if s.parallelLogger != nil {
+					s.parallelLogger.Merge("Merge failed for %s even with auto-resolution: %v", workspace.TaskID, err)
+				}
 				return fmt.Errorf("merge failed even with auto-resolution: %w: %s", err, string(output))
 			}
+			if s.parallelLogger != nil {
+				s.parallelLogger.ConflictResolved(workspace.GetBranch(), "theirs-strategy")
+			}
 		} else {
+			if s.parallelLogger != nil {
+				s.parallelLogger.Merge("Merge failed for %s: %v", workspace.TaskID, err)
+			}
 			return fmt.Errorf("merge failed: %w: %s", err, string(output))
 		}
 	}
 
 	s.logInfo("Successfully merged %s into %s", workspace.GetBranch(), baseBranch)
+	if s.parallelLogger != nil {
+		s.parallelLogger.Merge("Successfully merged %s into %s", workspace.GetBranch(), baseBranch)
+	}
 
 	// Keep merged branches for history (branch deletion disabled)
 

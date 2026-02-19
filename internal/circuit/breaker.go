@@ -13,11 +13,15 @@ const (
 	OpenThreshold     = 3 // Loops without progress before OPEN
 )
 
+// StateChangeCallback is called when circuit breaker state changes
+type StateChangeCallback func(fromState, toState State, reason string)
+
 // Breaker implements the circuit breaker pattern
 type Breaker struct {
-	basePath    string
-	stateFile   string
-	historyFile string
+	basePath        string
+	stateFile       string
+	historyFile     string
+	onStateChange   StateChangeCallback
 }
 
 // New creates a new circuit breaker
@@ -28,6 +32,11 @@ func New(basePath string) *Breaker {
 		stateFile:   filepath.Join(hermesDir, "circuit-state.json"),
 		historyFile: filepath.Join(hermesDir, "circuit-history.json"),
 	}
+}
+
+// SetStateChangeCallback sets a callback for state changes
+func (b *Breaker) SetStateChangeCallback(cb StateChangeCallback) {
+	b.onStateChange = cb
 }
 
 // Initialize creates the state file if it doesn't exist
@@ -157,6 +166,10 @@ func (b *Breaker) AddLoopResultWithErrorLimit(hasProgress, hasError bool, loopNu
 			Progress:   hasProgress,
 			HasError:   hasError,
 		})
+		// Call state change callback
+		if b.onStateChange != nil {
+			b.onStateChange(oldState, state.State, state.Reason)
+		}
 	}
 
 	if err := b.saveState(state); err != nil {
@@ -184,6 +197,10 @@ func (b *Breaker) Reset(reason string) error {
 			ToState:   StateClosed,
 			Reason:    reason,
 		})
+		// Call state change callback
+		if b.onStateChange != nil {
+			b.onStateChange(oldState.State, StateClosed, reason)
+		}
 	}
 
 	return b.saveState(state)
