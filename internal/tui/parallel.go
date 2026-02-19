@@ -161,7 +161,7 @@ func (m *ParallelModel) View() string {
 		Padding(0, 1)
 
 	header := headerStyle.Render("HERMES PARALLEL EXECUTION")
-	version := lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render("v2.0.0")
+	version := lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render("v2.5")
 	headerLine := fmt.Sprintf("%s %s", header, version)
 
 	sb.WriteString(headerLine)
