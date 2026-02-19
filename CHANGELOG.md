@@ -2,8 +2,11 @@
 
 All notable changes to Hermes Autonomous Agent are documented in this file.
 
-## v2.5.1
+## v2.5.2
 
+- Mandatory HERMES_STATUS block enforcement - AI responses without status block trigger retry
+- Implicit documentation dependencies - doc tasks automatically deferred to end of execution
+- Added `implicitDocDependencies` config option (default: true)
 - Fixed task status not updating to COMPLETED in parallel execution with isolated workspaces
 - Task status now updated after successful merge (not in worktree where .hermes is gitignored)
 - Added circuit breaker state change logging to hermes.log
@@ -11,9 +14,8 @@ All notable changes to Hermes Autonomous Agent are documented in this file.
 - Added MergeFeatureBranch for sequential mode - feature branches now merge to main on completion
 - Fixed TUI parallel execution not logging (scheduler logger was nil)
 - Added execution start/stop/interrupt logging
-- Reordered CLI initialization for proper signal handler logging
 
-## v2.5.0
+## v2.5.1
 
 - TUI now matches CLI run behavior: IN_PROGRESS status, auto-branch, auto-commit, feature tags
 - Added BLOCKED/AT_RISK/PAUSED status handling in TUI
@@ -25,7 +27,10 @@ All notable changes to Hermes Autonomous Agent are documented in this file.
 - Task completion, error, pause, resume, and stop events logged in TUI mode
 - Fixed Recent Activity alignment in TUI
 
-## v2.4.17
+## v2.5.0
+
+- TUI now matches CLI run behavior: IN_PROGRESS status, auto-branch, auto-commit, feature tags
+- Added BLOCKED/AT_RISK/PAUSED status handling in TUI
 
 - Worktrees now cleaned up on execution cancel or completion
 - Workers displayed on separate lines in TUI Run screen
