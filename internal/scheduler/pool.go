@@ -292,6 +292,17 @@ func (p *WorkerPool) executeTask(workerID int, t *task.Task, attempt int) *TaskR
 
 	// Analyze AI response to determine if task is truly complete
 	respAnalyzer := analyzer.NewResponseAnalyzer()
+
+	// Check if HERMES_STATUS block is present - if not, treat as incomplete
+	if !respAnalyzer.HasStatusBlock(execResult.Output) {
+		result.Success = false
+		result.Error = fmt.Errorf("missing HERMES_STATUS block in AI response")
+		if p.logger != nil {
+			p.logger.Worker(workerID+1, "Task %s missing HERMES_STATUS block - will retry", t.ID)
+		}
+		return result
+	}
+
 	analysis := respAnalyzer.AnalyzeWithCriteria(execResult.Output, t.SuccessCriteria)
 
 	if p.logger != nil {

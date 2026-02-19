@@ -152,12 +152,17 @@ func (i *Injector) generateTaskSection(t *task.Task) string {
 	sb.WriteString("4. Write tests for new functionality\n")
 	sb.WriteString("5. ***Writing mock code is strictly forbidden, except for test files!***\n")
 	sb.WriteString("6. Verify all success criteria are met\n")
-	sb.WriteString("7. Ensure code compiles without errors\n")
-	sb.WriteString("8. **MANDATORY: Output the HERMES_STATUS block at the end of your response**\n\n")
+	sb.WriteString("7. Ensure code compiles without errors\n\n")
+
+	sb.WriteString("---\n")
+	sb.WriteString("## CRITICAL: HERMES_STATUS BLOCK IS MANDATORY\n\n")
+	sb.WriteString("**YOUR RESPONSE WILL BE REJECTED IF YOU DO NOT INCLUDE THE HERMES_STATUS BLOCK!**\n\n")
+	sb.WriteString("You MUST end your response with one of the status blocks below.\n")
+	sb.WriteString("Without this block, your work will NOT be saved and the task will be retried.\n\n")
+	sb.WriteString("---\n\n")
 
 	sb.WriteString("### Status Reporting (REQUIRED)\n\n")
-	sb.WriteString("**You MUST output one of the following status blocks at the END of your response.**\n")
-	sb.WriteString("**Without a status block, the task will NOT be marked as complete!**\n\n")
+	sb.WriteString("**ALWAYS output one of these status blocks at the VERY END of your response:**\n\n")
 	sb.WriteString("**COMPLETE** - All success criteria met, code compiles, tests pass:\n")
 	sb.WriteString("```\n")
 	sb.WriteString("---HERMES_STATUS---\n")
@@ -190,6 +195,7 @@ func (i *Injector) generateTaskSection(t *task.Task) string {
 	sb.WriteString("RECOMMENDATION: <describe next steps>\n")
 	sb.WriteString("---END_HERMES_STATUS---\n")
 	sb.WriteString("```\n\n")
+	sb.WriteString("**REMEMBER: No status block = task will be retried!**\n\n")
 
 	sb.WriteString(TaskSectionEnd)
 

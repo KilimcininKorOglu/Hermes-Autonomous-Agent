@@ -551,6 +551,16 @@ func (m *RunModel) executeNextTask() tea.Cmd {
 
 		// Analyze response
 		respAnalyzer := analyzer.NewResponseAnalyzer()
+
+		// Check if HERMES_STATUS block is present - if not, treat as error
+		if !respAnalyzer.HasStatusBlock(result.Output) {
+			if m.logger != nil {
+				m.logger.Warn("Task %s missing HERMES_STATUS block - will retry", nextTask.ID)
+			}
+			m.breaker.AddLoopResultWithErrorLimit(false, true, m.loopCount, m.config.TaskMode.MaxConsecutiveErrors)
+			return runTaskCompleteMsg{taskID: nextTask.ID, err: fmt.Errorf("missing HERMES_STATUS block")}
+		}
+
 		analysis := respAnalyzer.AnalyzeWithCriteria(result.Output, nextTask.SuccessCriteria)
 
 		// Update circuit breaker

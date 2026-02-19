@@ -247,6 +247,14 @@ func runExecute(cmd *cobra.Command, args []string) error {
 		}
 
 		// Analyze response
+		// Check if HERMES_STATUS block is present - if not, treat as error and retry
+		if !respAnalyzer.HasStatusBlock(result.Output) {
+			logger.Warn("Task %s missing HERMES_STATUS block - will retry", nextTask.ID)
+			breaker.AddLoopResultWithErrorLimit(false, true, loopNumber, cfg.TaskMode.MaxConsecutiveErrors)
+			time.Sleep(time.Duration(cfg.Loop.ErrorDelay) * time.Second)
+			continue
+		}
+
 		analysis := respAnalyzer.AnalyzeWithCriteria(result.Output, nextTask.SuccessCriteria)
 		logger.Debug("Analysis: progress=%v complete=%v blocked=%v atRisk=%v paused=%v confidence=%.2f criteria=%d/%d",
 			analysis.HasProgress, analysis.IsComplete, analysis.IsBlocked, analysis.IsAtRisk, analysis.IsPaused, analysis.Confidence, analysis.CriteriaMet, analysis.CriteriaTotal)
