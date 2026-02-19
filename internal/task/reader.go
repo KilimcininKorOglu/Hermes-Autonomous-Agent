@@ -4,12 +4,14 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 // Reader reads and parses task files
 type Reader struct {
-	basePath string
-	tasksDir string
+	basePath            string
+	tasksDir            string
+	implicitDocDeps     bool
 }
 
 // NewReader creates a new task reader
@@ -18,6 +20,20 @@ func NewReader(basePath string) *Reader {
 		basePath: basePath,
 		tasksDir: filepath.Join(basePath, ".hermes", "tasks"),
 	}
+}
+
+// NewReaderWithOptions creates a new task reader with options
+func NewReaderWithOptions(basePath string, implicitDocDeps bool) *Reader {
+	return &Reader{
+		basePath:        basePath,
+		tasksDir:        filepath.Join(basePath, ".hermes", "tasks"),
+		implicitDocDeps: implicitDocDeps,
+	}
+}
+
+// SetImplicitDocDependencies enables/disables implicit doc dependencies
+func (r *Reader) SetImplicitDocDependencies(enabled bool) {
+	r.implicitDocDeps = enabled
 }
 
 // HasTasks returns true if tasks directory exists and has files
@@ -184,22 +200,49 @@ func (r *Reader) GetNextTask() (*Task, error) {
 
 	// Find first available task by priority
 	var candidates []Task
+	var docCandidates []Task
+	
 	for _, t := range tasks {
 		if t.CanStart(completed) {
-			candidates = append(candidates, t)
+			// If implicit doc deps enabled, separate doc tasks
+			if r.implicitDocDeps && isDocTask(t.Name) && len(t.Dependencies) == 0 && len(t.DependsOn) == 0 {
+				docCandidates = append(docCandidates, t)
+			} else {
+				candidates = append(candidates, t)
+			}
 		}
 	}
 
-	if len(candidates) == 0 {
-		return nil, nil
+	// If we have non-doc candidates, use them first
+	if len(candidates) > 0 {
+		// Sort by priority
+		sort.Slice(candidates, func(i, j int) bool {
+			return candidates[i].Priority < candidates[j].Priority
+		})
+		return &candidates[0], nil
 	}
 
-	// Sort by priority
-	sort.Slice(candidates, func(i, j int) bool {
-		return candidates[i].Priority < candidates[j].Priority
-	})
+	// If only doc candidates remain, use them
+	if len(docCandidates) > 0 {
+		sort.Slice(docCandidates, func(i, j int) bool {
+			return docCandidates[i].Priority < docCandidates[j].Priority
+		})
+		return &docCandidates[0], nil
+	}
 
-	return &candidates[0], nil
+	return nil, nil
+}
+
+// isDocTask checks if a task name indicates it's a documentation task
+func isDocTask(name string) bool {
+	docKeywords := []string{"documentation", "readme", "guide", "api doc"}
+	nameLower := strings.ToLower(name)
+	for _, kw := range docKeywords {
+		if strings.Contains(nameLower, kw) {
+			return true
+		}
+	}
+	return false
 }
 
 // GetProgress calculates overall progress

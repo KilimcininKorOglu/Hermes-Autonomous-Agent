@@ -101,6 +101,7 @@ func runExecute(cmd *cobra.Command, args []string) error {
 
 	// Initialize components
 	reader := task.NewReader(".")
+	reader.SetImplicitDocDependencies(cfg.Parallel.ImplicitDocDependencies)
 	breaker := circuit.New(".")
 	gitOps := git.New(".")
 	injector := prompt.NewInjector(".")

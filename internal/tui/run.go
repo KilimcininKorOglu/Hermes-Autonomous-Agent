@@ -93,6 +93,7 @@ func NewRunModel(basePath string, logger *ui.Logger) *RunModel {
 
 	breaker := circuit.New(basePath)
 	reader := task.NewReader(basePath)
+	reader.SetImplicitDocDependencies(cfg.Parallel.ImplicitDocDependencies)
 
 	// Set up circuit breaker state change logging
 	if logger != nil {
