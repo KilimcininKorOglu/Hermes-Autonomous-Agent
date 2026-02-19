@@ -192,3 +192,43 @@ func TestDetectFileConflicts(t *testing.T) {
 		t.Error("file2.go should be a conflict")
 	}
 }
+
+func TestImplicitDocDependencies(t *testing.T) {
+	tasks := []*task.Task{
+		{ID: "T001", Name: "Implement Feature A", Status: task.StatusNotStarted},
+		{ID: "T002", Name: "Implement Feature B", Status: task.StatusNotStarted},
+		{ID: "T003", Name: "Create API Documentation", Status: task.StatusNotStarted},
+		{ID: "T004", Name: "Create Deployment Guide", Status: task.StatusNotStarted},
+	}
+
+	// Without implicit deps, doc tasks should be in first batch
+	graphWithout, _ := NewTaskGraphWithOptions(tasks, false)
+	batchesWithout, _ := graphWithout.GetBatches()
+	
+	// All 4 tasks should be in first batch (no dependencies)
+	if len(batchesWithout[0]) != 4 {
+		t.Errorf("Without implicit deps: expected 4 tasks in first batch, got %d", len(batchesWithout[0]))
+	}
+
+	// Reset task dependencies for next test
+	tasks[2].Dependencies = nil
+	tasks[3].Dependencies = nil
+
+	// With implicit deps, doc tasks should be in last batch
+	graphWith, _ := NewTaskGraphWithOptions(tasks, true)
+	batchesWithout, _ = graphWith.GetBatches()
+	
+	// First batch should have only non-doc tasks (T001, T002)
+	firstBatchIDs := make(map[string]bool)
+	for _, t := range batchesWithout[0] {
+		firstBatchIDs[t.ID] = true
+	}
+	
+	if firstBatchIDs["T003"] || firstBatchIDs["T004"] {
+		t.Error("With implicit deps: doc tasks should not be in first batch")
+	}
+	
+	if !firstBatchIDs["T001"] || !firstBatchIDs["T002"] {
+		t.Error("With implicit deps: non-doc tasks should be in first batch")
+	}
+}

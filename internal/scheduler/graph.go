@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"fmt"
+	"strings"
 
 	"hermes/internal/task"
 )
@@ -51,6 +52,16 @@ type TaskGraph struct {
 
 // NewTaskGraph creates a new task graph from a list of tasks
 func NewTaskGraph(tasks []*task.Task) (*TaskGraph, error) {
+	return NewTaskGraphWithOptions(tasks, false)
+}
+
+// NewTaskGraphWithOptions creates a new task graph with optional implicit dependencies
+func NewTaskGraphWithOptions(tasks []*task.Task, implicitDocDeps bool) (*TaskGraph, error) {
+	// Apply implicit dependencies for documentation tasks if enabled
+	if implicitDocDeps {
+		addImplicitDocDependencies(tasks)
+	}
+
 	g := &TaskGraph{
 		nodes: make(map[string]*TaskNode),
 		edges: make(map[string][]string),
@@ -364,6 +375,42 @@ func (g *TaskGraph) IsComplete() bool {
 func (g *TaskGraph) HasFailures() bool {
 	for _, node := range g.nodes {
 		if node.Status == NodeFailed {
+			return true
+		}
+	}
+	return false
+}
+
+// addImplicitDocDependencies adds implicit dependencies for documentation tasks
+// Documentation tasks should run after all non-documentation tasks are complete
+func addImplicitDocDependencies(tasks []*task.Task) {
+	docKeywords := []string{"documentation", "readme", "guide", "api doc"}
+	
+	// Collect all non-doc task IDs
+	var nonDocTaskIDs []string
+	var docTasks []*task.Task
+	
+	for _, t := range tasks {
+		if isDocTask(t.Name, docKeywords) {
+			docTasks = append(docTasks, t)
+		} else {
+			nonDocTaskIDs = append(nonDocTaskIDs, t.ID)
+		}
+	}
+	
+	// Add implicit dependencies to doc tasks that have no explicit dependencies
+	for _, t := range docTasks {
+		if len(t.Dependencies) == 0 && len(t.DependsOn) == 0 {
+			t.Dependencies = nonDocTaskIDs
+		}
+	}
+}
+
+// isDocTask checks if a task name indicates it's a documentation task
+func isDocTask(name string, keywords []string) bool {
+	nameLower := strings.ToLower(name)
+	for _, kw := range keywords {
+		if strings.Contains(nameLower, kw) {
 			return true
 		}
 	}

@@ -82,7 +82,7 @@ func (s *Scheduler) SetProgressCallback(callback ProgressCallback) {
 
 // GetExecutionPlan returns the planned execution order without executing
 func (s *Scheduler) GetExecutionPlan(tasks []*task.Task) (*ExecutionPlan, error) {
-	graph, err := NewTaskGraph(tasks)
+	graph, err := NewTaskGraphWithOptions(tasks, s.config.ImplicitDocDependencies)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build task graph: %w", err)
 	}
@@ -110,8 +110,8 @@ func (s *Scheduler) Execute(ctx context.Context, tasks []*task.Task) (*Execution
 	// Cleanup worktrees on exit (cancelled or completed)
 	defer s.cleanupWorktrees()
 
-	// Build task graph
-	graph, err := NewTaskGraph(tasks)
+	// Build task graph with implicit doc dependencies if enabled
+	graph, err := NewTaskGraphWithOptions(tasks, s.config.ImplicitDocDependencies)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build task graph: %w", err)
 	}
