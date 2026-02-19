@@ -12,6 +12,8 @@ This project uses Hermes for AI-powered autonomous application development.
 - ***When writing text, you will always follow the grammar rules of the language you are using! For example: if it's Turkish, follow Turkish grammar rules; if it's English, follow English grammar rules, and so on.***
 - ***Tables in Markdown files must be aligned!***
 - ***Readme files will be emoji-free and professionally designed.***
+- ***If the tool you're using is giving an error, don't try the same usage repeatedly! Analyze why the tool is giving the error and apply the correct usage!***
+- ***There's no time limit. Relax. Do it slowly but surely.*** 
 
 ## Code Style
 
