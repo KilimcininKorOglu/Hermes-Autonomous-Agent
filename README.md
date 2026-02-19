@@ -166,6 +166,8 @@ hermes run --parallel --workers 5 --auto-commit
 - **Conflict Detection** - Detects file-level and semantic conflicts
 - **AI-Assisted Merge** - LLM-powered conflict resolution
 - **Rollback Support** - Automatic snapshot and recovery
+- **Implicit Doc Dependencies** - Documentation tasks auto-deferred to end
+- **Mandatory Status Block** - AI must output HERMES_STATUS block or task retries
 
 ### Configuration
 
@@ -182,22 +184,24 @@ Add to `.hermes/config.json`:
     "mergeStrategy": "sequential",
     "maxCostPerHour": 0,
     "failureStrategy": "continue",
-    "maxRetries": 2
+    "maxRetries": 2,
+    "implicitDocDependencies": true
   }
 }
 ```
 
-| Option             | Default           | Description                |
-|--------------------|-------------------|----------------------------|
-| enabled            | false             | Enable parallel by default |
-| maxWorkers         | 3                 | Maximum parallel AI agents |
-| strategy           | "branch-per-task" | Branching strategy         |
-| conflictResolution | "ai-assisted"     | Conflict resolution method |
-| isolatedWorkspaces | true              | Use git worktrees          |
-| mergeStrategy      | "sequential"      | How to merge results       |
-| maxCostPerHour     | 0                 | Cost limit (0 = unlimited) |
-| failureStrategy    | "continue"        | fail-fast or continue      |
-| maxRetries         | 2                 | Retry failed tasks         |
+| Option                  | Default           | Description                         |
+|-------------------------|-------------------|-------------------------------------|
+| enabled                 | false             | Enable parallel by default          |
+| maxWorkers              | 3                 | Maximum parallel AI agents          |
+| strategy                | "branch-per-task" | Branching strategy                  |
+| conflictResolution      | "ai-assisted"     | Conflict resolution method          |
+| isolatedWorkspaces      | true              | Use git worktrees                   |
+| mergeStrategy           | "sequential"      | How to merge results                |
+| maxCostPerHour          | 0                 | Cost limit (0 = unlimited)          |
+| failureStrategy         | "continue"        | fail-fast or continue               |
+| maxRetries              | 2                 | Retry failed tasks                  |
+| implicitDocDependencies | true              | Defer doc tasks to end of execution |
 
 ## AI Providers
 
@@ -455,6 +459,8 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
 ### Recent Changes (v2.5.1)
 
+- Mandatory HERMES_STATUS block enforcement - AI responses without status block trigger retry
+- Implicit documentation dependencies - doc tasks automatically deferred to end of execution
 - Fixed task status not updating to COMPLETED in parallel execution with isolated workspaces
 - Added circuit breaker state change logging to hermes.log
 - Added merge operation logging to merge.log
