@@ -268,6 +268,7 @@ func (s *Scheduler) executeBatch(ctx context.Context, graph *TaskGraph, batch []
 	// Merge and cleanup workspaces for isolated execution
 	if s.config.IsolatedWorkspaces && len(successfulTasks) > 0 {
 		s.logInfo("Merging %d successful task branches...", len(successfulTasks))
+		statusUpdater := task.NewStatusUpdater(s.workDir)
 		for _, taskID := range successfulTasks {
 			workspace := pool.GetWorkspace(taskID)
 			if workspace != nil && workspace.IsIsolated() {
@@ -276,6 +277,12 @@ func (s *Scheduler) executeBatch(ctx context.Context, graph *TaskGraph, batch []
 					s.logError("Failed to merge branch for task %s: %v", taskID, err)
 				} else {
 					s.logInfo("Merged branch %s for task %s", workspace.GetBranch(), taskID)
+					// Update task status to COMPLETED in main project after successful merge
+					if err := statusUpdater.UpdateTaskStatus(taskID, task.StatusCompleted); err != nil {
+						s.logError("Failed to update task %s status to COMPLETED: %v", taskID, err)
+					} else {
+						s.logInfo("Task %s marked as COMPLETED", taskID)
+					}
 				}
 				// Cleanup worktree
 				if err := workspace.Cleanup(); err != nil {
