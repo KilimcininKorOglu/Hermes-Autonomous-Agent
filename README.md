@@ -1,6 +1,6 @@
 # Hermes Autonomous Agent
 
-![Version](https://img.shields.io/badge/version-v2.5.2-blue)
+![Version](https://img.shields.io/badge/version-v2.5.3-blue)
 ![Status](https://img.shields.io/badge/status-stable-green)
 ![Go](https://img.shields.io/badge/Go-1.24+-00ADD8)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
@@ -457,7 +457,7 @@ make test
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-### Recent Changes (v2.5.2)
+### Recent Changes (v2.5.3)
 
 - Mandatory HERMES_STATUS block enforcement - AI responses without status block trigger retry
 - Implicit documentation dependencies - doc tasks automatically deferred to end of execution

@@ -1,4 +1,4 @@
-# Hermes Autonomous Agent - Example Usage (v2.5.2)
+# Hermes Autonomous Agent - Example Usage (v2.5.3)
 
 Step-by-step walkthrough of using Hermes to build a project from PRD to completion.
 

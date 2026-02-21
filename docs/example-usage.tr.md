@@ -1,4 +1,4 @@
-# Hermes Autonomous Agent - Örnek Kullanım (v2.5.2)
+# Hermes Autonomous Agent - Örnek Kullanım (v2.5.3)
 
 PRD'den tamamlanmaya kadar Hermes kullanarak proje oluşturmanın adım adım rehberi.
 

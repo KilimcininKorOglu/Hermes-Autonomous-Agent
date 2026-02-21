@@ -2,6 +2,10 @@
 
 All notable changes to Hermes Autonomous Agent are documented in this file.
 
+## v2.5.3
+
+- Fixed parallel execution creating tags on wrong commit - tags now created immediately after merge
+
 ## v2.5.2
 
 - Mandatory HERMES_STATUS block enforcement - AI responses without status block trigger retry
