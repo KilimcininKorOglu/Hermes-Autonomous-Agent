@@ -11,6 +11,7 @@ import (
 	"hermes/internal/ai"
 	"hermes/internal/circuit"
 	"hermes/internal/config"
+	"hermes/internal/git"
 	"hermes/internal/isolation"
 	"hermes/internal/task"
 	"hermes/internal/ui"
@@ -269,6 +270,10 @@ func (s *Scheduler) executeBatch(ctx context.Context, graph *TaskGraph, batch []
 	if s.config.IsolatedWorkspaces && len(successfulTasks) > 0 {
 		s.logInfo("Merging %d successful task branches...", len(successfulTasks))
 		statusUpdater := task.NewStatusUpdater(s.workDir)
+		reader := task.NewReader(s.workDir)
+		gitOps := git.New(s.workDir)
+		completedFeatures := make(map[string]bool)
+		
 		for _, taskID := range successfulTasks {
 			workspace := pool.GetWorkspace(taskID)
 			if workspace != nil && workspace.IsIsolated() {
@@ -282,6 +287,30 @@ func (s *Scheduler) executeBatch(ctx context.Context, graph *TaskGraph, batch []
 						s.logError("Failed to update task %s status to COMPLETED: %v", taskID, err)
 					} else {
 						s.logInfo("Task %s marked as COMPLETED", taskID)
+					}
+					
+					// Track feature for tag creation
+					for _, t := range batch {
+						if t.ID == taskID {
+							completedFeatures[t.FeatureID] = true
+							break
+						}
+					}
+					
+					// Check if feature is complete and create tag immediately after merge
+					for featureID := range completedFeatures {
+						if featureComplete, _ := reader.IsFeatureComplete(featureID); featureComplete {
+							feature, _ := reader.GetFeatureByID(featureID)
+							if feature != nil && feature.TargetVersion != "" && gitOps.IsRepository() {
+								if err := gitOps.CreateFeatureTag(feature.ID, feature.Name, feature.TargetVersion); err != nil {
+									s.logError("Failed to create tag %s: %v", feature.TargetVersion, err)
+								} else {
+									s.logInfo("Created tag: %s for feature %s", feature.TargetVersion, feature.ID)
+								}
+								// Remove from map to avoid duplicate tag attempts
+								delete(completedFeatures, featureID)
+							}
+						}
 					}
 				}
 				// Cleanup worktree

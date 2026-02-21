@@ -504,45 +504,8 @@ func runParallel(ctx context.Context, cfg *config.Config, provider ai.Provider, 
 	logger.Info("Total execution time: %v", executionTime.Round(time.Second))
 	fmt.Printf("\n⏱️  Total execution time: %v\n", executionTime.Round(time.Second))
 
-	// Update task statuses and check for feature completion
-	statusUpdater := task.NewStatusUpdater(".")
-	gitOps := git.New(".")
-	completedFeatures := make(map[string]bool)
-
-	for _, r := range result.Results {
-		if r.Success {
-			if err := statusUpdater.UpdateTaskStatus(r.TaskID, task.StatusCompleted); err != nil {
-				logger.Warn("Failed to update task %s status: %v", r.TaskID, err)
-			}
-
-			// Track which features might be complete
-			for _, t := range allTaskPtrs {
-				if t.ID == r.TaskID {
-					completedFeatures[t.FeatureID] = true
-					break
-				}
-			}
-		}
-	}
-
-	// Check for completed features and create tags
-	for featureID := range completedFeatures {
-		if featureComplete, _ := reader.IsFeatureComplete(featureID); featureComplete {
-			feature, _ := reader.GetFeatureByID(featureID)
-			if feature != nil {
-				logger.Success("Feature %s completed: %s", feature.ID, feature.Name)
-
-				// Create git tag if TargetVersion is set
-				if feature.TargetVersion != "" && gitOps.IsRepository() {
-					if err := gitOps.CreateFeatureTag(feature.ID, feature.Name, feature.TargetVersion); err != nil {
-						logger.Warn("Failed to create tag: %v", err)
-					} else {
-						logger.Success("Created tag: %s", feature.TargetVersion)
-					}
-				}
-			}
-		}
-	}
+	// Note: Task status updates and tag creation are handled in scheduler.go
+	// after each merge to ensure tags are created on the correct commit
 
 	// Show progress bar
 	if progress, err := reader.GetProgress(); err == nil {
